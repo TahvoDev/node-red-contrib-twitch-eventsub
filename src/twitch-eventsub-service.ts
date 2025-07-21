@@ -188,7 +188,7 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelRedemptionAdd(this.userId, (event) => {
           const payload: TwitchEventRedeem = {
-            eventType: 'redeem',
+            eventType: 'channelRedemptionAdd',
             userId: parseInt(event.userId),
             userName: event.userName,
             userDisplayName: event.userDisplayName,
@@ -197,7 +197,7 @@ class TwitchEventsub {
             rewardMessage: event.input,
             rawEvent: getRawData(event),
           };
-          this.node.log('REDEEM', JSON.stringify(payload, null, '  '));
+          this.node.log('channelRedemptionAdd', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
             this.onEventCb(payload);
           }
@@ -207,14 +207,14 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelRaidTo(this.userId, (event) => {
           const payload: TwitchEventRaid = {
-            eventType: 'raid',
+            eventType: 'channelRaidTo',
             userId: parseInt(event.raidingBroadcasterId),
             userName: event.raidingBroadcasterName,
             userDisplayName: event.raidingBroadcasterDisplayName,
             viewers: event.viewers,
             rawEvent: getRawData(event),
           };
-          this.node.log('RAID', JSON.stringify(payload, null, '  '));
+          this.node.log('channelRaidTo', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
             this.onEventCb(payload);
           }
@@ -224,14 +224,14 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelSubscription(this.userId, (event) => {
           const payload: TwitchEventsubSubscribe = {
-            eventType: 'subscribe',
+            eventType: 'channelSubscription',
             userId: parseInt(event.userId),
             userName: event.userName,
             userDisplayName: event.userDisplayName,
             tier: parseInt(event.tier),
             rawEvent: getRawData(event),
           };
-          this.node.log('SUB', JSON.stringify(payload, null, '  '));
+          this.node.log('channelSubscription', JSON.stringify(payload, null, '  '));
           if (this.onEventCb && !event.isGift) {
             this.onEventCb(payload);
           }
@@ -241,7 +241,7 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelSubscriptionGift(this.userId, (event) => {
           const payload: TwitchEventSubGift = {
-            eventType: 'subscribeGift',
+            eventType: 'channelSubscriptionGift',
             userId: parseInt(event.gifterId),
             userName: event.gifterName,
             userDisplayName: event.gifterDisplayName,
@@ -259,13 +259,13 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelFollow(this.userId, this.userId, (event) => {
           const payload: TwitchEventFollow = {
-            eventType: 'follow',
+            eventType: 'channelFollow',
             userId: parseInt(event.userId),
             userName: event.userName,
             userDisplayName: event.userDisplayName,
             rawEvent: getRawData(event),
           };
-          this.node.log('FOLLOW', JSON.stringify(payload, null, '  '));
+          this.node.log('channelFollow', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
             this.onEventCb(payload);
           }
@@ -275,14 +275,14 @@ class TwitchEventsub {
       this.addSubscription(
         this.listener.onChannelCheer(this.userId, (event) => {
           const payload: TwitchEventBits = {
-            eventType: 'bits',
+            eventType: 'channelCheer',
             userId: parseInt(event.userId ?? '-1'),
             userName: event.userName ?? 'anonymous',
             userDisplayName: event.userDisplayName ?? 'Anonymous',
             amount: event.bits,
             rawEvent: getRawData(event),
           };
-          this.node.log(`BITS ${JSON.stringify(payload, null, '  ')}`);
+          this.node.log(`channelCheer ${JSON.stringify(payload, null, '  ')}`);
           if (this.onEventCb) {
             this.onEventCb(payload);
           }
