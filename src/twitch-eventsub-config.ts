@@ -8,6 +8,8 @@ type TwitchEventsubConfigProps = {
   twitch_client_secret: string;
   twitch_auth_token: string;
   twitch_refresh_token: string;
+  enable_local_testing: { value: false },
+  local_websocket_url: { value: "" },
 }
 
 type Status = {
