@@ -1,5 +1,5 @@
 {
-  "name": "@xureilab/node-red-twitch-eventsub",
+  "name": "@tahvo/node-red-twitch-eventsub",
   "version": "0.1.1",
   "description": "Connect to Twitch EventSub API",
   "main": "index.js",
