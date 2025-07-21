@@ -122,7 +122,7 @@
 
         <div class="form-row">
           <label for="node-input-enable_local_testing">
-            <input type="checkbox" id="node-input-enable_local_testing" style="display:inline-block; width:auto; vertical-align:top;">
+            <input type="checkbox" id="node-input-enable_local_testing>">
             <span>Enable Local Testing</span>
           </label>
         </div>
@@ -135,32 +135,6 @@
           <label for="node-input-local_websocket_url"><i class="fa fa-link"></i> Local WebSocket URL</label>
           <input type="text" id="node-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
         </div>
-
-        <!-- Show/Hide WebSocket URL -->
-        <script type="text/javascript">
-          // This will be called by Node-RED when the edit dialog is being prepared
-          oneditprepare = function () {
-            function updateLocalWsVisibility() {
-              const enabled = $('#node-input-enable_local_testing').is(':checked');
-              const $urlField = $('#node-input-local_websocket_url');
-              const $container = $('#local-websocket-url-container');
-
-              if (enabled) {
-                $container.show();
-                if (!$urlField.val()) {
-                  $urlField.val('ws://localhost:8080/ws');
-                }
-              } else {
-                $container.hide();
-              }
-            }
-
-            $('#node-input-enable_local_testing').on('change', updateLocalWsVisibility);
-
-            // Call once on dialog open to sync state
-            updateLocalWsVisibility();
-          };
-        </script>
         <p>
             The Twitch logo is the property of Twitch Interactive, Inc.
             Its use is subject to Twitch's brand guidelines and terms of service. <br/>
