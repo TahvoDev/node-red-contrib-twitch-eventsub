@@ -121,20 +121,20 @@
         </p>
 
         <div class="form-row">
-          <label for="node-input-enable_local_testing">
-            <input type="checkbox" id="node-input-enable_local_testing>">
-            <span>Enable Local Testing</span>
-          </label>
+            <label for="node-config-input-enable_local_testing"><i class="fa fa-lock"></i> Enable Local Testing</label>
+            <input type="checkbox" id="node-config-input-enable_local_testing">
         </div>
+
         <p>
-          When this option is enabled, the EventSub WebSocket will connect to a local WebSocket URL.  
-          This is useful for testing with <a href="https://dev.twitch.tv/docs/cli/event/" target="_blank">Twitch CLI</a>.
+          Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
+          <br/>Only for local testing. If enabled, normal events will not work!
         </p>
 
-        <div class="form-row" id="local-websocket-url-container" style="display: none;">
-          <label for="node-input-local_websocket_url"><i class="fa fa-link"></i> Local WebSocket URL</label>
-          <input type="text" id="node-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
+        <div class="form-row">
+            <label for="node-config-input-local_websocket_url"><i class="fa fa-tag"></i> Twitch Client ID</label>
+            <input type="text" id="node-config-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
         </div>
+
         <p>
             The Twitch logo is the property of Twitch Interactive, Inc.
             Its use is subject to Twitch's brand guidelines and terms of service. <br/>
