@@ -49,22 +49,19 @@ function renameEventFromFnName(fname: string) {
 }
 
 class TwitchEventsub {
-  clientId: string;
-  userId: number;
-  user: HelixUser | null = null;
+  clientId?: string | null;
+  userId?: number | null;
+  user!: HelixUser | null;
   authProvider: RefreshingAuthProvider;
   apiClient!: ApiClient;
   listener!: EventSubWsListener;
   subscriptions: EventSubSubscriptionWithStatus[] = [];
   node: AbstractNode;
   localWebsocketUrl: string;
-  reconnectAttempts: number = 0;
-  maxReconnectAttempts: number = 5;
-  reconnectDelay: number = 5000; // 5 seconds
 
   onEventCb?: (event: TwitchEvent) => void;
+
   onAuthError?: () => void;
-  onConnectionError?: (error: Error) => void;
 
   constructor(
     node: AbstractNode,
@@ -74,214 +71,63 @@ class TwitchEventsub {
     localWebsocketUrl: string
   ) {
     this.node = node;
+    this.node.log('NEW TwitchEventsub', clientId, userId);
     this.userId = userId;
     this.clientId = clientId;
     this.localWebsocketUrl = localWebsocketUrl;
-    
-    this.node.log('Initializing TwitchEventsub', { clientId, userId });
-    
-    try {
-      this.authProvider = new RefreshingAuthProvider({
-        clientId: clientId,
-        clientSecret: clientSecret,
-      });
-      
-      // Set up token refresh handler
-      this.authProvider.onRefresh(async (userId, newTokenData) => {
-        this.node.log(`Auth token refreshed for user ${userId}`);
-      });
-      
-      // Set up refresh failure handler with proper error type
-      this.authProvider.onRefreshFailure((userId: string, error: Error) => {
-        const errorMsg = `Failed to refresh token for user ${userId}: ${error.message}`;
-        this.node.error(errorMsg);
-        if (this.onAuthError) {
-          this.onAuthError();
-        }
-      });
-      
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      this.node.error(`Failed to initialize auth provider: ${errorMessage}`);
-      throw error;
-    }
-  }
-
-  // Check if the WebSocket connection is ready
-  private isConnected(): boolean {
-    if (!this.listener) return false;
-    const wsClient = (this.listener as any).client;
-    return wsClient && wsClient.isConnected && wsClient.isConnected();
-  }
-
-  // Wait for the WebSocket connection to be established
-  private async waitForConnection(timeout = 10000): Promise<boolean> {
-    const startTime = Date.now();
-    while (Date.now() - startTime < timeout) {
-      if (this.isConnected()) {
-        return true;
-      }
-      await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    return false;
+    this.authProvider = new RefreshingAuthProvider({
+      clientId: clientId,
+      clientSecret: clientSecret,
+    });
   }
 
   async init(refreshToken: string): Promise<void> {
     if (!this.userId) {
-      throw new Error('User ID is required for initialization');
+      return;
     }
 
-    try {
-      this.node.log('Initializing Twitch EventSub with refresh token...');
-      
-      //@ts-ignore
-      await this.authProvider.addUserForToken({
-        accessToken: '',
-        refreshToken: refreshToken,
-      });
+    //@ts-ignore
+    await this.authProvider.addUserForToken({
+      accessToken: '',
+      refreshToken: refreshToken,
+    });
 
-      this.apiClient = new ApiClient({
-        authProvider: this.authProvider,
-        logger: { minLevel: 'warning' }
-      });
+    this.apiClient = new ApiClient({authProvider: this.authProvider});
       
-      const listenerOptions: any = { 
-        apiClient: this.apiClient,
-        logger: {
-          minLevel: 'debug',
-          custom: (level, message) => {
-            this.node.log(`[Twurple] ${level}: ${message}`);
-          }
-        },
-        // Add more aggressive reconnection settings
-        connection: {
-          maxRetries: 5,
-          maxRetryInterval: 30000,
-          retryInterval: 1000
-        }
-      };
+    const listenerOptions: any = { apiClient: this.apiClient };
 
-      if (this.localWebsocketUrl && this.localWebsocketUrl.trim() !== '') {
-        this.node.log(`Using local WebSocket URL: ${this.localWebsocketUrl}`);
-        listenerOptions.url = this.localWebsocketUrl;
-      } else {
-        this.node.log('Using default Twitch EventSub WebSocket URL');
-      }
-
-      this.listener = new EventSubWsListener(listenerOptions);
-      this.setupEventHandlers();
-
-      this.user = await this.apiClient.users.getUserById(this.userId);
-      this.node.log(`Authenticated as user: ${this.user?.displayName} (${this.user?.id})`);
-
-      // Start the listener
-      await this.listener.start();
-      
-      // Wait for the connection to be established
-      const isConnected = await this.waitForConnection();
-      if (!isConnected) {
-        throw new Error('Failed to establish WebSocket connection within timeout');
-      }
-      
-      this.node.log('EventSub listener started and connected successfully');
-      this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
-      
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during initialization';
-      this.node.error(`Failed to initialize Twitch EventSub: ${errorMessage}`);
-      
-      if (this.reconnectAttempts < this.maxReconnectAttempts) {
-        this.reconnectAttempts++;
-        const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1);
-        this.node.log(`Will attempt to reconnect in ${delay/1000} seconds (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-        
-        await new Promise(resolve => setTimeout(resolve, delay));
-        return this.init(refreshToken);
-      }
-      
-      throw error instanceof Error ? error : new Error(errorMessage);
+    if (this.localWebsocketUrl && this.localWebsocketUrl.trim() !== '') {
+      this.node.log('Twitch EventSub using local websocket URL:', this.localWebsocketUrl);
+      listenerOptions.url = this.localWebsocketUrl;
     }
-  }
-  
-  private setupEventHandlers(): void {
-    // Handle subscription creation success
+
+    this.listener = new EventSubWsListener(listenerOptions);
+
+    this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
+
     this.listener.onSubscriptionCreateSuccess((subscription) => {
-      this.node.log(`✅ Subscription Created: ${subscription.id}`);
+      this.node.log(`Subscription Created: ${subscription.id}`);
       const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
       if (subscriptionWithStatus) {
         subscriptionWithStatus.updateStatus(null);
       }
     });
 
-    // Handle subscription creation failure
-    this.listener.onSubscriptionCreateFailure((subscription, error: Error) => {
-      const errorMsg = `❌ Subscription Failed: ${subscription.id} - ${error.message}`;
-      this.node.error(errorMsg);
-      
+    this.listener.onSubscriptionCreateFailure((subscription, error) => {
+      this.node.error(`Subscription Failed: ${subscription.id}`);
       const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
       if (subscriptionWithStatus) {
-        subscriptionWithStatus.updateStatus(new Error(errorMsg));
+        const errMsgEndPos = error.message.indexOf(') and can not be upgraded.');
+        if (errMsgEndPos !== -1) {
+          error.message = error.message.substring(0, errMsgEndPos + 1);
+        }
+        subscriptionWithStatus.updateStatus(error);
       }
-      
-      if (this.onConnectionError) {
-        this.onConnectionError(new Error(errorMsg));
+      if (this.onAuthError) {
+        this.node.log('ON AUTH ERROR');
+        this.onAuthError();
       }
     });
-    
-    // Handle WebSocket connection errors using the underlying socket
-    const wsClient = (this.listener as any).client;
-    if (wsClient) {
-      wsClient.on('error', (error: Error) => {
-        const errorMsg = `WebSocket error: ${error.message}`;
-        this.node.error(errorMsg);
-        if (this.onConnectionError) {
-          this.onConnectionError(new Error(errorMsg));
-        }
-      });
-      
-      wsClient.on('connect', () => {
-        this.node.log('✅ WebSocket connection established with Twitch EventSub');
-      });
-      
-      wsClient.on('close', (code: number, reason: string) => {
-        const closeMsg = `WebSocket connection closed: ${reason || 'No reason provided'} (code: ${code})`;
-        this.node.warn(closeMsg);
-        
-        // Attempt to reconnect if the connection was closed unexpectedly
-        if (code !== 1000) { // 1000 is a normal closure
-          this.node.log('Attempting to reconnect...');
-          setTimeout(() => this.reconnect(), this.reconnectDelay);
-        }
-      });
-    } else {
-      this.node.warn('Could not access WebSocket client for error handling');
-    }
-  }
-  
-  private async reconnect(): Promise<void> {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      this.node.error('Max reconnection attempts reached');
-      return;
-    }
-    
-    this.reconnectAttempts++;
-    const delay = Math.min(
-      this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1),
-      30000 // Max 30 seconds between retries
-    );
-    
-    this.node.log(`Attempting to reconnect in ${delay/1000} seconds (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})`);
-    
-    try {
-      await new Promise(resolve => setTimeout(resolve, delay));
-      await this.listener.start();
-      this.reconnectAttempts = 0; // Reset on successful reconnection
-      this.node.log('Successfully reconnected to Twitch EventSub');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error during reconnection';
-      this.node.error(`Reconnection attempt ${this.reconnectAttempts} failed: ${errorMessage}`);
-      // Will retry on the next connection close
-    }
   }
 
   async addSubscriptions(): Promise<void> {
@@ -496,135 +342,39 @@ class TwitchEventsub {
 
   async addSubscription(subscription: EventSubSubscription): Promise<void> {
     if (!subscription) {
-      throw new Error('Cannot add null or undefined subscription');
+      this.node.log('No subscription');
+      return;
     }
-
-    const maxRetries = 3;
-    let retryCount = 0;
-    let lastError: Error | null = null;
-
-    while (retryCount < maxRetries) {
-      try {
-        // Check if we have a valid connection
-        if (!this.isConnected()) {
-          this.node.log('WebSocket not connected, attempting to reconnect...');
-          await this.reconnect();
-          
-          // Wait for connection to be established
-          const isConnected = await this.waitForConnection(5000);
-          if (!isConnected) {
-            throw new Error('Failed to establish WebSocket connection');
-          }
+    this.node.log(`addSubscription: ${subscription.id}`);
+    return new Promise<void>((resolve, reject) => {
+      const updateStatus = (err: Error | null) => {
+        if (err) {
+          reject(err);
         }
-
-        this.node.log(`Adding subscription: ${subscription.id} (attempt ${retryCount + 1}/${maxRetries})`);
-        
-        // Check if we already have this subscription
-        const existingSubIndex = this.subscriptions.findIndex(s => s.subscription.id === subscription.id);
-        
-        // Create or update the subscription status
-        const subscriptionWithStatus: EventSubSubscriptionWithStatus = {
-          subscription,
-          updateStatus: (error: Error | null) => {
-            if (error) {
-              this.node.error(`Subscription ${subscription.id} failed: ${error.message}`);
-              if (this.onConnectionError) {
-                this.onConnectionError(error);
-              }
-            } else {
-              this.node.log(`Subscription ${subscription.id} created successfully`);
-            }
-          }
-        };
-        
-        if (existingSubIndex >= 0) {
-          // Update existing subscription
-          this.subscriptions[existingSubIndex] = subscriptionWithStatus;
-        } else {
-          // Add new subscription
-          this.subscriptions.push(subscriptionWithStatus);
+        else {
+          resolve();
         }
-        
-        // Start the subscription with a timeout
-        const subscriptionPromise = subscription.start();
-        const timeoutPromise = new Promise<never>((_, reject) => 
-          setTimeout(() => reject(new Error('Subscription start timed out')), 10000)
-        );
-        
-        await Promise.race([subscriptionPromise, timeoutPromise]);
-        
-        // If we get here, the subscription was successful
-        this.node.log(`Successfully added subscription: ${subscription.id}`);
-        return;
-        
-      } catch (error) {
-        lastError = error instanceof Error ? error : new Error(String(error));
-        retryCount++;
-        
-        this.node.error(`Attempt ${retryCount} failed for subscription ${subscription.id}: ${lastError.message}`);
-        
-        // If it's not a connection error, don't retry
-        if (!lastError.message.includes('WebSocket') && !lastError.message.includes('connection')) {
-          break;
-        }
-        
-        // Wait before retrying (exponential backoff)
-        const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
-        this.node.log(`Retrying in ${delay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, delay));
-      }
-    }
-    
-    // If we've exhausted all retries, throw the last error
-    if (lastError) {
-      this.node.error(`Failed to add subscription after ${maxRetries} attempts: ${lastError.message}`);
-      throw lastError;
-    }
-    
-    throw new Error('Failed to add subscription: Unknown error');
+      };
+      this.subscriptions.push({
+        subscription: subscription,
+        updateStatus: updateStatus,
+      });
+    });
   }
 
-  async stop(): Promise<void> {
-    this.node.log('Stopping TwitchEventsub...');
-    
+  async stop() {
     try {
-      // Stop all active subscriptions
-      const stopPromises = this.subscriptions.map(async (sub) => {
-        try {
-          this.node.log(`Stopping subscription: ${sub.subscription.id}`);
-          await sub.subscription.stop();
-          this.node.log(`Successfully stopped subscription: ${sub.subscription.id}`);
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          this.node.error(`Error stopping subscription ${sub.subscription.id}: ${errorMessage}`);
-          // Don't rethrow to ensure we try to stop all subscriptions
-        }
-      });
-      
-      // Wait for all subscriptions to stop
-      await Promise.all(stopPromises);
-      
-      // Clear the subscriptions array
+      this.node.log('Stopping TwitchEventsub...');
+      const tokenInfo = await this.authProvider.getAccessTokenForUser(this.userId ?? '');
+      await Promise.all(this.subscriptions.map(subscription => {
+        subscription.subscription.stop();
+        return this.deleteSubscription(tokenInfo?.accessToken, subscription.subscription._twitchId);
+      }));
       this.subscriptions = [];
-      
-      // Stop the listener if it exists
-      if (this.listener) {
-        try {
-          this.node.log('Stopping EventSub listener...');
-          await this.listener.stop();
-          this.node.log('Successfully stopped EventSub listener');
-        } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-          this.node.error(`Error stopping EventSub listener: ${errorMessage}`);
-          throw error; // Re-throw to be handled by the outer try-catch
-        }
-      }
-      
-      this.node.log('TwitchEventsub stopped successfully');
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.node.error(`Failed to gracefully shutdown TwitchEventsub: ${errorMessage}`);
-      throw error; // Re-throw to allow the caller to handle the error
+      this.listener?.stop();
+    }
+    catch (e) {
+      console.error('Failed to gracefully shutdown', e);
     }
   }
 
