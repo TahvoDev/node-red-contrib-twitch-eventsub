@@ -67,7 +67,6 @@ class TwitchEventsub {
     userId: number,
     clientId: string,
     clientSecret: string,
-    localWebsocketUrl: string
   ) {
     this.node = node;
     this.node.log('NEW TwitchEventsub', clientId, userId);
