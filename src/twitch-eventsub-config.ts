@@ -35,7 +35,8 @@ module.exports = function (RED: Red) {
         this,
         config.broadcaster_id,
         config.twitch_client_id,
-        config.twitch_client_secret
+        config.twitch_client_secret,
+        config.local_websocket_port,
       );
       this.on('close', (done: () => void) => {
         this.takedown().then(done);
