@@ -102,14 +102,48 @@ class TwitchEventsub {
     }
 
     try {
-      this.node.log('Creating EventSub WebSocket listener...');
+      this.node.log('[INIT] Creating EventSub WebSocket listener...');
+      
+      // Add debug logging for WebSocket URL
+      const wsUrl = listenerOptions.url || 'wss://eventsub.wss.twitch.tv/ws';
+      this.node.log(`[INIT] Connecting to WebSocket URL: ${wsUrl}`);
+      
+      // Add debug logging for API client
+      try {
+        const tokenInfo = await this.authProvider.getAnyAccessToken();
+        this.node.log(`[INIT] Auth token info: ${tokenInfo ? 'Valid' : 'Invalid'}`);
+        if (tokenInfo) {
+          this.node.log(`[INIT] Token scopes: ${tokenInfo.scope?.join(', ')}`);
+        }
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.node.error(`[INIT] Error getting auth token: ${errorMessage}`);
+      }
+      
       this.listener = new EventSubWsListener(listenerOptions);
+      
+      // Add WebSocket event listeners for debugging
+      // @ts-ignore - Accessing private property for debugging
+      this.listener._client?.on('connect', () => {
+        this.node.log('[WEBSOCKET] Connected to Twitch EventSub WebSocket');
+      });
+      
+      // @ts-ignore - Accessing private property for debugging
+      this.listener._client?.on('disconnect', () => {
+        this.node.log('[WEBSOCKET] Disconnected from Twitch EventSub WebSocket');
+      });
+      
+      // @ts-ignore - Accessing private property for debugging
+      this.listener._client?.on('error', (error) => {
+        this.node.error(`[WEBSOCKET ERROR] ${error.message}`);
+      });
 
-      this.node.log('Fetching user details...');
+      this.node.log('[INIT] Fetching user details...');
       this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
       if (!this.user) {
         throw new Error(`Failed to fetch user with ID: ${this.userId}`);
       }
+      this.node.log(`[INIT] User authenticated as: ${this.user.displayName} (${this.user.id})`);
 
       this.node.log('Setting up subscription event handlers...');
       this.listener.onSubscriptionCreateSuccess((subscription) => {
