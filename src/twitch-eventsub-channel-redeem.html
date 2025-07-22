@@ -3,7 +3,8 @@
       category: 'Twitch Eventsub',
       color: '#9145FF',
       defaults: {
-        config: {value:"", type:"twitch-eventsub-config"},
+        name: { value: "" },
+        config: { value: "", type: "twitch-eventsub-config", required: true }
       },
       inputs: 0,
       outputs: 1,
@@ -15,22 +16,22 @@
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'Channel Redeem (' + (config ? config.name || '' : '') + ')';
+          return 'Channel Redeem' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
   </script>
   
   <script type="text/html" data-template-name="twitch-eventsub-channel-redeem">
-      <div class="form-row">
-          <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
-          <input type="text" id="node-input-name" placeholder="Name">
-      </div>
-  
-      <div class="form-row">
-          <label for="node-input-config"><i class="fa fa-tag"></i> Config</label>
-          <input type="text" id="node-input-config" placeholder="">
-      </div>
+    <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+      <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+      <input type="text" id="node-input-config" placeholder="">
+    </div>
   </script>
   
   <script type="text/html" data-help-name="twitch-eventsub-channel-redeem">
@@ -39,12 +40,12 @@
   
       <h3>Inputs</h3>
       No inputs accepted. Messages will be generated from the Twitch API.
-  
+      
       <h3>Outputs</h3>
       <ol class="">
           <li>Standard output
-              <dl class="message-properties">
-                  <dt>payload <span class="property-type">object</span></dt>
+      <dl class="message-properties">
+          <dt>payload <span class="property-type">object</span></dt>
                   <dd>
                       All events have these base fields:
                       <ul>
@@ -135,12 +136,12 @@
                                   <li>viewers <i>number</i></li>
                               </ul>
                           </li>
-                      </ul>
-                  </dd>
-              </dl>
+              </ul>
+          </dd>
+      </dl>
           </li>
       </ol>
-  
+
       <h3>References</h3>
       <ul>
           <li><a href="https://twurple.js.org/" target="_blank">Twurple docs</a></li>
