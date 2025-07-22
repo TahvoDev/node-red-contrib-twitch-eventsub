@@ -100,8 +100,9 @@ class TwitchEventsub {
         }
       });
       
-    } catch (error) {
-      this.node.error(`Failed to initialize auth provider: ${error.message}`);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      this.node.error(`Failed to initialize auth provider: ${errorMessage}`);
       throw error;
     }
   }
