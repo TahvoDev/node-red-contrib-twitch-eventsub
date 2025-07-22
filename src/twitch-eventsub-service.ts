@@ -92,16 +92,9 @@ class TwitchEventsub {
       refreshToken: refreshToken,
     });
 
-    this.apiClient = new ApiClient({authProvider: this.authProvider});
-      
-    const listenerOptions: any = { apiClient: this.apiClient };
+    const apiClient = new ApiClient({authProvider: this.authProvider});
 
-    if (this.localWebsocketUrl && this.localWebsocketUrl.trim() !== '') {
-      this.node.log('Twitch EventSub using local websocket URL:', this.localWebsocketUrl);
-      listenerOptions.url = this.localWebsocketUrl;
-    }
-
-    this.listener = new EventSubWsListener(listenerOptions);
+    this.listener = new EventSubWsListener({ apiClient });
 
     this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
 

@@ -7,7 +7,6 @@
       twitch_client_id: { required: true },
       twitch_client_secret: { required: true },
       twitch_refresh_token: { required: true },
-      local_websocket_url: { value: "" },
       // /**/port: { required: true, validate: RED.validators.number() },
       // /**/eventsub_secret: { required: true },
       // /**/ngrok_token: { required: true },
@@ -65,11 +64,6 @@
         <div class="form-row">
             <label for="node-config-input-twitch_refresh_token"><i class="fa fa-lock"></i> Twitch Refresh Token</label>
             <input type="password" id="node-config-input-twitch_refresh_token" placeholder="">
-        </div>
-
-        <div class="form-row">
-          <label for="node-config-input-local_websocket_url"><i class="fa fa-link"></i> Local WebSocket URL</label>
-          <input type="text" id="node-config-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
         </div>
 
         <p>

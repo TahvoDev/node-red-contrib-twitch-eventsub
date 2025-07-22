@@ -8,7 +8,6 @@ type TwitchEventsubConfigProps = {
   twitch_client_secret: string;
   twitch_auth_token: string;
   twitch_refresh_token: string;
-  local_websocket_url: string;
 }
 
 type Status = {
@@ -36,8 +35,7 @@ module.exports = function (RED: Red) {
         this,
         config.broadcaster_id,
         config.twitch_client_id,
-        config.twitch_client_secret,
-        config.local_websocket_url,
+        config.twitch_client_secret
       );
       this.on('close', (done: () => void) => {
         this.takedown().then(done);
