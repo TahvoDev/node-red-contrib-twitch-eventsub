@@ -8,8 +8,8 @@ type TwitchEventsubConfigProps = {
   twitch_client_secret: string;
   twitch_auth_token: string;
   twitch_refresh_token: string;
-  enable_local_testing: { value: false },
-  local_websocket_url: { value: "" },
+  enable_local_testing: boolean,
+  local_websocket_url: string,
 }
 
 type Status = {
@@ -33,7 +33,14 @@ module.exports = function (RED: Red) {
     constructor(config: TwitchEventsubConfigProps) {
       super(config, RED);
       this.config = config;
-      this.twitchEventsub = new TwitchEventsub(this, config.broadcaster_id, config.twitch_client_id, config.twitch_client_secret);
+      this.twitchEventsub = new TwitchEventsub(
+        this,
+        config.broadcaster_id,
+        config.twitch_client_id,
+        config.twitch_client_secret,
+        config.enable_local_testing,
+        config.local_websocket_url,
+      );
       this.on('close', (done: () => void) => {
         this.takedown().then(done);
       });

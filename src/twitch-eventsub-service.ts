@@ -57,16 +57,27 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   subscriptions: EventSubSubscriptionWithStatus[] = [];
   node: AbstractNode;
+  enableLocalTesting: boolean;
+  localWebsocketUrl: string;
 
   onEventCb?: (event: TwitchEvent) => void;
 
   onAuthError?: () => void;
 
-  constructor(node: AbstractNode, userId: number, clientId: string, clientSecret: string) {
+  constructor(
+    node: AbstractNode,
+    userId: number,
+    clientId: string,
+    clientSecret: string,
+    enableLocalTesting: boolean = false,
+    localWebsocketUrl: string = 'ws://localhost:8080/ws'
+  ) {
     this.node = node;
     this.node.log('NEW TwitchEventsub', clientId, userId);
     this.userId = userId;
     this.clientId = clientId;
+    this.enableLocalTesting = enableLocalTesting; 
+    this.localWebsocketUrl = localWebsocketUrl;
     this.authProvider = new RefreshingAuthProvider({
       clientId: clientId,
       clientSecret: clientSecret,
@@ -85,7 +96,15 @@ class TwitchEventsub {
     });
 
     this.apiClient = new ApiClient({authProvider: this.authProvider});
-    this.listener = new EventSubWsListener({apiClient: this.apiClient});
+      
+    const listenerOptions: any = { apiClient: this.apiClient };
+
+    if (this.enableLocalTesting) {
+      this.node.log('Twitch EventSub using local websocket URL:', this.localWebsocketUrl);
+      listenerOptions.url = this.localWebsocketUrl;
+    }
+
+    this.listener = new EventSubWsListener(listenerOptions);
 
     this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
 
