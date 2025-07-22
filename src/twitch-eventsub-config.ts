@@ -38,7 +38,6 @@ module.exports = function (RED: Red) {
         config.broadcaster_id,
         config.twitch_client_id,
         config.twitch_client_secret,
-        config.enable_local_testing,
         config.local_websocket_url,
       );
       this.on('close', (done: () => void) => {

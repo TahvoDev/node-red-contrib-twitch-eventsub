@@ -7,7 +7,6 @@
       twitch_client_id: { required: true },
       twitch_client_secret: { required: true },
       twitch_refresh_token: { required: true },
-      enable_local_testing: { required: false }, 
       local_websocket_url: { required: false },
       // /**/port: { required: true, validate: RED.validators.number() },
       // /**/eventsub_secret: { required: true },
@@ -119,13 +118,6 @@
                 <li>Copy the generated Refresh Token</li>
             </ol>
         </p>
-
-        <div class="form-row">
-          <label for="node-input-enable_local_testing">
-            <i class="fa fa-wrench"></i> Enable Local Testing
-          </label>
-          <input type="checkbox" id="node-input-enable_local_testing" style="display:inline-block; width:auto; vertical-align:top;">
-        </div>
 
         <p>
           Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.

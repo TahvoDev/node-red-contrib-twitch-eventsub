@@ -57,7 +57,6 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   subscriptions: EventSubSubscriptionWithStatus[] = [];
   node: AbstractNode;
-  enableLocalTesting: boolean;
   localWebsocketUrl: string;
 
   onEventCb?: (event: TwitchEvent) => void;
@@ -69,14 +68,12 @@ class TwitchEventsub {
     userId: number,
     clientId: string,
     clientSecret: string,
-    enableLocalTesting: boolean = false,
     localWebsocketUrl: string = 'ws://localhost:8080/ws'
   ) {
     this.node = node;
     this.node.log('NEW TwitchEventsub', clientId, userId);
     this.userId = userId;
     this.clientId = clientId;
-    this.enableLocalTesting = enableLocalTesting; 
     this.localWebsocketUrl = localWebsocketUrl;
     this.authProvider = new RefreshingAuthProvider({
       clientId: clientId,
@@ -99,7 +96,7 @@ class TwitchEventsub {
       
     const listenerOptions: any = { apiClient: this.apiClient };
 
-    if (this.enableLocalTesting) {
+    if (this.localWebsocketUrl && this.localWebsocketUrl.trim() !== '') {
       this.node.log('Twitch EventSub using local websocket URL:', this.localWebsocketUrl);
       listenerOptions.url = this.localWebsocketUrl;
     }
