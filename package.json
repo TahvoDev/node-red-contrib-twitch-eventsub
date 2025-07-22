@@ -30,6 +30,7 @@
   "dependencies": {
     "@twurple/api": "^7.1.0",
     "@twurple/auth": "^7.1.0",
+    "@twurple/common": "^7.3.0",
     "@twurple/eventsub-ws": "^7.1.0"
   },
   "node-red": {
