@@ -342,23 +342,58 @@ class TwitchEventsub {
 
   async addSubscription(subscription: EventSubSubscription): Promise<void> {
     if (!subscription) {
-      this.node.log('No subscription');
+      this.node.log('[Sub] No subscription provided');
       return;
     }
-    this.node.log(`addSubscription: ${subscription.id}`);
+    
+    const subId = subscription.id || 'unknown';
+    this.node.log(`[Sub ${subId}] Starting subscription`);
+    
     return new Promise<void>((resolve, reject) => {
-      const updateStatus = (err: Error | null) => {
-        if (err) {
-          reject(err);
+      // Track if we've already resolved/rejected
+      let isComplete = false;
+      const startTime = Date.now();
+      
+      const complete = (err: Error | null = null) => {
+        const elapsed = Date.now() - startTime;
+        
+        if (isComplete) {
+          this.node.log(`[Sub ${subId}] Duplicate completion after ${elapsed}ms`);
+          return;
         }
-        else {
+        
+        isComplete = true;
+        
+        if (err) {
+          this.node.error(`[Sub ${subId}] Failed after ${elapsed}ms: ${err.message}`);
+          reject(err);
+        } else {
+          this.node.log(`[Sub ${subId}] Completed successfully in ${elapsed}ms`);
           resolve();
         }
       };
+      
+      // Add to subscriptions with updateStatus
       this.subscriptions.push({
         subscription: subscription,
-        updateStatus: updateStatus,
+        updateStatus: (err) => {
+          this.node.log(`[Sub ${subId}] Received updateStatus callback`, { 
+            error: err ? err.message : 'no error',
+            isComplete 
+          });
+          complete(err);
+        },
       });
+      
+      this.node.log(`[Sub ${subId}] Waiting for subscription confirmation...`);
+      
+      // Safety timeout in case updateStatus is never called
+      const timeout = setTimeout(() => {
+        if (!isComplete) {
+          this.node.log(`[Sub ${subId}] Timeout after 5000ms, forcing completion`);
+          complete(); // Resolve without error to prevent hanging
+        }
+      }, 5000); // 5 second timeout
     });
   }
 
