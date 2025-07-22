@@ -1,5 +1,5 @@
 <script type="text/javascript">
-  RED.nodes.registerType('twitch-eventsub', {
+  RED.nodes.registerType('twitch-eventsub-channel-redeem', {
     category: 'Twitch Eventsub',
     color: '#9145FF',
     defaults: {
@@ -8,20 +8,20 @@
     inputs: 0,
     outputs: 1,
     icon: 'twitch-icon.png',
-    paletteLabel: "Eventsub",
+    paletteLabel: "Channel Redeem",
     label: function() {
       if (this.name) {
         return this.name;
       }
       else {
         var config = RED.nodes.node(this.config);
-        return 'Eventsub (' + (config ? config.name || '' : '') + ')';
+        return 'Channel Redeem (' + (config ? config.name || '' : '') + ')';
       }
     },
   });
 </script>
 
-<script type="text/html" data-template-name="twitch-eventsub">
+<script type="text/html" data-template-name="twitch-eventsub-channel-redeem">
     <div class="form-row">
         <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
@@ -33,7 +33,7 @@
     </div>
 </script>
 
-<script type="text/html" data-help-name="twitch-eventsub">
+<script type="text/html" data-help-name="twitch-eventsub-channel-redeem">
     <h2>Eventsub Listener</h2>
     Connects to Twitch Eventsub with the help of Twurple, and send a message for each follow, sub, subgift, cheer, reward redeem, and raid.
 
