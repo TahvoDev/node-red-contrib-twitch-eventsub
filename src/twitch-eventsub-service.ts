@@ -57,7 +57,6 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   subscriptions: EventSubSubscriptionWithStatus[] = [];
   node: AbstractNode;
-  localWebsocketUrl: string;
 
   onEventCb?: (event: TwitchEvent) => void;
 
