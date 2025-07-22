@@ -107,6 +107,25 @@ class TwitchEventsub {
     }
   }
 
+  // Check if the WebSocket connection is ready
+  private isConnected(): boolean {
+    if (!this.listener) return false;
+    const wsClient = (this.listener as any).client;
+    return wsClient && wsClient.isConnected && wsClient.isConnected();
+  }
+
+  // Wait for the WebSocket connection to be established
+  private async waitForConnection(timeout = 10000): Promise<boolean> {
+    const startTime = Date.now();
+    while (Date.now() - startTime < timeout) {
+      if (this.isConnected()) {
+        return true;
+      }
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    return false;
+  }
+
   async init(refreshToken: string): Promise<void> {
     if (!this.userId) {
       throw new Error('User ID is required for initialization');
@@ -133,6 +152,12 @@ class TwitchEventsub {
           custom: (level, message) => {
             this.node.log(`[Twurple] ${level}: ${message}`);
           }
+        },
+        // Add more aggressive reconnection settings
+        connection: {
+          maxRetries: 5,
+          maxRetryInterval: 30000,
+          retryInterval: 1000
         }
       };
 
@@ -151,7 +176,14 @@ class TwitchEventsub {
 
       // Start the listener
       await this.listener.start();
-      this.node.log('EventSub listener started successfully');
+      
+      // Wait for the connection to be established
+      const isConnected = await this.waitForConnection();
+      if (!isConnected) {
+        throw new Error('Failed to establish WebSocket connection within timeout');
+      }
+      
+      this.node.log('EventSub listener started and connected successfully');
       this.reconnectAttempts = 0; // Reset reconnect attempts on successful connection
       
     } catch (error: unknown) {
@@ -464,51 +496,92 @@ class TwitchEventsub {
 
   async addSubscription(subscription: EventSubSubscription): Promise<void> {
     if (!subscription) {
-      const error = new Error('Cannot add null or undefined subscription');
-      this.node.error(error.message);
-      throw error;
+      throw new Error('Cannot add null or undefined subscription');
     }
 
-    // Get the subscription type for logging
-    const subscriptionType = (subscription as any)._type || 'unknown';
-    this.node.log(`Adding subscription: ${subscription.id} (${subscriptionType})`);
-    
-    return new Promise<void>((resolve, reject) => {
-      const updateStatus = (err: Error | null) => {
-        if (err) {
-          this.node.error(`❌ Subscription ${subscription.id} failed: ${err.message}`);
-          reject(err);
-        } else {
-          this.node.log(`✅ Subscription ${subscription.id} created successfully`);
-          resolve();
-        }
-      };
+    const maxRetries = 3;
+    let retryCount = 0;
+    let lastError: Error | null = null;
 
-      // Add a small delay to prevent overwhelming the server with requests
-      setTimeout(() => {
-        try {
-          this.subscriptions.push({
-            subscription: subscription,
-            updateStatus: updateStatus,
-          });
+    while (retryCount < maxRetries) {
+      try {
+        // Check if we have a valid connection
+        if (!this.isConnected()) {
+          this.node.log('WebSocket not connected, attempting to reconnect...');
+          await this.reconnect();
           
-          // Log subscription details for debugging
-          this.node.log(`Subscription details: ${
-            JSON.stringify({
-              id: subscription.id,
-              type: subscriptionType,
-              status: 'pending',
-              createdAt: new Date().toISOString()
-            }, null, 2)
-          }`);
-          
-        } catch (error: unknown) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error adding subscription';
-          this.node.error(`Failed to add subscription: ${errorMessage}`);
-          reject(new Error(errorMessage));
+          // Wait for connection to be established
+          const isConnected = await this.waitForConnection(5000);
+          if (!isConnected) {
+            throw new Error('Failed to establish WebSocket connection');
+          }
         }
-      }, 100); // Small delay to prevent rate limiting
-    });
+
+        this.node.log(`Adding subscription: ${subscription.id} (attempt ${retryCount + 1}/${maxRetries})`);
+        
+        // Check if we already have this subscription
+        const existingSubIndex = this.subscriptions.findIndex(s => s.subscription.id === subscription.id);
+        
+        // Create or update the subscription status
+        const subscriptionWithStatus: EventSubSubscriptionWithStatus = {
+          subscription,
+          updateStatus: (error: Error | null) => {
+            if (error) {
+              this.node.error(`Subscription ${subscription.id} failed: ${error.message}`);
+              if (this.onConnectionError) {
+                this.onConnectionError(error);
+              }
+            } else {
+              this.node.log(`Subscription ${subscription.id} created successfully`);
+            }
+          }
+        };
+        
+        if (existingSubIndex >= 0) {
+          // Update existing subscription
+          this.subscriptions[existingSubIndex] = subscriptionWithStatus;
+        } else {
+          // Add new subscription
+          this.subscriptions.push(subscriptionWithStatus);
+        }
+        
+        // Start the subscription with a timeout
+        const subscriptionPromise = subscription.start();
+        const timeoutPromise = new Promise<never>((_, reject) => 
+          setTimeout(() => reject(new Error('Subscription start timed out')), 10000)
+        );
+        
+        await Promise.race([subscriptionPromise, timeoutPromise]);
+        
+        // If we get here, the subscription was successful
+        this.node.log(`Successfully added subscription: ${subscription.id}`);
+        return;
+        
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        retryCount++;
+        
+        this.node.error(`Attempt ${retryCount} failed for subscription ${subscription.id}: ${lastError.message}`);
+        
+        // If it's not a connection error, don't retry
+        if (!lastError.message.includes('WebSocket') && !lastError.message.includes('connection')) {
+          break;
+        }
+        
+        // Wait before retrying (exponential backoff)
+        const delay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000);
+        this.node.log(`Retrying in ${delay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+      }
+    }
+    
+    // If we've exhausted all retries, throw the last error
+    if (lastError) {
+      this.node.error(`Failed to add subscription after ${maxRetries} attempts: ${lastError.message}`);
+      throw lastError;
+    }
+    
+    throw new Error('Failed to add subscription: Unknown error');
   }
 
   async stop(): Promise<void> {
