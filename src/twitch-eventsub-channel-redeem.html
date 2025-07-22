@@ -45,98 +45,15 @@
         <li>Standard output
             <dl class="message-properties">
                 <dt>payload <span class="property-type">object</span></dt>
-                <dd>
-                    All events have these base fields:
-                    <ul>
-                        <li>
-                            <dt>eventType <i>string</i></dt>
-                            <dd>
-                                Type of event. One of these:
-                                <ul>
-                                    <li><code>"follow"</code></li>
-                                    <li><code>"subscribe"</code></li>
-                                    <li><code>"subscribeGift"</code></li>
-                                    <li><code>"bits"</code></li>
-                                    <li><code>"redeem"</code></li>
-                                    <li><code>"raid"</code></li>
-                                </ul>
-                            </dd>
-                        </li>
-                        <li>
-                            <dt>rawEvent <i>object</i></dt>
-                            <dd>
-                                The event object returned from Twitch
-                            </dd>
-                        </li>
-                        <li>
-                            <dt>userId <i>number</i></dt>
-                            <dd>
-                                Id of the user responsible for the event.<br>
-                                In case of a raid, this is the id of the broadcaster raiding.<br>
-                                Otherwise, it is the id of the viewer.
-                            </dd>
-                        </li>
-                        <li>
-                            <dt>(optionnal) userName <i>string</i></dt>
-                            <dd>
-                                Username of the user responsible for the event.<br>
-                                In case of a raid, this is the username of the broadcaster raiding.<br>
-                                Otherwise, it is the username of the viewer.
-                            </dd>
-                        </li>
-                        <li>
-                            <dt>(optionnal) userDisplayName <i>string</i></dt>
-                            <dd>
-                                Display name of the user responsible for the event.<br>
-                                In case of a raid, this is the display name of the broadcaster raiding.<br>
-                                Otherwise, it is the display name of the viewer.
-                            </dd>
-                        </li>
-                    </ul>
-                    <br>
-                    <p>Depending on the eventType, some extra fields are provided:</p>
-                    <ul>
-                        <li>
-                            <code>follow</code>: (no extra field)
-                        </li>
-                        <li>
-                            <code>subscribe</code>:
-                            <ul>
-                                <li>tier <i>number</i></li>
-                            </ul>
-                        </li>
-                        <li>
-                            <code>subscribeGift</code>:
-                            <ul>
-                                <li>tier <i>number</i></li>
-                                <li>amount <i>number</i></li>
-                            </ul>
-                        </li>
-                        <li>
-                            <code>bits</code>:
-                            <ul>
-                                <li>amount <i>number</i></li>
-                            </ul>
-                        </li>
-                        <li>
-                            <code>redeem</code>:
-                            <ul>
-                                <li>rewardId <i>string</i></li>
-                                <li>rewardName <i>string</i></li>
-                                <li>
-                                    rewardMessage <i>string</i><br>
-                                    If no rewardMessage is provided, or if the user did not send any, an empty string is returned.
-                                </li>
-                            </ul>
-                        </li>
-                        <li>
-                            <code>raid</code>:
-                            <ul>
-                                <li>viewers <i>number</i></li>
-                            </ul>
-                        </li>
-                    </ul>
-                </dd>
+                <code>redeem</code>:
+                <ul>
+                    <li>rewardId <i>string</i></li>
+                    <li>rewardName <i>string</i></li>
+                    <li>
+                        rewardMessage <i>string</i><br>
+                        If no rewardMessage is provided, or if the user did not send any, an empty string is returned.
+                    </li>
+                </ul>
             </dl>
         </li>
     </ol>
