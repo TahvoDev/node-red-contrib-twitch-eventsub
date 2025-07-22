@@ -101,33 +101,52 @@ class TwitchEventsub {
       listenerOptions.url = this.localWebsocketUrl;
     }
 
-    this.listener = new EventSubWsListener(listenerOptions);
+    try {
+      this.node.log('Creating EventSub WebSocket listener...');
+      this.listener = new EventSubWsListener(listenerOptions);
 
-    this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
-
-    this.listener.onSubscriptionCreateSuccess((subscription) => {
-      this.node.log(`Subscription Created: ${subscription.id}`);
-      const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
-      if (subscriptionWithStatus) {
-        subscriptionWithStatus.updateStatus(null);
+      this.node.log('Fetching user details...');
+      this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
+      if (!this.user) {
+        throw new Error(`Failed to fetch user with ID: ${this.userId}`);
       }
-    });
 
-    this.listener.onSubscriptionCreateFailure((subscription, error) => {
-      this.node.error(`Subscription Failed: ${subscription.id}`);
-      const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
-      if (subscriptionWithStatus) {
-        const errMsgEndPos = error.message.indexOf(') and can not be upgraded.');
-        if (errMsgEndPos !== -1) {
-          error.message = error.message.substring(0, errMsgEndPos + 1);
+      this.node.log('Setting up subscription event handlers...');
+      this.listener.onSubscriptionCreateSuccess((subscription) => {
+        this.node.log(`[SUCCESS] Subscription Created: ${subscription.id}`);
+        const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
+        if (subscriptionWithStatus) {
+          this.node.log(`[SUCCESS] Found and updating subscription status for: ${subscription.id}`);
+          subscriptionWithStatus.updateStatus(null);
+        } else {
+          this.node.warn(`[WARNING] Received success for unknown subscription: ${subscription.id}`);
         }
-        subscriptionWithStatus.updateStatus(error);
-      }
-      if (this.onAuthError) {
-        this.node.log('ON AUTH ERROR');
-        this.onAuthError();
-      }
-    });
+      });
+
+      this.listener.onSubscriptionCreateFailure((subscription, error) => {
+        this.node.error(`[ERROR] Subscription Failed: ${subscription.id} - ${error.message}`);
+        const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
+        if (subscriptionWithStatus) {
+          const errMsgEndPos = error.message.indexOf(') and can not be upgraded.');
+          if (errMsgEndPos !== -1) {
+            error.message = error.message.substring(0, errMsgEndPos + 1);
+          }
+          subscriptionWithStatus.updateStatus(error);
+        } else {
+          this.node.warn(`[WARNING] Received failure for unknown subscription: ${subscription.id}`);
+        }
+        if (this.onAuthError) {
+          this.node.error('[AUTH ERROR] Triggering onAuthError callback');
+          this.onAuthError();
+        }
+      });
+      
+      this.node.log('EventSub initialization completed successfully');
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      this.node.error(`[CRITICAL] Failed to initialize EventSub: ${errorMessage}`);
+      throw error; // Re-throw to be handled by the caller
+    }
   }
 
   async addSubscriptions(): Promise<void> {
