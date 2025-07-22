@@ -1,7 +1,7 @@
 [
   {
     "id": "93f32cdccc7a8980",
-    "type": "twitch-eventsub",
+    "type": "twitch-eventsub-channel-redeem",
     "z": "5a91292e1414d67f",
     "config": "baeb5701833381a7",
     "x": 200,
