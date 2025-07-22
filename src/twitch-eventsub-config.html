@@ -67,6 +67,15 @@
             <input type="password" id="node-config-input-twitch_refresh_token" placeholder="">
         </div>
 
+        <div class="form-row">
+          <label for="node-input-local_websocket_url"><i class="fa fa-link"></i> Local WebSocket URL</label>
+          <input type="text" id="node-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
+        </div>
+
+        <p>
+          Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
+          <br/>Only for local testing. If enabled, normal events will not work!
+        </p>
         <p>
             To generate the Refresh Token, use the
             <a target="_blank" rel="noreferrer" href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow">Authorization code grant flow</a>
@@ -118,19 +127,6 @@
                 <li>Copy the generated Refresh Token</li>
             </ol>
         </p>
-
-        <p>
-          Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
-          <br/>Only for local testing. If enabled, normal events will not work!
-        </p>
-
-        <div class="form-row">
-          <label for="node-input-local_websocket_url">
-            <i class="fa fa-link"></i> Local WebSocket URL
-          </label>
-          <input type="text" id="node-input-local_websocket_url" placeholder="ws://localhost:8080/ws">
-        </div>
-
         <p>
             The Twitch logo is the property of Twitch Interactive, Inc.
             Its use is subject to Twitch's brand guidelines and terms of service. <br/>
