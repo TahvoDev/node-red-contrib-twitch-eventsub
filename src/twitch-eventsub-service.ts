@@ -101,86 +101,33 @@ class TwitchEventsub {
       listenerOptions.url = this.localWebsocketUrl;
     }
 
-    try {
-      this.node.log('[INIT] Creating EventSub WebSocket listener...');
-      
-      // Add debug logging for WebSocket URL
-      const wsUrl = listenerOptions.url || 'wss://eventsub.wss.twitch.tv/ws';
-      this.node.log(`[INIT] Connecting to WebSocket URL: ${wsUrl}`);
-      
-      // Add debug logging for API client
-      try {
-        const tokenInfo = await this.authProvider.getAnyAccessToken();
-        this.node.log(`[INIT] Auth token info: ${tokenInfo ? 'Valid' : 'Invalid'}`);
-        if (tokenInfo) {
-          this.node.log(`[INIT] Token scopes: ${tokenInfo.scope?.join(', ')}`);
-        }
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        this.node.error(`[INIT] Error getting auth token: ${errorMessage}`);
+    this.listener = new EventSubWsListener(listenerOptions);
+
+    this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
+
+    this.listener.onSubscriptionCreateSuccess((subscription) => {
+      this.node.log(`Subscription Created: ${subscription.id}`);
+      const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
+      if (subscriptionWithStatus) {
+        subscriptionWithStatus.updateStatus(null);
       }
-      
-      this.listener = new EventSubWsListener(listenerOptions);
-      
-      // Add WebSocket event listeners for debugging
-      // @ts-ignore - Accessing private property for debugging
-      this.listener._client?.on('connect', () => {
-        this.node.log('[WEBSOCKET] Connected to Twitch EventSub WebSocket');
-      });
-      
-      // @ts-ignore - Accessing private property for debugging
-      this.listener._client?.on('disconnect', () => {
-        this.node.log('[WEBSOCKET] Disconnected from Twitch EventSub WebSocket');
-      });
-      
-      // @ts-ignore - Accessing private property for debugging
-      this.listener._client?.on('error', (error) => {
-        this.node.error(`[WEBSOCKET ERROR] ${error.message}`);
-      });
+    });
 
-      this.node.log('[INIT] Fetching user details...');
-      this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
-      if (!this.user) {
-        throw new Error(`Failed to fetch user with ID: ${this.userId}`);
+    this.listener.onSubscriptionCreateFailure((subscription, error) => {
+      this.node.error(`Subscription Failed: ${subscription.id}`);
+      const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
+      if (subscriptionWithStatus) {
+        const errMsgEndPos = error.message.indexOf(') and can not be upgraded.');
+        if (errMsgEndPos !== -1) {
+          error.message = error.message.substring(0, errMsgEndPos + 1);
+        }
+        subscriptionWithStatus.updateStatus(error);
       }
-      this.node.log(`[INIT] User authenticated as: ${this.user.displayName} (${this.user.id})`);
-
-      this.node.log('Setting up subscription event handlers...');
-      this.listener.onSubscriptionCreateSuccess((subscription) => {
-        this.node.log(`[SUCCESS] Subscription Created: ${subscription.id}`);
-        const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
-        if (subscriptionWithStatus) {
-          this.node.log(`[SUCCESS] Found and updating subscription status for: ${subscription.id}`);
-          subscriptionWithStatus.updateStatus(null);
-        } else {
-          this.node.warn(`[WARNING] Received success for unknown subscription: ${subscription.id}`);
-        }
-      });
-
-      this.listener.onSubscriptionCreateFailure((subscription, error) => {
-        this.node.error(`[ERROR] Subscription Failed: ${subscription.id} - ${error.message}`);
-        const subscriptionWithStatus = this.subscriptions.find(s => s.subscription.id === subscription.id);
-        if (subscriptionWithStatus) {
-          const errMsgEndPos = error.message.indexOf(') and can not be upgraded.');
-          if (errMsgEndPos !== -1) {
-            error.message = error.message.substring(0, errMsgEndPos + 1);
-          }
-          subscriptionWithStatus.updateStatus(error);
-        } else {
-          this.node.warn(`[WARNING] Received failure for unknown subscription: ${subscription.id}`);
-        }
-        if (this.onAuthError) {
-          this.node.error('[AUTH ERROR] Triggering onAuthError callback');
-          this.onAuthError();
-        }
-      });
-      
-      this.node.log('EventSub initialization completed successfully');
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      this.node.error(`[CRITICAL] Failed to initialize EventSub: ${errorMessage}`);
-      throw error; // Re-throw to be handled by the caller
-    }
+      if (this.onAuthError) {
+        this.node.log('ON AUTH ERROR');
+        this.onAuthError();
+      }
+    });
   }
 
   async addSubscriptions(): Promise<void> {
@@ -395,58 +342,23 @@ class TwitchEventsub {
 
   async addSubscription(subscription: EventSubSubscription): Promise<void> {
     if (!subscription) {
-      this.node.log('[Sub] No subscription provided');
+      this.node.log('No subscription');
       return;
     }
-    
-    const subId = subscription.id || 'unknown';
-    this.node.log(`[Sub ${subId}] Starting subscription`);
-    
+    this.node.log(`addSubscription: ${subscription.id}`);
     return new Promise<void>((resolve, reject) => {
-      // Track if we've already resolved/rejected
-      let isComplete = false;
-      const startTime = Date.now();
-      
-      const complete = (err: Error | null = null) => {
-        const elapsed = Date.now() - startTime;
-        
-        if (isComplete) {
-          this.node.log(`[Sub ${subId}] Duplicate completion after ${elapsed}ms`);
-          return;
-        }
-        
-        isComplete = true;
-        
+      const updateStatus = (err: Error | null) => {
         if (err) {
-          this.node.error(`[Sub ${subId}] Failed after ${elapsed}ms: ${err.message}`);
           reject(err);
-        } else {
-          this.node.log(`[Sub ${subId}] Completed successfully in ${elapsed}ms`);
+        }
+        else {
           resolve();
         }
       };
-      
-      // Add to subscriptions with updateStatus
       this.subscriptions.push({
         subscription: subscription,
-        updateStatus: (err) => {
-          this.node.log(`[Sub ${subId}] Received updateStatus callback`, { 
-            error: err ? err.message : 'no error',
-            isComplete 
-          });
-          complete(err);
-        },
+        updateStatus: updateStatus,
       });
-      
-      this.node.log(`[Sub ${subId}] Waiting for subscription confirmation...`);
-      
-      // Safety timeout in case updateStatus is never called
-      const timeout = setTimeout(() => {
-        if (!isComplete) {
-          this.node.log(`[Sub ${subId}] Timeout after 5000ms, forcing completion`);
-          complete(); // Resolve without error to prevent hanging
-        }
-      }, 5000); // 5 second timeout
     });
   }
 
