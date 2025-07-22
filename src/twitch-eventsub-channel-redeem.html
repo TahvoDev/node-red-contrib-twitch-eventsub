@@ -34,8 +34,7 @@
 </script>
 
 <script type="text/html" data-help-name="twitch-eventsub-channel-redeem">
-    <h2>Eventsub Listener</h2>
-    Connects to Twitch Eventsub with the help of Twurple, and send a message for each follow, sub, subgift, cheer, reward redeem, and raid.
+    <h2>Channel Redeem</h2>
 
     <h3>Inputs</h3>
     No inputs accepted. Messages will be generated from the Twitch API.
@@ -45,15 +44,18 @@
         <li>Standard output
             <dl class="message-properties">
                 <dt>payload <span class="property-type">object</span></dt>
-                <code>redeem</code>:
-                <ul>
-                    <li>rewardId <i>string</i></li>
-                    <li>rewardName <i>string</i></li>
-                    <li>
-                        rewardMessage <i>string</i><br>
-                        If no rewardMessage is provided, or if the user did not send any, an empty string is returned.
-                    </li>
-                </ul>
+                <dd>
+                    <p>Channel point redemption event with the following properties:</p>
+                    <ul>
+                        <li><code>userId</code> - Twitch user ID of the redeemer</li>
+                        <li><code>userName</code> - Twitch username of the redeemer</li>
+                        <li><code>userDisplayName</code> - Display name of the redeemer</li>
+                        <li><code>rewardId</code> - ID of the channel point reward</li>
+                        <li><code>rewardName</code> - Name of the channel point reward</li>
+                        <li><code>rewardMessage</code> - Optional message from the user (empty string if none provided)</li>
+                        <li><code>rawEvent</code> - Complete raw event data from Twitch</li>
+                    </ul>
+                </dd>
             </dl>
         </li>
     </ol>
