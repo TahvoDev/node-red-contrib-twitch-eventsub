@@ -73,7 +73,6 @@ class TwitchEventsub {
     this.node.log('NEW TwitchEventsub', clientId, userId);
     this.userId = userId;
     this.clientId = clientId;
-    this.localWebsocketUrl = localWebsocketUrl;
     this.authProvider = new RefreshingAuthProvider({
       clientId: clientId,
       clientSecret: clientSecret,
