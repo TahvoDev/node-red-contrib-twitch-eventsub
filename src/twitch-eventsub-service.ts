@@ -142,7 +142,7 @@ class TwitchEventsub {
           userId: this.userId ?? 0,
           userName: this.user?.name,
           userDisplayName: this.user?.displayName,
-          rawEvent: getRawData(event),
+          rawEvent: event,
         };
         payload.userId = parseInt(`${payload.userId}`);
         if (this.onEventCb) {
@@ -192,8 +192,8 @@ class TwitchEventsub {
           userId: this.userId ?? 0,
           userName: this.user?.name,
           userDisplayName: this.user?.displayName,
-          streamDetails: streamDetails ? getRawData(streamDetails) : null,
-          rawEvent: getRawData(event),
+          streamDetails: streamDetails ? streamDetails : null,
+          rawEvent: event,
         };
         payload.userId = parseInt(`${payload.userId}`);
         if (this.onEventCb) {
@@ -211,7 +211,7 @@ class TwitchEventsub {
             rewardId: event.rewardId,
             rewardName: event.rewardTitle,
             rewardMessage: event.input,
-            rawEvent: getRawData(event),
+            rawEvent: event,
           };
           this.node.log('channelRedemptionAdd', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
@@ -228,7 +228,7 @@ class TwitchEventsub {
             userName: event.raidingBroadcasterName,
             userDisplayName: event.raidingBroadcasterDisplayName,
             viewers: event.viewers,
-            rawEvent: getRawData(event),
+            rawEvent: event,  // Use the event object directly
           };
           this.node.log('channelRaidTo', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
@@ -245,7 +245,7 @@ class TwitchEventsub {
             userName: event.userName,
             userDisplayName: event.userDisplayName,
             tier: parseInt(event.tier),
-            rawEvent: getRawData(event),
+            rawEvent: event,
           };
           this.node.log('channelSubscription', JSON.stringify(payload, null, '  '));
           if (this.onEventCb && !event.isGift) {
@@ -263,7 +263,7 @@ class TwitchEventsub {
             userDisplayName: event.gifterDisplayName,
             tier: parseInt(event.tier),
             amount: event.amount,
-            rawEvent: getRawData(event),
+            rawEvent: event,
           };
           this.node.log('SUBGIFT', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
@@ -279,7 +279,7 @@ class TwitchEventsub {
             userId: parseInt(event.userId),
             userName: event.userName,
             userDisplayName: event.userDisplayName,
-            rawEvent: getRawData(event),
+            rawEvent: event,
           };
           this.node.log('channelFollow', JSON.stringify(payload, null, '  '));
           if (this.onEventCb) {
@@ -296,7 +296,7 @@ class TwitchEventsub {
             userName: event.userName ?? 'anonymous',
             userDisplayName: event.userDisplayName ?? 'Anonymous',
             amount: event.bits,
-            rawEvent: getRawData(event),
+            rawEvent: event,
           };
           this.node.log(`channelCheer ${JSON.stringify(payload, null, '  ')}`);
           if (this.onEventCb) {
