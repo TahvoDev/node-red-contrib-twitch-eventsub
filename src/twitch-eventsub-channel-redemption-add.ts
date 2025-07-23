@@ -46,6 +46,7 @@ module.exports = function(RED) {
           status: event.status,
           rawEvent: event
         };
+        console.log(mapped);
         node.send({ payload: mapped });
       }
     };
