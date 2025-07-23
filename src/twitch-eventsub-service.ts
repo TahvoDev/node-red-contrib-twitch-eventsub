@@ -5,13 +5,14 @@ import {AbstractNode} from '/@/AbstractNode';
 import {HelixUser} from '@twurple/api/lib/endpoints/user/HelixUser';
 
 interface TwitchEvent {
-  userId: string;
-  userName: string;
-  userDisplayName: string;
+  eventType: string;
   rawEvent: unknown;
 }
 
 interface TwitchEventChannelRedemptionAdd extends TwitchEvent {
+  userId: string;
+  userName: string;
+  userDisplayName: string;
   broadcasterId: string;
   broadcasterName: string;
   broadcasterDisplayName: string;
@@ -25,6 +26,13 @@ interface TwitchEventChannelRedemptionAdd extends TwitchEvent {
   status: string;
 }
 
+interface TwitchEventStreamOnline extends TwitchEvent {
+  broadcasterId: string;
+  broadcasterName: string;
+  broadcasterDisplayName: string;
+  startDate: Date;
+  type: string;
+}
 
 class TwitchEventsub {
   clientId?: string | null;
@@ -35,7 +43,7 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   node: AbstractNode;
 
-  onEventCb?: (event: TwitchEvent) => void;
+  onEventCb?: (event: any) => void;
 
   onAuthError?: () => void;
 
@@ -66,12 +74,32 @@ class TwitchEventsub {
   async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
+    // Stream Status 
+    this.listener.onStreamOnline(this.userId!, (event) => {
+      console.log(`${event.broadcasterName} is online`);
+      this.node.log('streamOnline', JSON.stringify(event, null, '  '));
+      if (this.onEventCb) {
+        const twitchEvent: TwitchEventStreamOnline = {
+          eventType: 'streamOnline',
+          broadcasterId: event.broadcasterId,
+          broadcasterName: event.broadcasterName,
+          broadcasterDisplayName: event.broadcasterDisplayName,
+          startDate: event.startDate,
+          type: event.type,
+          rawEvent: event
+        };
+        this.onEventCb(twitchEvent);
+      }
+    });
+
+    // Channel Redeems 
     this.listener.onChannelRedemptionAdd(this.userId!, (event) => {
       console.log(`${event.userDisplayName} redeemed ${event.rewardTitle}`);
 
       this.node.log('channelRedemptionAdd', JSON.stringify(event, null, '  '));
       if (this.onEventCb) {
         const twitchEvent: TwitchEventChannelRedemptionAdd = {
+          eventType: 'channelRedemptionAdd',
           userId: event.userId,
           userName: event.userName,
           userDisplayName: event.userDisplayName,

@@ -28,9 +28,11 @@ module.exports = function(RED) {
     }
 
     node.triggerTwitchEvent = function(event) {
-      node.send({
-        payload: event
-      });
+      if(event.eventType === 'channelRedemptionAdd') {
+        node.send({
+          payload: event
+        });
+      }
     };
   }
 
