@@ -14,15 +14,15 @@ class TwitchEventsub {
   node: AbstractNode;
   currentEventsubSubscriptions: unknown[] = [];
 
-  onEventCb?: (event: any) => void;
+  onEventCb?: (event: any, subscriptionType: string) => void;
 
   onAuthError?: () => void;
 
-  private handleEvent(eventType: string, event: any) {
-    console.log('New ' + eventType + ' event received');
-    this.node.log(eventType, JSON.stringify(event, null, '  '));
+  private handleEvent(event: any, subscriptionType: string) {
+    console.log('New ' + subscriptionType + ' event received');
+    this.node.log(subscriptionType, JSON.stringify(event, null, '  '));
     if (this.onEventCb) {
-      this.onEventCb(event);
+      this.onEventCb(event, subscriptionType);
     }
   }
 
@@ -52,11 +52,11 @@ class TwitchEventsub {
   async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
-    this.currentEventsubSubscriptions.push(this.listener.onStreamOnline(this.userId!, this.handleEvent.bind(this, 'streamOnline')));
-    this.currentEventsubSubscriptions.push(this.listener.onStreamOffline(this.userId!, this.handleEvent.bind(this, 'streamOffline')));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelRedemptionAdd(this.userId!, this.handleEvent.bind(this, 'channelRedemptionAdd')));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelSubscription(this.userId!, this.handleEvent.bind(this, 'channelSubscription')));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelCheer(this.userId!, this.handleEvent.bind(this, 'channelCheer')));
+    this.listener.onStreamOnline(this.userId!, (event) => this.handleEvent(event, 'streamOnline'));
+    this.listener.onStreamOffline(this.userId!, (event) => this.handleEvent(event, 'streamOffline'));
+    this.listener.onChannelRedemptionAdd(this.userId!, (event) => this.handleEvent(event, 'channelRedemptionAdd'));
+    this.listener.onChannelSubscription(this.userId!, (event) => this.handleEvent(event, 'channelSubscription'));
+    this.listener.onChannelCheer(this.userId!, (event) => this.handleEvent(event, 'channelCheer'));
 
     this.node.log('WebSocket listener started');
     this.listener.start();

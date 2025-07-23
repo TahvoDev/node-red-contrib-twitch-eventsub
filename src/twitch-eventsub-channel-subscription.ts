@@ -24,8 +24,8 @@ module.exports = function(RED) {
       node.error('No Twitch Eventsub Config node configured');
     }
 
-    node.triggerTwitchEvent = function(event) {
-      if (event.eventType === 'channelSubscription') {
+    node.triggerTwitchEvent = function(event, subscriptionType) {
+      if (subscriptionType === 'channelSubscription') {
         const mapped = {
           userId: event.userId,
           userName: event.userName,

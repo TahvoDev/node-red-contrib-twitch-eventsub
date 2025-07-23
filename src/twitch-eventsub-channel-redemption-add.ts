@@ -27,11 +27,11 @@ module.exports = function(RED) {
       // TODO show error message if no config found
     }
 
-    node.triggerTwitchEvent = function(event) {
+    node.triggerTwitchEvent = function(event, subscriptionType) {
       console.log("triggerTwitchEvent called with event:", event); // <-- Add this
       console.log("trying to trigger event channelRedemptionAdd");
 
-      if(event.eventType === 'channelRedemptionAdd') {
+      if(subscriptionType === 'channelRedemptionAdd') {
         const mapped = {
           userId: event.userId,
           userName: event.userName,

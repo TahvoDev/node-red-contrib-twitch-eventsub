@@ -27,8 +27,8 @@ module.exports = function(RED) {
       // TODO show error message if no config found
     }
 
-    node.triggerTwitchEvent = function(event) {
-      if(event.eventType === 'streamOffline') {
+    node.triggerTwitchEvent = function(event, subscriptionType) {
+      if(subscriptionType === 'streamOffline') {
         const mapped = {
           broadcasterId: event.broadcasterId,
           broadcasterName: event.broadcasterName,
