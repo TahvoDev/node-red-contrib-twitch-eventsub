@@ -9,14 +9,14 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "channel subscription",
+      paletteLabel: "subscription",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'channel subscription' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'subscription' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });

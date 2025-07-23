@@ -9,14 +9,14 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "channel redeem",
+      paletteLabel: "redeem",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'channel redeem' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'redeem' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
