@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('twitch-eventsub-channel-redeem', {
+    RED.nodes.registerType('twitch-eventsub-channel-redemption-add', {
       category: 'Twitch Eventsub',
       color: '#9145FF',
       defaults: {
@@ -9,20 +9,20 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "Channel Redeem",
+      paletteLabel: "Channel Redemption Add",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'Channel Redeem' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'Channel Redemption Add' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
   </script>
   
-  <script type="text/html" data-template-name="twitch-eventsub-channel-redeem">
+  <script type="text/html" data-template-name="twitch-eventsub-channel-redemption-add">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -34,9 +34,9 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="twitch-eventsub-channel-redeem">
+  <script type="text/html" data-help-name="twitch-eventsub-channel-redemption-add">
       <h2>Eventsub Listener</h2>
-      Connects to Twitch Eventsub with the help of Twurple, and send a message for each follow, sub, subgift, cheer, reward redeem, and raid.
+      Connects to Twitch Eventsub with the help of Twurple, and send a message for each channel redemption add.
   
       <h3>Inputs</h3>
       No inputs accepted. Messages will be generated from the Twitch API.
@@ -54,12 +54,7 @@
                               <dd>
                                   Type of event. One of these:
                                   <ul>
-                                      <li><code>"follow"</code></li>
-                                      <li><code>"subscribe"</code></li>
-                                      <li><code>"subscribeGift"</code></li>
-                                      <li><code>"bits"</code></li>
-                                      <li><code>"redeem"</code></li>
-                                      <li><code>"raid"</code></li>
+                                      <li><code>"channelRedemptionAdd"</code></li>
                                   </ul>
                               </dd>
                           </li>

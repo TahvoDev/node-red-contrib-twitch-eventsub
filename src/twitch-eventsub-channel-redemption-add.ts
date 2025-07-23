@@ -1,5 +1,5 @@
 module.exports = function(RED) {
-  function TwitchEventSubChannelRedeemNode(config) {
+  function TwitchEventSubChannelRedemptionAddNode(config) {
     //@ts-expect-error any
     const node = this as any;
     RED.nodes.createNode(node, config);
@@ -34,7 +34,7 @@ module.exports = function(RED) {
     };
   }
 
-  TwitchEventSubChannelRedeemNode.icon = 'twitch-icon.png';
+  TwitchEventSubChannelRedemptionAddNode.icon = 'twitch-icon.png';
 
-  RED.nodes.registerType("twitch-eventsub-channel-redeem", TwitchEventSubChannelRedeemNode);
+  RED.nodes.registerType("twitch-eventsub-channel-redemption-add", TwitchEventSubChannelRedemptionAddNode);
 }
