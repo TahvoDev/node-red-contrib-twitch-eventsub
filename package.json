@@ -38,7 +38,10 @@
     "nodes": {
       "twitch-eventsub-config": "dist/twitch-eventsub-config.js",
       "twitch-eventsub-channel-redemption-add": "dist/twitch-eventsub-channel-redemption-add.js",
-      "twitch-eventsub-channel-stream-online": "dist/twitch-eventsub-channel-stream-online.js"
+      "twitch-eventsub-channel-stream-online": "dist/twitch-eventsub-channel-stream-online.js",
+      "twitch-eventsub-channel-stream-offline": "dist/twitch-eventsub-channel-stream-offline.js",
+      "twitch-eventsub-channel-subscription": "dist/twitch-eventsub-channel-subscription.js",
+      "twitch-eventsub-channel-cheer": "dist/twitch-eventsub-channel-cheer.js"
     }
   },
   "engines": {
