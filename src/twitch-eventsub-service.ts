@@ -18,14 +18,6 @@ class TwitchEventsub {
 
   onAuthError?: () => void;
 
-  private handleEvent(event: any, subscriptionType: string) {
-    console.log('New ' + subscriptionType + ' event received');
-    this.node.log(subscriptionType, JSON.stringify(event, null, '  '));
-    if (this.onEventCb) {
-      this.onEventCb(event, subscriptionType);
-    }
-  }
-
   constructor(node: AbstractNode, userId: number, clientId: string, clientSecret: string) {
     this.node = node;
     this.userId = userId;
@@ -37,7 +29,6 @@ class TwitchEventsub {
   }
 
   async init(refreshToken: string): Promise<void> {
-
     this.node.log('NEW TwitchEventsub', this.clientId, this.userId);
     //@ts-ignore
     await this.authProvider.addUserForToken({
@@ -47,6 +38,13 @@ class TwitchEventsub {
 
     this.apiClient = new ApiClient({authProvider: this.authProvider});
     this.listener = new EventSubWsListener({ apiClient: this.apiClient });
+  }
+
+  private handleEvent(event: any, subscriptionType: string) {
+    console.log('New ' + subscriptionType + ' event received');
+    if (this.onEventCb) {
+      this.onEventCb(event, subscriptionType);
+    }
   }
 
   async addSubscriptions() {
@@ -61,7 +59,6 @@ class TwitchEventsub {
     this.node.log('WebSocket listener started');
     this.listener.start();
   }
-
 
   async stop() {
     if (this.listener) {
