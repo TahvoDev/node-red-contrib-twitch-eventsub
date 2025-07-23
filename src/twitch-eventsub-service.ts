@@ -89,9 +89,9 @@ class TwitchEventsub {
       refreshToken: refreshToken,
     });
 
-    const apiClient = new ApiClient({authProvider: this.authProvider});
+    this.apiClient = new ApiClient({authProvider: this.authProvider});
 
-    this.listener = new EventSubWsListener({ apiClient });
+    this.listener = new EventSubWsListener({ apiClient: this.apiClient });
 
     this.user = await this.apiClient.users.getUserById(this.userId ?? 0);
 
