@@ -1,11 +1,8 @@
 import {RefreshingAuthProvider} from '@twurple/auth';
 import {ApiClient} from '@twurple/api';
 import {EventSubWsListener} from '@twurple/eventsub-ws';
-import type {EventSubSubscription} from '@twurple/eventsub-base/lib/subscriptions/EventSubSubscription';
 import {AbstractNode} from '/@/AbstractNode';
-import {DataObject, getRawData, type UserIdResolvable} from '@twurple/common';
 import {HelixUser} from '@twurple/api/lib/endpoints/user/HelixUser';
-import {EventSubListener} from '@twurple/eventsub-base';
 
 type TwitchEvent = {
   eventType: string;
@@ -69,7 +66,7 @@ class TwitchEventsub {
         });
       }
     });
-    
+
     this.node.log('WebSocket listener started');
     this.listener.start();
   }
