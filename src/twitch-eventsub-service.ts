@@ -38,6 +38,7 @@ class TwitchEventsub {
 
     this.apiClient = new ApiClient({authProvider: this.authProvider});
     this.listener = new EventSubWsListener({ apiClient: this.apiClient });
+
   }
 
   private handleEvent(event: any, subscriptionType: string) {
