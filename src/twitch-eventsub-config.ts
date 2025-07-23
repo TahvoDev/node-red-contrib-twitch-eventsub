@@ -51,9 +51,9 @@ module.exports = function (RED: Red) {
             shape: 'ring',
             text: 'Subscribing to events...',
           });
-          this.twitchEventsub.onEventCb = (e) => {
+          this.twitchEventsub.onEventCb = (e, subscriptionType) => {
             Object.values(this.nodeListeners).forEach(node => {
-              (node as any).triggerTwitchEvent(e);
+              (node as any).triggerTwitchEvent(e, subscriptionType);
             });
           };
 
