@@ -90,115 +90,11 @@ class TwitchEventsub {
 
   onAuthError?: () => void;
 
-  private handleStreamOnline(event: any) {
-    console.log(`${event.broadcasterName} is online`);
-    this.node.log('streamOnline', JSON.stringify(event, null, '  '));
+  private handleEvent(eventType: string, event: any) {
+    console.log('New ' + eventType + ' event received');
+    this.node.log(eventType, JSON.stringify(event, null, '  '));
     if (this.onEventCb) {
-      const twitchEvent: TwitchEventStreamOnline = {
-        eventType: 'streamOnline',
-        broadcasterId: event.broadcasterId,
-        broadcasterName: event.broadcasterName,
-        broadcasterDisplayName: event.broadcasterDisplayName,
-        startDate: event.startDate,
-        type: event.type,
-        rawEvent: event
-      };
-      this.onEventCb(twitchEvent);
-    }
-  }
-
-  private handleStreamOffline(event: any) {
-    console.log(`${event.broadcasterName} is offline`);
-    this.node.log('streamOffline', JSON.stringify(event, null, '  '));
-    if (this.onEventCb) {
-      const twitchEvent: TwitchEventStreamOffline = {
-        eventType: 'streamOffline',
-        broadcasterId: event.broadcasterId,
-        broadcasterName: event.broadcasterName,
-        broadcasterDisplayName: event.broadcasterDisplayName,
-        startDate: event.startDate,
-        type: event.type,
-        rawEvent: event
-      };
-      this.onEventCb(twitchEvent);
-    }
-  }
-
-  private handleChannelRedemptionAdd(event: any) {
-    console.log(`${event.userDisplayName} redeemed ${event.rewardTitle}`);
-    this.node.log('channelRedemptionAdd', JSON.stringify(event, null, '  '));
-    if (this.onEventCb) {
-      const twitchEvent: TwitchEventChannelRedemptionAdd = {
-        eventType: 'channelRedemptionAdd',
-        userId: event.userId,
-        userName: event.userName,
-        userDisplayName: event.userDisplayName,
-        broadcasterId: event.broadcasterId,
-        broadcasterName: event.broadcasterName,
-        broadcasterDisplayName: event.broadcasterDisplayName,
-        id: event.id,
-        input: event.input,
-        redemptionDate: event.redemptionDate,
-        rewardCost: event.rewardCost,
-        rewardId: event.rewardId,
-        rewardPrompt: event.rewardPrompt,
-        rewardTitle: event.rewardTitle,
-        status: event.status,
-        rawEvent: event
-      };
-      this.onEventCb(twitchEvent);
-    }
-  }
-
-  private handleChannelSubscription(event: any) {
-    console.log(`${event.userDisplayName} subscribed to ${event.broadcasterDisplayName}`);
-    this.node.log('channelSubscription', JSON.stringify(event, null, '  '));
-    if (this.onEventCb) {
-      const twitchEvent: TwitchEventChannelSubscription = {
-        eventType: 'channelSubscription',
-        userId: event.userId,
-        userName: event.userName,
-        userDisplayName: event.userDisplayName,
-        broadcasterId: event.broadcasterId,
-        broadcasterName: event.broadcasterName,
-        broadcasterDisplayName: event.broadcasterDisplayName,
-        id: event.id,
-        input: event.input,
-        redemptionDate: event.redemptionDate,
-        rewardCost: event.rewardCost,
-        rewardId: event.rewardId,
-        rewardPrompt: event.rewardPrompt,
-        rewardTitle: event.rewardTitle,
-        status: event.status,
-        rawEvent: event
-      };
-      this.onEventCb(twitchEvent);
-    }
-  }
-
-  private handleChannelCheer(event: any) {
-    console.log(`${event.userDisplayName} cheered ${event.bits} bits`);
-    this.node.log('channelCheer', JSON.stringify(event, null, '  '));
-    if (this.onEventCb) {
-      const twitchEvent: TwitchEventChannelCheer = {
-        eventType: 'channelCheer',
-        userId: event.userId,
-        userName: event.userName,
-        userDisplayName: event.userDisplayName,
-        broadcasterId: event.broadcasterId,
-        broadcasterName: event.broadcasterName,
-        broadcasterDisplayName: event.broadcasterDisplayName,
-        id: event.id,
-        input: event.input,
-        redemptionDate: event.redemptionDate,
-        rewardCost: event.rewardCost,
-        rewardId: event.rewardId,
-        rewardPrompt: event.rewardPrompt,
-        rewardTitle: event.rewardTitle,
-        status: event.status,
-        rawEvent: event
-      };
-      this.onEventCb(twitchEvent);
+      this.onEventCb(event);
     }
   }
 
@@ -228,11 +124,11 @@ class TwitchEventsub {
   async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
-    this.currentEventsubSubscriptions.push(this.listener.onStreamOnline(this.userId!, this.handleStreamOnline.bind(this)));
-    this.currentEventsubSubscriptions.push(this.listener.onStreamOffline(this.userId!, this.handleStreamOffline.bind(this)));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelRedemptionAdd(this.userId!, this.handleChannelRedemptionAdd.bind(this)));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelSubscription(this.userId!, this.handleChannelSubscription.bind(this)));
-    this.currentEventsubSubscriptions.push(this.listener.onChannelCheer(this.userId!, this.handleChannelCheer.bind(this)));
+    this.currentEventsubSubscriptions.push(this.listener.onStreamOnline(this.userId!, this.handleEvent.bind(this, 'streamOnline')));
+    this.currentEventsubSubscriptions.push(this.listener.onStreamOffline(this.userId!, this.handleEvent.bind(this, 'streamOffline')));
+    this.currentEventsubSubscriptions.push(this.listener.onChannelRedemptionAdd(this.userId!, this.handleEvent.bind(this, 'channelRedemptionAdd')));
+    this.currentEventsubSubscriptions.push(this.listener.onChannelSubscription(this.userId!, this.handleEvent.bind(this, 'channelSubscription')));
+    this.currentEventsubSubscriptions.push(this.listener.onChannelCheer(this.userId!, this.handleEvent.bind(this, 'channelCheer')));
 
     this.node.log('WebSocket listener started');
     this.listener.start();

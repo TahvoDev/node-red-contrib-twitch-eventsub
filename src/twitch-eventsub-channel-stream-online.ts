@@ -29,9 +29,15 @@ module.exports = function(RED) {
 
     node.triggerTwitchEvent = function(event) {
       if(event.eventType === 'streamOnline') {
-        node.send({
-          payload: event
-        });
+        const mapped = {
+          broadcasterId: event.broadcasterId,
+          broadcasterName: event.broadcasterName,
+          broadcasterDisplayName: event.broadcasterDisplayName,
+          startDate: event.startDate,
+          type: event.type,
+          rawEvent: event
+        };
+        node.send({ payload: mapped });
       }
     };
   }

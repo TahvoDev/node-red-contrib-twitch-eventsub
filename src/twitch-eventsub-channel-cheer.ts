@@ -26,9 +26,24 @@ module.exports = function(RED) {
 
     node.triggerTwitchEvent = function(event) {
       if (event.eventType === 'channelCheer') {
-        node.send({
-          payload: event
-        });
+        const mapped = {
+          userId: event.userId,
+          userName: event.userName,
+          userDisplayName: event.userDisplayName,
+          broadcasterId: event.broadcasterId,
+          broadcasterName: event.broadcasterName,
+          broadcasterDisplayName: event.broadcasterDisplayName,
+          id: event.id,
+          input: event.input,
+          redemptionDate: event.redemptionDate,
+          rewardCost: event.rewardCost,
+          rewardId: event.rewardId,
+          rewardPrompt: event.rewardPrompt,
+          rewardTitle: event.rewardTitle,
+          status: event.status,
+          rawEvent: event
+        };
+        node.send({ payload: mapped });
       }
     };
   }
