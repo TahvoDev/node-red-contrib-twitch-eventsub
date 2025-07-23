@@ -45,9 +45,27 @@ class TwitchEventsub {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
     this.listener.onChannelRedemptionAdd(this.userId!, e => {
-      let eventJSON = JSON.stringify(e, null, '  ');
-      if (this.onEventCb) {
-        this.onEventCb(eventJSON);
+      try {
+        // Create a clean object with only the data we need
+        const eventData = {
+          id: e.id,
+          userId: e.userId,
+          userName: e.userName,
+          userDisplayName: e.userDisplayName,
+          rewardId: e.rewardId,
+          rewardTitle: e.rewardTitle,
+          rewardPrompt: e.rewardPrompt,
+          rewardCost: e.rewardCost,
+          status: e.status,
+          redemptionDate: e.redemptionDate?.toISOString(),
+          input: e.input
+        };
+        
+        const eventJSON = JSON.stringify(eventData, null, 2);
+        this.onEventCb?.(eventJSON);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+        this.node.error(`Error processing redemption event: ${errorMessage}`, e);
       }
     });
 
