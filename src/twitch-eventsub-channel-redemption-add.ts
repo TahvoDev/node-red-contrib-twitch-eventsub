@@ -28,6 +28,7 @@ module.exports = function(RED) {
     }
 
     node.triggerTwitchEvent = function(event) {
+      console.log("triggerTwitchEvent called with event:", event); // <-- Add this
       console.log("trying to trigger event channelRedemptionAdd");
 
       if(event.eventType === 'channelRedemptionAdd') {
