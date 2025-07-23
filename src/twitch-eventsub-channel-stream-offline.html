@@ -9,14 +9,15 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "Stream Offline",
+        // The label to display on the palette.
+      paletteLabel: "stream offline",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'Stream Offline' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'stream offline' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });

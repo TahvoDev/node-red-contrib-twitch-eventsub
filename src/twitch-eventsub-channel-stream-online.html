@@ -9,14 +9,14 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "Stream Online",
+      paletteLabel: "stream online",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'Stream Online' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'stream online' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
