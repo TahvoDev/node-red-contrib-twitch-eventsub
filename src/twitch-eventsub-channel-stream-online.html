@@ -1,5 +1,5 @@
 <script type="text/javascript">
-    RED.nodes.registerType('twitch-eventsub-channel-redemption-add', {
+    RED.nodes.registerType('twitch-eventsub-channel-stream-online', {
       category: 'Twitch Eventsub',
       color: '#9145FF',
       defaults: {
@@ -9,20 +9,20 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "Channel Redemption",
+      paletteLabel: "Stream Online",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'Channel Redemption' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'Stream Online' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
   </script>
   
-  <script type="text/html" data-template-name="twitch-eventsub-channel-redemption-add">
+  <script type="text/html" data-template-name="twitch-eventsub-channel-stream-online">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -34,9 +34,9 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="twitch-eventsub-channel-redemption-add">
-      <h2>Twitch Channel Points Redemption</h2>
-      <p>Listens for channel point redemptions in your Twitch channel and outputs the redemption details.</p>
+  <script type="text/html" data-help-name="twitch-eventsub-channel-stream-online">
+      <h2>Twitch Stream Online</h2>
+      <p>Triggers when a stream goes live in your Twitch channel.</p>
   
       <h3>Configuration</h3>
       <ul>
@@ -45,7 +45,7 @@
       </ul>
       
       <h3>Output</h3>
-      <p>Emits a message for each channel point redemption with the following properties:</p>
+      <p>Emits a message when the stream goes online with the following properties:</p>
       
       <dl class="message-properties">
           <dt>payload <span class="property-type">object</span></dt>
@@ -53,19 +53,19 @@
               <ul>
                   <li>
                       <dt>userId <i>string</i></dt>
-                      <dd>Twitch user ID of the viewer who redeemed the reward</dd>
+                      <dd>Twitch user ID of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>userName <i>string</i></dt>
-                      <dd>Twitch login name of the viewer</dd>
+                      <dd>Twitch login name of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>userDisplayName <i>string</i></dt>
-                      <dd>Display name of the viewer</dd>
+                      <dd>Display name of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>broadcasterId <i>string</i></dt>
-                      <dd>Twitch user ID of the channel where the redemption occurred</dd>
+                      <dd>Twitch user ID of the channel that went live</dd>
                   </li>
                   <li>
                       <dt>broadcasterName <i>string</i></dt>
@@ -76,36 +76,12 @@
                       <dd>Display name of the broadcaster</dd>
                   </li>
                   <li>
-                      <dt>id <i>string</i></dt>
-                      <dd>Unique identifier of the redemption</dd>
+                      <dt>startDate <i>Date</i></dt>
+                      <dd>When the stream went online</dd>
                   </li>
                   <li>
-                      <dt>input <i>string</i></dt>
-                      <dd>User input provided with the redemption (if any)</dd>
-                  </li>
-                  <li>
-                      <dt>redemptionDate <i>Date</i></dt>
-                      <dd>When the redemption occurred</dd>
-                  </li>
-                  <li>
-                      <dt>rewardId <i>string</i></dt>
-                      <dd>ID of the reward that was redeemed</dd>
-                  </li>
-                  <li>
-                      <dt>rewardTitle <i>string</i></dt>
-                      <dd>Title of the reward that was redeemed</dd>
-                  </li>
-                  <li>
-                      <dt>rewardPrompt <i>string</i></dt>
-                      <dd>Prompt shown to the user when redeeming the reward</dd>
-                  </li>
-                  <li>
-                      <dt>rewardCost <i>number</i></dt>
-                      <dd>Channel points cost of the reward</dd>
-                  </li>
-                  <li>
-                      <dt>status <i>string</i></dt>
-                      <dd>Status of the redemption (e.g., "UNFULFILLED", "FULFILLED")</dd>
+                      <dt>type <i>string</i></dt>
+                      <dd>Type of stream (e.g., "live", "playlist", "watch_party", etc.)</dd>
                   </li>
                   <li>
                       <dt>rawEvent <i>object</i></dt>
@@ -114,4 +90,7 @@
               </ul>
           </dd>
       </dl>
+      
+      <h3>Example Usage</h3>
+      <p>To be notified when your stream goes live, connect this node to a function node that sends a notification.</p>
   </script>

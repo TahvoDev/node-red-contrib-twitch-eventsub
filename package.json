@@ -37,7 +37,8 @@
     "version": ">=2.0.0",
     "nodes": {
       "twitch-eventsub-config": "dist/twitch-eventsub-config.js",
-      "twitch-eventsub-channel-redemption-add": "dist/twitch-eventsub-channel-redemption-add.js"
+      "twitch-eventsub-channel-redemption-add": "dist/twitch-eventsub-channel-redemption-add.js",
+      "twitch-eventsub-channel-stream-online": "dist/twitch-eventsub-channel-stream-online.js"
     }
   },
   "engines": {
