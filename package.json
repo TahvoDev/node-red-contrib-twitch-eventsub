@@ -28,16 +28,20 @@
   },
   "license": "MIT",
   "dependencies": {
-    "@twurple/api": "^7.1.0",
-    "@twurple/auth": "^7.1.0",
+    "@twurple/api": "^7.3.0",
+    "@twurple/auth": "^7.3.0",
     "@twurple/common": "^7.3.0",
-    "@twurple/eventsub-ws": "^7.1.0"
+    "@twurple/eventsub-ws": "^7.3.0"
   },
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
-      "twitch-eventsub": "dist/twitch-eventsub.js",
-      "twitch-eventsub-config": "dist/twitch-eventsub-config.js"
+      "twitch-eventsub-config": "dist/twitch-eventsub-config.js",
+      "twitch-eventsub-channel-redemption-add": "dist/twitch-eventsub-channel-redemption-add.js",
+      "twitch-eventsub-channel-stream-online": "dist/twitch-eventsub-channel-stream-online.js",
+      "twitch-eventsub-channel-stream-offline": "dist/twitch-eventsub-channel-stream-offline.js",
+      "twitch-eventsub-channel-subscription": "dist/twitch-eventsub-channel-subscription.js",
+      "twitch-eventsub-channel-cheer": "dist/twitch-eventsub-channel-cheer.js"
     }
   },
   "engines": {
@@ -45,8 +49,7 @@
   },
   "devDependencies": {
     "node-fetch": "^3.3.2",
-    "node-red-dev": "^0.1.6",
-    "shelljs": "^0.8.5",
+    "shelljs": "^0.10.0",
     "ttypescript": "^1.5.15",
     "typescript": "^4.9.5"
   }

@@ -1,0 +1,53 @@
+module.exports = function(RED) {
+  function TwitchEventSubChannelSubscriptionNode(config) {
+    //@ts-expect-error any
+    const node = this as any;
+    RED.nodes.createNode(node, config);
+
+    const id = Math.floor(Math.random() * 1000000);
+    node.twitchConfig = RED.nodes.getNode(config.config);
+
+    if (node.twitchConfig) {
+      // On Start
+      node.twitchConfig.addNode(id, node);
+
+      // On Delete
+      node.on('close', (removed: boolean, done: () => void) => {
+        if (removed) {
+          node.twitchConfig.removeNode(id, done);
+        } else {
+          done();
+        }
+      });
+    } else {
+      // No config node configured
+      node.error('No Twitch Eventsub Config node configured');
+    }
+
+    node.triggerTwitchEvent = function(event, subscriptionType) {
+      if (subscriptionType === 'channelSubscription') {
+        const mapped = {
+          userId: event.userId,
+          userName: event.userName,
+          userDisplayName: event.userDisplayName,
+          broadcasterId: event.broadcasterId,
+          broadcasterName: event.broadcasterName,
+          broadcasterDisplayName: event.broadcasterDisplayName,
+          id: event.id,
+          input: event.input,
+          redemptionDate: event.redemptionDate,
+          rewardCost: event.rewardCost,
+          rewardId: event.rewardId,
+          rewardPrompt: event.rewardPrompt,
+          rewardTitle: event.rewardTitle,
+          status: event.status,
+          rawEvent: event
+        };
+        node.send({ payload: mapped });
+      }
+    };
+  }
+
+  TwitchEventSubChannelSubscriptionNode.icon = 'twitch-icon.png';
+  RED.nodes.registerType("twitch-eventsub-channel-subscription", TwitchEventSubChannelSubscriptionNode);
+};

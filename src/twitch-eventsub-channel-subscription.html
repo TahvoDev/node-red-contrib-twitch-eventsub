@@ -1,0 +1,105 @@
+<script type="text/javascript">
+    RED.nodes.registerType('twitch-eventsub-channel-subscription', {
+      category: 'Twitch Advanced',
+      color: '#b9a3e3',
+      defaults: {
+        name: { value: "" },
+        config: { value: "", type: "twitch-eventsub-config", required: true }
+      },
+      inputs: 0,
+      outputs: 1,
+      icon: 'twitch-icon.png',
+      paletteLabel: "subscription",
+      label: function() {
+        if (this.name) {
+          return this.name;
+        }
+        else {
+          var config = RED.nodes.node(this.config);
+          return 'subscription' + (config ? ' (' + (config.name || '') + ')' : '');
+        }
+      },
+    });
+  </script>
+  
+  <script type="text/html" data-template-name="twitch-eventsub-channel-subscription">
+    <div class="form-row">
+      <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+
+    <div class="form-row">
+      <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+      <input type="text" id="node-input-config" placeholder="">
+    </div>
+  </script>
+  
+  <script type="text/html" data-help-name="twitch-eventsub-channel-subscription">
+      <h2>Twitch Channel Subscription</h2>
+      <p>Triggers when someone subscribes to your Twitch channel.</p>
+  
+      <h3>Configuration</h3>
+      <ul>
+          <li><strong>Name</strong>: Optional name for the node</li>
+          <li><strong>Config</strong>: Select your Twitch Eventsub configuration</li>
+      </ul>
+      
+      <h3>Output</h3>
+      <p>Emits a message when someone subscribes with the following properties:</p>
+      
+      <dl class="message-properties">
+          <dt>payload <span class="property-type">object</span></dt>
+          <dd>
+              <ul>
+                  <li>
+                      <dt>userId <i>string</i></dt>
+                      <dd>Twitch user ID of the subscriber</dd>
+                  </li>
+                  <li>
+                      <dt>userName <i>string</i></dt>
+                      <dd>Twitch login name of the subscriber</dd>
+                  </li>
+                  <li>
+                      <dt>userDisplayName <i>string</i></dt>
+                      <dd>Display name of the subscriber</dd>
+                  </li>
+                  <li>
+                      <dt>broadcasterId <i>string</i></dt>
+                      <dd>Twitch user ID of the channel that was subscribed to</dd>
+                  </li>
+                  <li>
+                      <dt>broadcasterName <i>string</i></dt>
+                      <dd>Twitch login name of the broadcaster</dd>
+                  </li>
+                  <li>
+                      <dt>broadcasterDisplayName <i>string</i></dt>
+                      <dd>Display name of the broadcaster</dd>
+                  </li>
+                  <li>
+                      <dt>tier <i>string</i></dt>
+                      <dd>Subscription tier (1000, 2000, or 3000)</dd>
+                  </li>
+                  <li>
+                      <dt>isGift <i>boolean</i></dt>
+                      <dd>Whether the subscription was a gift</dd>
+                  </li>
+                  <li>
+                      <dt>message <i>string</i></dt>
+                      <dd>Optional resubscription message</dd>
+                  </li>
+                  <li>
+                      <dt>cumulativeMonths <i>number</i></dt>
+                      <dd>Total number of months the user has been subscribed</dd>
+                  </li>
+                  <li>
+                      <dt>streakMonths <i>number</i></dt>
+                      <dd>Number of consecutive months the user has been subscribed</dd>
+                  </li>
+                  <li>
+                      <dt>rawEvent <i>object</i></dt>
+                      <dd>Complete event data from Twitch API</dd>
+                  </li>
+              </ul>
+          </dd>
+      </dl>
+  </script>
