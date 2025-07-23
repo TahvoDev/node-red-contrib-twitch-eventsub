@@ -4,14 +4,6 @@ import {EventSubWsListener} from '@twurple/eventsub-ws';
 import {AbstractNode} from '/@/AbstractNode';
 import {HelixUser} from '@twurple/api/lib/endpoints/user/HelixUser';
 
-type TwitchEvent = {
-  eventType: string;
-  userId: number;
-  userName?: string | null | undefined;
-  userDisplayName?: string | null | undefined;
-  rawEvent: unknown;
-};
-
 class TwitchEventsub {
   clientId?: string | null;
   userId?: number | null;
@@ -21,7 +13,7 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   node: AbstractNode;
 
-  onEventCb?: (event: TwitchEvent) => void;
+  onEventCb?: (event: string) => void;
 
   onAuthError?: () => void;
 
@@ -53,17 +45,9 @@ class TwitchEventsub {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
     this.listener.onChannelRedemptionAdd(this.userId!, e => {
-      console.log(`${e.userDisplayName} redeemed ${e.rewardTitle}`);
-
-      this.node.log('channelRedemptionAdd', JSON.stringify(e, null, '  '));
+      let eventJSON = JSON.stringify(e, null, '  ');
       if (this.onEventCb) {
-        this.onEventCb({
-          eventType: 'channelRedemptionAdd',
-          userId: this.userId!,
-          userName: this.user?.name,
-          userDisplayName: this.user?.displayName,
-          rawEvent: e,
-        });
+        this.onEventCb(eventJSON);
       }
     });
 
