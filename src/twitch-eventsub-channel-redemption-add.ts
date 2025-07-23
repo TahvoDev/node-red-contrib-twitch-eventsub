@@ -28,6 +28,8 @@ module.exports = function(RED) {
     }
 
     node.triggerTwitchEvent = function(event) {
+      console.log("trying to trigger event channelRedemptionAdd");
+
       if(event.eventType === 'channelRedemptionAdd') {
         const mapped = {
           userId: event.userId,
@@ -46,7 +48,7 @@ module.exports = function(RED) {
           status: event.status,
           rawEvent: event
         };
-        console.log(mapped);
+        console.log("triggered event channelRedemptionAdd", mapped);
         node.send({ payload: mapped });
       }
     };
