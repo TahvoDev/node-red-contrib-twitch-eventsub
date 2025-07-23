@@ -29,7 +29,7 @@ module.exports = function(RED) {
 
     node.triggerTwitchEvent = function(event, subscriptionType) {
       console.log("triggerTwitchEvent called with event:", event); // <-- Add this
-      console.log("trying to trigger event channelRedemptionAdd");
+      console.log("triggerTwitchEvent called with subscriptionType:", subscriptionType); // <-- Add this
 
       if(subscriptionType === 'channelRedemptionAdd') {
         const mapped = {
