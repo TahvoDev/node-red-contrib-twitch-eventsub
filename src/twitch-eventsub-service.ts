@@ -69,11 +69,17 @@ class TwitchEventsub {
         });
       }
     });
+    
+    this.node.log('WebSocket listener started');
+    this.listener.start();
   }
 
 
   async stop() {
-
+    if (this.listener) {
+      await this.listener.stop();
+      this.node.log('WebSocket listener stopped');
+    }
   }
 }
 

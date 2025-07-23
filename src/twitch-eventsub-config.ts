@@ -59,6 +59,7 @@ module.exports = function (RED: Red) {
 
           try {
             await this.twitchEventsub.addSubscriptions();
+            this.log('Subscriptions added');
             this.updateStatus({
               fill: 'green',
               shape: 'dot',
