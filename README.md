@@ -1,4 +1,3 @@
-# node-red-contrib-twitch-eventsub
 Easy Node-RED Nodes for Twitch Creators 
 
 This project is still in early development! 
