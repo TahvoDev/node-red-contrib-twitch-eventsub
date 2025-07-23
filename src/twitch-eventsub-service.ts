@@ -42,10 +42,54 @@ class TwitchEventsub {
   apiClient!: ApiClient;
   listener!: EventSubWsListener;
   node: AbstractNode;
+  currentEventsubSubscriptions: unknown[] = [];
 
   onEventCb?: (event: any) => void;
 
   onAuthError?: () => void;
+
+  private handleStreamOnline(event: any) {
+    console.log(`${event.broadcasterName} is online`);
+    this.node.log('streamOnline', JSON.stringify(event, null, '  '));
+    if (this.onEventCb) {
+      const twitchEvent: TwitchEventStreamOnline = {
+        eventType: 'streamOnline',
+        broadcasterId: event.broadcasterId,
+        broadcasterName: event.broadcasterName,
+        broadcasterDisplayName: event.broadcasterDisplayName,
+        startDate: event.startDate,
+        type: event.type,
+        rawEvent: event
+      };
+      this.onEventCb(twitchEvent);
+    }
+  }
+
+  private handleChannelRedemptionAdd(event: any) {
+    console.log(`${event.userDisplayName} redeemed ${event.rewardTitle}`);
+    this.node.log('channelRedemptionAdd', JSON.stringify(event, null, '  '));
+    if (this.onEventCb) {
+      const twitchEvent: TwitchEventChannelRedemptionAdd = {
+        eventType: 'channelRedemptionAdd',
+        userId: event.userId,
+        userName: event.userName,
+        userDisplayName: event.userDisplayName,
+        broadcasterId: event.broadcasterId,
+        broadcasterName: event.broadcasterName,
+        broadcasterDisplayName: event.broadcasterDisplayName,
+        id: event.id,
+        input: event.input,
+        redemptionDate: event.redemptionDate,
+        rewardCost: event.rewardCost,
+        rewardId: event.rewardId,
+        rewardPrompt: event.rewardPrompt,
+        rewardTitle: event.rewardTitle,
+        status: event.status,
+        rawEvent: event
+      };
+      this.onEventCb(twitchEvent);
+    }
+  }
 
   constructor(node: AbstractNode, userId: number, clientId: string, clientSecret: string) {
     this.node = node;
@@ -68,57 +112,14 @@ class TwitchEventsub {
 
     this.apiClient = new ApiClient({authProvider: this.authProvider});
     this.listener = new EventSubWsListener({ apiClient: this.apiClient });
-
   }
 
   async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
     // Stream Status 
-    this.listener.onStreamOnline(this.userId!, (event) => {
-      console.log(`${event.broadcasterName} is online`);
-      this.node.log('streamOnline', JSON.stringify(event, null, '  '));
-      if (this.onEventCb) {
-        const twitchEvent: TwitchEventStreamOnline = {
-          eventType: 'streamOnline',
-          broadcasterId: event.broadcasterId,
-          broadcasterName: event.broadcasterName,
-          broadcasterDisplayName: event.broadcasterDisplayName,
-          startDate: event.startDate,
-          type: event.type,
-          rawEvent: event
-        };
-        this.onEventCb(twitchEvent);
-      }
-    });
-
-    // Channel Redeems 
-    this.listener.onChannelRedemptionAdd(this.userId!, (event) => {
-      console.log(`${event.userDisplayName} redeemed ${event.rewardTitle}`);
-
-      this.node.log('channelRedemptionAdd', JSON.stringify(event, null, '  '));
-      if (this.onEventCb) {
-        const twitchEvent: TwitchEventChannelRedemptionAdd = {
-          eventType: 'channelRedemptionAdd',
-          userId: event.userId,
-          userName: event.userName,
-          userDisplayName: event.userDisplayName,
-          broadcasterId: event.broadcasterId,
-          broadcasterName: event.broadcasterName,
-          broadcasterDisplayName: event.broadcasterDisplayName,
-          id: event.id,
-          input: event.input,
-          redemptionDate: event.redemptionDate,
-          rewardCost: event.rewardCost,
-          rewardId: event.rewardId,
-          rewardPrompt: event.rewardPrompt,
-          rewardTitle: event.rewardTitle,
-          status: event.status,
-          rawEvent: event
-        };
-        this.onEventCb(twitchEvent);
-      }
-    });
+    this.currentEventsubSubscriptions.push(this.listener.onStreamOnline(this.userId!, this.handleStreamOnline.bind(this)));
+    this.currentEventsubSubscriptions.push(this.listener.onChannelRedemptionAdd(this.userId!, this.handleChannelRedemptionAdd.bind(this)));
 
     this.node.log('WebSocket listener started');
     this.listener.start();
