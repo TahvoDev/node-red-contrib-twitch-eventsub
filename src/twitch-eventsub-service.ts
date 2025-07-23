@@ -50,6 +50,9 @@ class TwitchEventsub {
     this.apiClient = new ApiClient({authProvider: this.authProvider});
     this.listener = new EventSubWsListener({ apiClient: this.apiClient });
 
+  }
+
+  async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
     this.listener.onChannelRedemptionAdd(this.userId!, e => {
