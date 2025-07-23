@@ -4,6 +4,28 @@ import {EventSubWsListener} from '@twurple/eventsub-ws';
 import {AbstractNode} from '/@/AbstractNode';
 import {HelixUser} from '@twurple/api/lib/endpoints/user/HelixUser';
 
+interface TwitchEvent {
+  userId: string;
+  userName: string;
+  userDisplayName: string;
+  rawEvent: unknown;
+}
+
+interface TwitchEventChannelRedemptionAdd extends TwitchEvent {
+  broadcasterId: string;
+  broadcasterName: string;
+  broadcasterDisplayName: string;
+  id: string;
+  input: string;
+  redemptionDate: Date;
+  rewardCost: number;
+  rewardId: string;
+  rewardPrompt: string;
+  rewardTitle: string;
+  status: string;
+}
+
+
 class TwitchEventsub {
   clientId?: string | null;
   userId?: number | null;
@@ -13,7 +35,7 @@ class TwitchEventsub {
   listener!: EventSubWsListener;
   node: AbstractNode;
 
-  onEventCb?: (event: string) => void;
+  onEventCb?: (event: TwitchEvent) => void;
 
   onAuthError?: () => void;
 
@@ -44,28 +66,29 @@ class TwitchEventsub {
   async addSubscriptions() {
     this.user = await this.apiClient.users.getUserById(this.userId!);
 
-    this.listener.onChannelRedemptionAdd(this.userId!, e => {
-      try {
-        // Create a clean object with only the data we need
-        const eventData = {
-          id: e.id,
-          userId: e.userId,
-          userName: e.userName,
-          userDisplayName: e.userDisplayName,
-          rewardId: e.rewardId,
-          rewardTitle: e.rewardTitle,
-          rewardPrompt: e.rewardPrompt,
-          rewardCost: e.rewardCost,
-          status: e.status,
-          redemptionDate: e.redemptionDate?.toISOString(),
-          input: e.input
+    this.listener.onChannelRedemptionAdd(this.userId!, (event) => {
+      console.log(`${event.userDisplayName} redeemed ${event.rewardTitle}`);
+
+      this.node.log('channelRedemptionAdd', JSON.stringify(event, null, '  '));
+      if (this.onEventCb) {
+        const twitchEvent: TwitchEventChannelRedemptionAdd = {
+          userId: event.userId,
+          userName: event.userName,
+          userDisplayName: event.userDisplayName,
+          broadcasterId: event.broadcasterId,
+          broadcasterName: event.broadcasterName,
+          broadcasterDisplayName: event.broadcasterDisplayName,
+          id: event.id,
+          input: event.input,
+          redemptionDate: event.redemptionDate,
+          rewardCost: event.rewardCost,
+          rewardId: event.rewardId,
+          rewardPrompt: event.rewardPrompt,
+          rewardTitle: event.rewardTitle,
+          status: event.status,
+          rawEvent: event
         };
-        
-        const eventJSON = JSON.stringify(eventData, null, 2);
-        this.onEventCb?.(eventJSON);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-        this.node.error(`Error processing redemption event: ${errorMessage}`, e);
+        this.onEventCb(twitchEvent);
       }
     });
 
