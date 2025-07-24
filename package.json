@@ -1,10 +1,10 @@
 {
-  "name": "@xureilab/node-red-twitch-eventsub",
+  "name": "@tahvo/node-red-twitch-eventsub",
   "version": "0.1.1",
   "description": "Connect to Twitch EventSub API",
   "main": "index.js",
-  "homepage": "https://github.com/xurei/node-red-contrib-twitch-eventsub",
-  "repository": "https://github.com/xurei/node-red-contrib-twitch-eventsub",
+  "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
+  "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "scripts": {
     "build": "(rm -rf dist || true) && ttsc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
@@ -22,9 +22,9 @@
     "subscribe"
   ],
   "author": {
-    "email": "xureilab@gmail.com",
-    "name": "xurei",
-    "url": "https://xureilab.com"
+    "email": "tahvobiz@pm.me",
+    "name": "Tahvo",
+    "url": "https://tahvo.tech"
   },
   "license": "MIT",
   "dependencies": {
