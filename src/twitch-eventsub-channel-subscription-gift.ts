@@ -44,11 +44,7 @@ module.exports = function(RED) {
                     isAnonymous: event.isAnonymous,
                     
                     // Raw event data
-                    rawEvent: event,
-                    
-                    // Async methods
-                    getBroadcaster: async () => await event.getBroadcaster(),
-                    getGifter: async () => await event.getGifter()
+                    rawEvent: event
                 };
                 
                 node.send({ payload: mapped });
