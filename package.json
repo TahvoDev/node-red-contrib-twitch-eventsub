@@ -44,7 +44,8 @@
       "twitch-eventsub-channel-cheer": "dist/twitch-eventsub-channel-cheer.js",
       "twitch-eventsub-channel-raid-from": "dist/twitch-eventsub-channel-raid-from.js",
       "twitch-eventsub-channel-raid-to": "dist/twitch-eventsub-channel-raid-to.js",
-      "twitch-eventsub-channel-follow": "dist/twitch-eventsub-channel-follow.js"
+      "twitch-eventsub-channel-follow": "dist/twitch-eventsub-channel-follow.js",
+      "twitch-eventsub-channel-subscription-gift": "dist/twitch-eventsub-channel-subscription-gift.js"
     }
   },
   "engines": {
