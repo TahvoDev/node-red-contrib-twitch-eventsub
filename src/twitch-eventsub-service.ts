@@ -60,6 +60,7 @@ class TwitchEventsub {
     this.listener.onChannelRaidFrom(this.userId!, (event) => this.handleEvent(event, 'channelRaidFrom'));
     this.listener.onChannelRaidTo(this.userId!, (event) => this.handleEvent(event, 'channelRaidTo'));
     this.listener.onChannelFollow(this.userId!, this.userId!, (event) => this.handleEvent(event, 'channelFollow'));
+    this.listener.onChannelChatMessage(this.userId!, this.userId!, (event) => this.handleEvent(event, 'channelChatMessage'));
 
     this.node.log('WebSocket listener started');
     this.listener.start();

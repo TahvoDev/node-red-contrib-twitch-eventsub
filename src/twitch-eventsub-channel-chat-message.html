@@ -1,0 +1,64 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-chat-message', {
+    category: 'twitch',
+    color: '#b9a3e3',
+    defaults: {
+      name: { value: '' },
+      config: { type: 'twitch-eventsub-config', required: true },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    label: function () {
+      return this.name || 'chat message';
+    },
+    paletteLabel: 'chat message',
+    labelStyle: function () {
+      return this.name ? 'node_label_italic' : '';
+    },
+    oneditprepare: function () {
+      $('#node-input-name').on('input', function () {
+        $('#node-input-label').val($(this).val());
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-chat-message">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Twitch Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-chat-message">
+  <p>Triggers when a chat message is sent to the configured Twitch channel.</p>
+  <p>The message object contains the following properties:</p>
+  <ul>
+    <li><code>messageId</code>: The unique ID of the message</li>
+    <li><code>messageText</code>: The text content of the message</li>
+    <li><code>messageType</code>: The type of message (e.g., 'chat', 'whisper')</li>
+    <li><code>userId</code>: The ID of the user who sent the message</li>
+    <li><code>userName</code>: The login name of the user</li>
+    <li><code>userDisplayName</code>: The display name of the user</li>
+    <li><code>userColor</code>: The user's chat color</li>
+    <li><code>userBadges</code>: Array of badges the user has</li>
+    <li><code>broadcasterId</code>: The ID of the channel where the message was sent</li>
+    <li><code>broadcasterName</code>: The login name of the channel</li>
+    <li><code>broadcasterDisplayName</code>: The display name of the channel</li>
+    <li><code>isCheer</code>: Whether the message contains bits</li>
+    <li><code>bits</code>: Number of bits cheered, if any</li>
+    <li><code>isHighlighted</code>: Whether the message is highlighted</li>
+    <li><code>isReply</code>: Whether the message is a reply</li>
+    <li><code>isFirstMessage</code>: Whether this is the user's first message</li>
+    <li><code>isSubscriber</code>: Whether the user is a subscriber</li>
+    <li><code>isMod</code>: Whether the user is a moderator</li>
+    <li><code>isVip</code>: Whether the user is a VIP</li>
+    <li><code>timestamp</code>: When the message was sent</li>
+    <li><code>rawEvent</code>: The complete raw event data</li>
+  </ul>
+</script>
