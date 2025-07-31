@@ -9,18 +9,19 @@
     inputs: 0,
     outputs: 1,
     icon: 'twitch-icon.png',
+    paletteLabel: "follow",
     label: function() {
       if (this.name) {
         return this.name;
       }
       else {
         var config = RED.nodes.node(this.config);
-        return 'channel follow' + (config ? ' (' + (config.name || '') + ')' : '');
+        return 'follow' + (config ? ' (' + (config.name || '') + ')' : '');
       }
     },
     oneditprepare: function() {
       $('#node-input-name').on('change', function() {
-        $('#node-input-label').text($(this).val() || 'channel follow');
+        $('#node-input-label').text($(this).val() || 'follow');
       });
     }
   });
