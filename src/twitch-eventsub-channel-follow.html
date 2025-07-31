@@ -1,0 +1,58 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-follow', {
+    category: 'twitch',
+    color: '#9146FF',
+    defaults: {
+      name: { value: '' },
+      config: { type: 'twitch-eventsub-config', required: true }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    label: function() {
+      if (this.name) {
+        return this.name;
+      }
+      else {
+        var config = RED.nodes.node(this.config);
+        return 'channel follow' + (config ? ' (' + (config.name || '') + ')' : '');
+      }
+    },
+    oneditprepare: function() {
+      $('#node-input-name').on('change', function() {
+        $('#node-input-label').text($(this).val() || 'channel follow');
+      });
+    }
+  });
+</script>
+
+<script type="text/x-red" data-template-name="twitch-eventsub-channel-follow">
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-tv"></i> Twitch Config</label>
+    <input type="text" id="node-input-config" class="node-input-config">
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+</script>
+
+<script type="text/x-red" data-help-name="twitch-eventsub-channel-follow">
+  <p>Triggers when a user follows the specified channel.</p>
+  <p><b>Outputs</b></p>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The follow event data with the following properties:
+      <ul>
+        <li><code>userId</code> - The ID of the following user</li>
+        <li><code>userName</code> - The name of the following user</li>
+        <li><code>userDisplayName</code> - The display name of the following user</li>
+        <li><code>broadcasterId</code> - The ID of the broadcaster</li>
+        <li><code>broadcasterName</code> - The name of the broadcaster</li>
+        <li><code>broadcasterDisplayName</code> - The display name of the broadcaster</li>
+        <li><code>followDate</code> - The date when the user followed (Date object)</li>
+        <li><code>rawEvent</code> - The complete raw event data from Twitch</li>
+      </ul>
+    </dd>
+  </dl>
+</script>
