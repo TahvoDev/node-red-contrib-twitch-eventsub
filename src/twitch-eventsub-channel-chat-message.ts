@@ -27,20 +27,20 @@ module.exports = function(RED) {
     node.triggerTwitchEvent = async function(event: any, subscriptionType: string) {
       if (subscriptionType === 'channelChatMessage') {
         const mapped = {
-          // Message details
+          // Message identification
           messageId: event.messageId,
           messageText: event.messageText,
           messageParts: event.messageParts,
           messageType: event.messageType,
           
-          // User who sent the message
+          // Chatter information
           chatterId: event.chatterId,
           chatterName: event.chatterName,
           chatterDisplayName: event.chatterDisplayName,
-          chatterColor: event.color,
-          chatterBadges: event.badges,
+          color: event.color,
+          badges: event.badges,
           
-          // Channel where the message was sent
+          // Broadcaster information
           broadcasterId: event.broadcasterId,
           broadcasterName: event.broadcasterName,
           broadcasterDisplayName: event.broadcasterDisplayName,
@@ -48,19 +48,31 @@ module.exports = function(RED) {
           // Message metadata
           isCheer: event.isCheer,
           bits: event.bits,
-          isHighlighted: event.isHighlighted,
-          isMe: event.isMe,
-          isReply: event.isReply,
-          isFirstMessage: event.isFirstMessage,
-          isSubscriber: event.isSubscriber,
-          isMod: event.isMod,
-          isVip: event.isVip,
+          isRedemption: event.isRedemption || false,
+          isSourceOnly: event.isSourceOnly || false,
           
-          // Timestamp
-          timestamp: event.timestamp,
+          // Parent message info (for replies)
+          parentMessageId: event.parentMessageId || null,
+          parentMessageText: event.parentMessageText || null,
+          parentMessageUserId: event.parentMessageUserId || null,
+          parentMessageUserName: event.parentMessageUserName || null,
+          parentMessageUserDisplayName: event.parentMessageUserDisplayName || null,
           
-          // Raw event data
-          rawEvent: event,
+          // Reward info (if applicable)
+          rewardId: event.rewardId || null,
+          
+          // Source info (for shared chat)
+          sourceBadges: event.sourceBadges || null,
+          sourceBroadcasterId: event.sourceBroadcasterId || null,
+          sourceBroadcasterName: event.sourceBroadcasterName || null,
+          sourceBroadcasterDisplayName: event.sourceBroadcasterDisplayName || null,
+          sourceMessageId: event.sourceMessageId || null,
+          
+          // Thread info
+          threadMessageId: event.threadMessageId || null,
+          threadMessageUserId: event.threadMessageUserId || null,
+          threadMessageUserName: event.threadMessageUserName || null,
+          threadMessageUserDisplayName: event.threadMessageUserDisplayName || null,
         };
         
         node.send({ payload: mapped });

@@ -37,29 +37,70 @@
 
 <script type="text/html" data-help-name="twitch-eventsub-channel-chat-message">
   <p>Triggers when a chat message is sent to the configured Twitch channel.</p>
-  <p>The message object contains the following properties:</p>
+  <p>The message object contains the following properties from the Twitch EventSub API:</p>
+  <h3>Message Identification</h3>
   <ul>
     <li><code>messageId</code>: The unique ID of the message</li>
     <li><code>messageText</code>: The text content of the message</li>
     <li><code>messageType</code>: The type of message (e.g., 'chat', 'whisper')</li>
     <li><code>messageParts</code>: Array of message parts (for messages with emotes, badges, etc.)</li>
+  </ul>
+
+  <h3>Chatter Information</h3>
+  <ul>
     <li><code>chatterId</code>: The ID of the user who sent the message</li>
     <li><code>chatterName</code>: The login name of the user</li>
     <li><code>chatterDisplayName</code>: The display name of the user</li>
-    <li><code>chatterColor</code>: The user's chat color</li>
-    <li><code>chatterBadges</code>: Object containing the user's badges</li>
+    <li><code>color</code>: The user's chat color</li>
+    <li><code>badges</code>: Object containing the user's badges</li>
+  </ul>
+
+  <h3>Broadcaster Information</h3>
+  <ul>
     <li><code>broadcasterId</code>: The ID of the channel where the message was sent</li>
     <li><code>broadcasterName</code>: The login name of the channel</li>
     <li><code>broadcasterDisplayName</code>: The display name of the channel</li>
+  </ul>
+
+  <h3>Message Metadata</h3>
+  <ul>
     <li><code>isCheer</code>: Whether the message contains bits</li>
     <li><code>bits</code>: Number of bits cheered, if any</li>
-    <li><code>isHighlighted</code>: Whether the message is highlighted</li>
-    <li><code>isReply</code>: Whether the message is a reply</li>
-    <li><code>isFirstMessage</code>: Whether this is the user's first message</li>
-    <li><code>isSubscriber</code>: Whether the user is a subscriber</li>
-    <li><code>isMod</code>: Whether the user is a moderator</li>
-    <li><code>isVip</code>: Whether the user is a VIP</li>
-    <li><code>timestamp</code>: When the message was sent</li>
+    <li><code>isRedemption</code>: Whether the message represents a reward redemption</li>
+    <li><code>isSourceOnly</code>: Whether the message is only sent to the source channel in a shared chat</li>
+  </ul>
+
+  <h3>Parent Message (for replies)</h3>
+  <ul>
+    <li><code>parentMessageId</code>: ID of the parent message</li>
+    <li><code>parentMessageText</code>: Text of the parent message</li>
+    <li><code>parentMessageUserId</code>: ID of the user who sent the parent message</li>
+    <li><code>parentMessageUserName</code>: Login name of the user who sent the parent message</li>
+    <li><code>parentMessageUserDisplayName</code>: Display name of the user who sent the parent message</li>
+  </ul>
+
+  <h3>Reward Information</h3>
+  <ul>
+    <li><code>rewardId</code>: ID of the redeemed reward, if applicable</li>
+  </ul>
+
+  <h3>Source Information (for shared chat)</h3>
+  <ul>
+    <li><code>sourceBadges</code>: Badges from the source channel</li>
+    <li><code>sourceBroadcasterId</code>: ID of the source broadcaster</li>
+    <li><code>sourceBroadcasterName</code>: Login name of the source broadcaster</li>
+    <li><code>sourceBroadcasterDisplayName</code>: Display name of the source broadcaster</li>
+    <li><code>sourceMessageId</code>: ID of the message in the source channel</li>
+  </ul>
+
+  <h3>Thread Information</h3>
+  <ul>
+    <li><code>threadMessageId</code>: ID of the thread starter message</li>
+    <li><code>threadMessageUserId</code>: ID of the user who started the thread</li>
+    <li><code>threadMessageUserName</code>: Login name of the user who started the thread</li>
+    <li><code>threadMessageUserDisplayName</code>: Display name of the user who started the thread</li>
+  </ul>
+  <ul>
     <li><code>rawEvent</code>: The complete raw event data</li>
   </ul>
 </script>
