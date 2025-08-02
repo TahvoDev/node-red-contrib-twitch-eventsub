@@ -28,17 +28,17 @@ module.exports = function(RED) {
       if (subscriptionType === 'channelChatMessage') {
         const mapped = {
           // Message details
-          messageId: event.id,
+          messageId: event.messageId,
           messageText: event.messageText,
-          messageFragments: event.messageFragments,
+          messageParts: event.messageParts,
           messageType: event.messageType,
           
           // User who sent the message
-          userId: event.userId,
-          userName: event.userName,
-          userDisplayName: event.userDisplayName,
-          userColor: event.userColor,
-          userBadges: event.badges,
+          chatterId: event.chatterId,
+          chatterName: event.chatterName,
+          chatterDisplayName: event.chatterDisplayName,
+          chatterColor: event.color,
+          chatterBadges: event.badges,
           
           // Channel where the message was sent
           broadcasterId: event.broadcasterId,
