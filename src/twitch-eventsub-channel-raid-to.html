@@ -1,0 +1,63 @@
+<script type="text/javascript">
+    RED.nodes.registerType('twitch-eventsub-channel-raid-to', {
+      category: 'twitch events',
+      color: '#b9a3e3',
+      defaults: {
+        name: { value: "" },
+        config: { value: "", type: "twitch-eventsub-config", required: true }
+      },
+      inputs: 0,
+      outputs: 1,
+      icon: 'twitch-icon.png',
+      paletteLabel: "raid to",
+      label: function() {
+        if (this.name) {
+          return this.name;
+        }
+        else {
+          var config = RED.nodes.node(this.config);
+          return 'raid to' + (config ? ' (' + (config.name || '') + ')' : '');
+        }
+      },
+    });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-raid-to">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" placeholder="">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-raid-to">
+    <h2>Twitch Channel Raid (To)</h2>
+    <p>Triggers when this channel is raided by another channel (incoming raid).</p>
+
+    <h3>Configuration</h3>
+    <ul>
+        <li><strong>Name</strong>: Optional name for the node</li>
+        <li><strong>Config</strong>: Select your Twitch Eventsub configuration</li>
+    </ul>
+    
+    <h3>Output</h3>
+    <p>Emits a message when this channel is raided, with the following properties:</p>
+    <dl class="message-properties">
+        <dt>payload <span class="property-type">object</span></dt>
+        <dd>
+            <ul>
+                <li><dt>fromBroadcasterId <i>string</i></dt><dd>Twitch user ID of the channel initiating the raid</dd></li>
+                <li><dt>fromBroadcasterName <i>string</i></dt><dd>Twitch login name of the channel initiating the raid</dd></li>
+                <li><dt>fromBroadcasterDisplayName <i>string</i></dt><dd>Display name of the channel initiating the raid</dd></li>
+                <li><dt>toBroadcasterId <i>string</i></dt><dd>Twitch user ID of the channel being raided (this channel)</dd></li>
+                <li><dt>toBroadcasterName <i>string</i></dt><dd>Twitch login name of the channel being raided (this channel)</dd></li>
+                <li><dt>toBroadcasterDisplayName <i>string</i></dt><dd>Display name of the channel being raided (this channel)</dd></li>
+                <li><dt>viewers <i>number</i></dt><dd>Number of viewers sent in the raid</dd></li>
+            </ul>
+        </dd>
+    </dl>
+</script>

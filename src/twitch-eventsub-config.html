@@ -7,14 +7,103 @@
       twitch_client_id: { required: true },
       twitch_client_secret: { required: true },
       twitch_refresh_token: { required: true },
-      // /**/port: { required: true, validate: RED.validators.number() },
-      // /**/eventsub_secret: { required: true },
-      // /**/ngrok_token: { required: true },
     },
     inputs: 0,
     outputs: 1,
     label: function() {
       return this.name;
+    },
+    oneditprepare: function() {
+        // --- DEVICE CODE FLOW LOGIC ---
+        let pollInterval = null;
+        
+        function stopPolling() {
+            if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        }
+
+        $('#node-config-btn-twitch-auth').click(function() {
+            const clientId = $('#node-config-input-twitch_client_id').val();
+            
+            if(!clientId) {
+                RED.notify("Please enter a Client ID first.", "error");
+                return;
+            }
+
+            // Define scopes
+            const scopes = [
+                "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
+                "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
+                "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
+                "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
+                "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
+                "moderator:manage:unban_requests", "moderator:read:automod_settings",
+                "moderator:read:blocked_terms", "moderator:read:chat_settings",
+                "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
+                "moderator:read:shoutouts", "moderator:read:suspicious_users",
+                "moderator:read:unban_requests", "user:read:chat"
+            ].join(" ");
+
+            // 1. Start Flow
+            $.ajax({
+                url: 'twitch-eventsub/auth/device',
+                type: 'POST',
+                data: { client_id: clientId, scopes: scopes },
+                success: function(resp) {
+                    $('#auth-step-1').hide();
+                    $('#auth-step-2').show();
+                    
+                    $('#twitch-auth-link').attr('href', resp.verification_uri).text(resp.verification_uri);
+                    $('#twitch-user-code').text(resp.user_code);
+                    
+                    // 2. Start Polling
+                    startPolling(clientId, resp.device_code, resp.interval);
+                },
+                error: function(xhr) {
+                    RED.notify("Error initiating auth: " + xhr.responseText, "error");
+                }
+            });
+        });
+
+        function startPolling(clientId, deviceCode, intervalSeconds) {
+            stopPolling();
+            const intervalMs = (intervalSeconds * 1000) + 200; // add slight buffer
+
+            pollInterval = setInterval(function() {
+                $.ajax({
+                    url: 'twitch-eventsub/auth/token',
+                    type: 'POST',
+                    data: { client_id: clientId, device_code: deviceCode },
+                    success: function(resp) {
+                        if (resp.access_token && resp.refresh_token) {
+                            // SUCCESS!
+                            stopPolling();
+                            $('#node-config-input-twitch_refresh_token').val(resp.refresh_token);
+                            
+                            $('#auth-step-2').hide();
+                            $('#auth-step-success').show();
+                            RED.notify("Twitch Authentication Successful! Refresh Token updated.", "success");
+                        }
+                    },
+                    error: function(xhr) {
+                        const err = JSON.parse(xhr.responseText);
+                        // If it's not pending or slow down, it's a real error
+                        if (err.message !== "authorization_pending" && err.message !== "slow_down") {
+                            stopPolling();
+                            RED.notify("Auth Error: " + err.message, "error");
+                            $('#auth-step-2').hide();
+                            $('#auth-step-1').show();
+                        }
+                    }
+                });
+            }, intervalMs);
+        }
+
+        // Cleanup on close
+        $('#node-config-dialog-cancel').click(stopPolling);
+        $('#node-config-dialog-ok').click(stopPolling);
     }
   });
 </script>
@@ -30,6 +119,23 @@
   .twitch-eventsub-config-form a:hover {
     text-decoration: underline;
   }
+  .auth-box {
+      background: #f3f3f3;
+      border: 1px solid #dcdcdc;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      text-align: center;
+  }
+  .code-display {
+      font-family: monospace;
+      font-size: 1.5em;
+      font-weight: bold;
+      color: #9146FF; /* Twitch Purple */
+      margin: 10px 0;
+      display: block;
+      letter-spacing: 2px;
+  }
 </style>
 
 <script type="text/html" data-template-name="twitch-eventsub-config">
@@ -39,15 +145,9 @@
             <input type="text" id="node-config-input-name" placeholder="Name">
         </div>
 
-    <!--    <div class="form-row">-->
-    <!--        <label for="node-config-input-port"><i class="fa fa-tag"></i> Server Port</label>-->
-    <!--        <input type="text" id="node-config-input-port" placeholder="4000">-->
-    <!--    </div>-->
-
         <div class="form-row">
             <label for="node-config-input-broadcaster_id"><i class="fa fa-tag"></i> Twitch Broadcaster ID</label>
             <input type="text" id="node-config-input-broadcaster_id" placeholder="ex: 86587418">
-
             <p>You can get your user id with the <a href="https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/">Twitch Channel ID and User ID Convertor</a>.</p>
         </div>
 
@@ -61,6 +161,33 @@
             <input type="password" id="node-config-input-twitch_client_secret" placeholder="">
         </div>
 
+        <hr>
+        <h4>Token Generation</h4>
+        <div class="auth-box">
+            
+            <div id="auth-step-1">
+                <p>Enter your Client ID above, then click below to generate a token.</p>
+                <a class="red-ui-button" id="node-config-btn-twitch-auth">
+                    <i class="fa fa-twitch"></i> Login with Twitch
+                </a>
+            </div>
+
+            <div id="auth-step-2" style="display:none;">
+                <p>1. Click this link to open Twitch activation page:</p>
+                <a href="#" id="twitch-auth-link" target="_blank">...</a>
+                
+                <p>2. Enter this code:</p>
+                <span id="twitch-user-code" class="code-display">...</span>
+                
+                <p><i class="fa fa-spinner fa-spin"></i> Waiting for authorization...</p>
+            </div>
+
+            <div id="auth-step-success" style="display:none;">
+                <p style="color: green;"><i class="fa fa-check-circle"></i> Token Received!</p>
+            </div>
+        </div>
+        <hr>
+
         <div class="form-row">
             <label for="node-config-input-twitch_refresh_token"><i class="fa fa-lock"></i> Twitch Refresh Token</label>
             <input type="password" id="node-config-input-twitch_refresh_token" placeholder="">
@@ -70,61 +197,10 @@
           Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
           <br/>Only for local testing. If enabled, normal events will not work!
         </p>
-        <p>
-            To generate the Refresh Token, use the
-            <a target="_blank" rel="noreferrer" href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow">Authorization code grant flow</a>
-            with the following scopes :
-        </p>
-        <ul>
-            <li>bits:read</li>
-            <li>channel:moderate</li>
-            <li>channel:read:ads</li>
-            <li>channel:read:charity</li>
-            <li>channel:read:goals</li>
-            <li>channel:read:guest_star</li>
-            <li>channel:read:hype_train</li>
-            <li>channel:read:polls</li>
-            <li>channel:read:predictions</li>
-            <li>channel:read:redemptions</li>
-            <li>channel:read:subscriptions</li>
-            <li>channel:read:vips</li>
-            <li>chat:read</li>
-            <li>moderation:read</li>
-            <li>moderator:manage:blocked_terms</li>
-            <li>moderator:manage:chat_messages</li>
-            <li>moderator:manage:unban_requests</li>
-            <li>moderator:read:automod_settings</li>
-            <li>moderator:read:blocked_terms</li>
-            <li>moderator:read:chat_settings</li>
-            <li>moderator:read:followers</li>
-            <li>moderator:read:guest_star</li>
-            <li>moderator:read:shield_mode</li>
-            <li>moderator:read:shoutouts</li>
-            <li>moderator:read:suspicious_users</li>
-            <li>moderator:read:unban_requests</li>
-            <li>user:read:chat</li>
-        </ul>
-        <p>
-            You can use the
-            <a target="_blank" rel="noreferrer" href="https://twitchtokengenerator.com/">
-                Twitch Token Generator App
-            </a>
-            to generate this token.
-
-            <ol>
-                <li>Go to <a target="_blank" rel="noreferrer" href="https://twitchtokengenerator.com/quick/PA1ezknPc8">this Quicklink</a>.</li>
-                <li>Click on "Custom bot token"</li>
-                <li>(Optionnal) Fill in your <strong>Client secret</strong> and <strong>Client ID</strong></li>
-                <li>All the required scopes should have been pre-selected</li>
-                <li>Click on "Generate Token!" at the end of the page</li>
-                <li>Authorize the app within Twitch</li>
-                <li>Copy the generated Refresh Token</li>
-            </ol>
-        </p>
+        
         <p>
             The Twitch logo is the property of Twitch Interactive, Inc.
-            Its use is subject to Twitch's brand guidelines and terms of service. <br/>
-            For more information, please visit the Twitch website.
+            Its use is subject to Twitch's brand guidelines and terms of service.
         </p>
     </div>
 </script>

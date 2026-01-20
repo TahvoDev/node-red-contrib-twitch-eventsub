@@ -17,6 +17,69 @@ type Status = {
 }
 
 module.exports = function (RED: Red) {
+  // --- NEW: API Endpoints for Device Code Flow ---
+  
+  // 1. Initiate Device Code Flow
+  RED.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
+    const { client_id, scopes } = req.body;
+    
+    if (!client_id || !scopes) {
+        res.status(400).send({ error: 'Missing client_id or scopes' });
+        return;
+    }
+
+    try {
+        const params = new URLSearchParams();
+        params.append('client_id', client_id);
+        params.append('scopes', scopes);
+
+        const response = await fetch('https://id.twitch.tv/oauth2/device', {
+            method: 'POST',
+            body: params,
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        });
+
+        const data = await response.json();
+        
+        if (!response.ok) {
+             throw new Error(JSON.stringify(data));
+        }
+        res.json(data);
+    } catch (error) {
+        res.status(500).send({ error: (error as Error).message });
+    }
+  });
+
+  // 2. Poll for Token
+  RED.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
+      const { client_id, device_code } = req.body;
+
+      try {
+          const params = new URLSearchParams();
+          params.append('client_id', client_id);
+          params.append('device_code', device_code);
+          params.append('grant_type', 'urn:ietf:params:oauth:grant-type:device_code');
+
+          const response = await fetch('https://id.twitch.tv/oauth2/token', {
+              method: 'POST',
+              body: params,
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+          });
+
+          const data = await response.json();
+          
+          if (!response.ok) {
+              // 400 is expected while waiting for user (authorization_pending)
+              res.status(response.status).json(data); 
+          } else {
+              res.json(data);
+          }
+      } catch (error) {
+          res.status(500).send({ error: (error as Error).message });
+      }
+  });
+  // -----------------------------------------------
+
   class TwitchEventsubConfig extends AbstractNode {
     config: TwitchEventsubConfigProps;
     twitchEventsub: TwitchEventsub;
