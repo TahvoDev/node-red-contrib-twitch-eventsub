@@ -1,5 +1,5 @@
-import type {Red} from './Red';
-import { AbstractNode } from './AbstractNode';
+import type {Red} from '../Red';
+import { AbstractNode } from '../AbstractNode';
 import {TwitchEventsub} from './twitch-eventsub-service';
 
 type TwitchEventsubConfigProps = {
@@ -18,9 +18,9 @@ type Status = {
 
 module.exports = function (RED: Red) {
   // --- NEW: API Endpoints for Device Code Flow ---
-  
+  const REDAny = RED as any;
   // 1. Initiate Device Code Flow
-  RED.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
+  REDAny.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
     const { client_id, scopes } = req.body;
     
     if (!client_id || !scopes) {
@@ -51,7 +51,7 @@ module.exports = function (RED: Red) {
   });
 
   // 2. Poll for Token
-  RED.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
+  REDAny.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
       const { client_id, device_code } = req.body;
 
       try {
@@ -188,5 +188,5 @@ module.exports = function (RED: Red) {
     }
   }
 
-  RED.nodes.registerType('twitch-eventsub-config', TwitchEventsubConfig);
+  RED.nodes.registerType('twitch-api-config', TwitchEventsubConfig);
 }

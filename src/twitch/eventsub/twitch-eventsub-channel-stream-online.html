@@ -1,29 +1,28 @@
 <script type="text/javascript">
-    RED.nodes.registerType('twitch-eventsub-channel-stream-offline', {
+    RED.nodes.registerType('twitch-eventsub-channel-stream-online', {
       category: 'twitch events',
       color: '#b9a3e3',
       defaults: {
         name: { value: "" },
-        config: { value: "", type: "twitch-eventsub-config", required: true }
+        config: { value: "", type: "twitch-api-config", required: true }
       },
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-        // The label to display on the palette.
-      paletteLabel: "stream offline",
+      paletteLabel: "stream online",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'stream offline' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'stream online' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
   </script>
   
-  <script type="text/html" data-template-name="twitch-eventsub-channel-stream-offline">
+  <script type="text/html" data-template-name="twitch-eventsub-channel-stream-online">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -35,9 +34,9 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="twitch-eventsub-channel-stream-offline">
-      <h2>Twitch Stream Offline</h2>
-      <p>Triggers when a stream goes offline in your Twitch channel.</p>
+  <script type="text/html" data-help-name="twitch-eventsub-channel-stream-online">
+      <h2>Twitch Stream Online</h2>
+      <p>Triggers when a stream goes live in your Twitch channel.</p>
   
       <h3>Configuration</h3>
       <ul>
@@ -46,7 +45,7 @@
       </ul>
       
       <h3>Output</h3>
-      <p>Emits a message when the stream goes offline with the following properties:</p>
+      <p>Emits a message when the stream goes online with the following properties:</p>
       
       <dl class="message-properties">
           <dt>payload <span class="property-type">object</span></dt>
@@ -78,7 +77,7 @@
                   </li>
                   <li>
                       <dt>startDate <i>Date</i></dt>
-                      <dd>When the stream went offline</dd>
+                      <dd>When the stream went online</dd>
                   </li>
                   <li>
                       <dt>type <i>string</i></dt>
@@ -91,4 +90,7 @@
               </ul>
           </dd>
       </dl>
+      
+      <h3>Example Usage</h3>
+      <p>To be notified when your stream goes live, connect this node to a function node that sends a notification.</p>
   </script>

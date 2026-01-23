@@ -1,28 +1,29 @@
 <script type="text/javascript">
-    RED.nodes.registerType('twitch-eventsub-channel-cheer', {
+    RED.nodes.registerType('twitch-eventsub-channel-stream-offline', {
       category: 'twitch events',
       color: '#b9a3e3',
       defaults: {
         name: { value: "" },
-        config: { value: "", type: "twitch-eventsub-config", required: true }
+        config: { value: "", type: "twitch-api-config", required: true }
       },
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.png',
-      paletteLabel: "cheer",
+        // The label to display on the palette.
+      paletteLabel: "stream offline",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'cheer' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'stream offline' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
   </script>
   
-  <script type="text/html" data-template-name="twitch-eventsub-channel-cheer">
+  <script type="text/html" data-template-name="twitch-eventsub-channel-stream-offline">
     <div class="form-row">
       <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-input-name" placeholder="Name">
@@ -34,9 +35,9 @@
     </div>
   </script>
   
-  <script type="text/html" data-help-name="twitch-eventsub-channel-cheer">
-      <h2>Twitch Channel Cheer</h2>
-      <p>Triggers when someone cheers bits in your Twitch channel.</p>
+  <script type="text/html" data-help-name="twitch-eventsub-channel-stream-offline">
+      <h2>Twitch Stream Offline</h2>
+      <p>Triggers when a stream goes offline in your Twitch channel.</p>
   
       <h3>Configuration</h3>
       <ul>
@@ -45,7 +46,7 @@
       </ul>
       
       <h3>Output</h3>
-      <p>Emits a message when someone cheers with the following properties:</p>
+      <p>Emits a message when the stream goes offline with the following properties:</p>
       
       <dl class="message-properties">
           <dt>payload <span class="property-type">object</span></dt>
@@ -53,19 +54,19 @@
               <ul>
                   <li>
                       <dt>userId <i>string</i></dt>
-                      <dd>Twitch user ID of the user who cheered</dd>
+                      <dd>Twitch user ID of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>userName <i>string</i></dt>
-                      <dd>Twitch login name of the user who cheered</dd>
+                      <dd>Twitch login name of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>userDisplayName <i>string</i></dt>
-                      <dd>Display name of the user who cheered</dd>
+                      <dd>Display name of the broadcaster</dd>
                   </li>
                   <li>
                       <dt>broadcasterId <i>string</i></dt>
-                      <dd>Twitch user ID of the channel that received the cheer</dd>
+                      <dd>Twitch user ID of the channel that went live</dd>
                   </li>
                   <li>
                       <dt>broadcasterName <i>string</i></dt>
@@ -76,12 +77,12 @@
                       <dd>Display name of the broadcaster</dd>
                   </li>
                   <li>
-                      <dt>bits <i>number</i></dt>
-                      <dd>Number of bits cheered</dd>
+                      <dt>startDate <i>Date</i></dt>
+                      <dd>When the stream went offline</dd>
                   </li>
                   <li>
-                      <dt>message <i>string</i></dt>
-                      <dd>Optional message sent with the cheer</dd>
+                      <dt>type <i>string</i></dt>
+                      <dd>Type of stream (e.g., "live", "playlist", "watch_party", etc.)</dd>
                   </li>
                   <li>
                       <dt>rawEvent <i>object</i></dt>

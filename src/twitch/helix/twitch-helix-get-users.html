@@ -1,0 +1,46 @@
+<script type="text/html" data-template-name="twitch-helix-get-users">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Twitch Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-id"><i class="fa fa-hashtag" aria-hidden="true"></i> ID</label>
+    <input type="text" id="node-input-id" name="id" placeholder="ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-login"><i class="fa fa-user" aria-hidden="true"></i> Login</label>
+    <input type="text" id="node-input-login" name="login" placeholder="Login" />
+  </div>
+</script>
+
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-users', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name: { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+      id: { value: '' },
+      login: { value: '' }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    label: function() {
+      return this.name || 'get users';
+    },
+    paletteLabel: 'get users',
+    labelStyle: function() {
+      return this.name ? 'node_label_italic' : '';
+    },
+    oneditprepare: function() {
+      $('#node-input-name').on('input', function() {
+        $('#node-input-label').val($(this).val());
+      });
+    }
+  });
+</script>

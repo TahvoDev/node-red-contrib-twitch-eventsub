@@ -1,12 +1,12 @@
 {
-  "name": "@tahvo/node-red-twitch-eventsub",
+  "name": "@tahvo/node-red-twitch-api",
   "version": "0.1.1",
-  "description": "Connect to Twitch EventSub API",
+  "description": "Connect to Twitch API",
   "main": "index.js",
-  "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
-  "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
+  "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
+  "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "scripts": {
-    "build": "(rm -rf dist || true) && ttsc && npm run copy-static-assets",
+    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && ttsc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
     "prepublishOnly": "npm run build"
@@ -36,17 +36,18 @@
   "node-red": {
     "version": ">=2.0.0",
     "nodes": {
-      "twitch-eventsub-config": "dist/twitch-eventsub-config.js",
-      "twitch-eventsub-channel-redemption-add": "dist/twitch-eventsub-channel-redemption-add.js",
-      "twitch-eventsub-channel-stream-online": "dist/twitch-eventsub-channel-stream-online.js",
-      "twitch-eventsub-channel-stream-offline": "dist/twitch-eventsub-channel-stream-offline.js",
-      "twitch-eventsub-channel-subscription": "dist/twitch-eventsub-channel-subscription.js",
-      "twitch-eventsub-channel-cheer": "dist/twitch-eventsub-channel-cheer.js",
-      "twitch-eventsub-channel-raid-from": "dist/twitch-eventsub-channel-raid-from.js",
-      "twitch-eventsub-channel-raid-to": "dist/twitch-eventsub-channel-raid-to.js",
-      "twitch-eventsub-channel-follow": "dist/twitch-eventsub-channel-follow.js",
-      "twitch-eventsub-channel-subscription-gift": "dist/twitch-eventsub-channel-subscription-gift.js",
-      "twitch-eventsub-channel-chat-message": "dist/twitch-eventsub-channel-chat-message.js"
+      "twitch-api-config": "dist/twitch/twitch-api-config.js",
+      "twitch-eventsub-channel-redemption-add": "dist/twitch/eventsub/twitch-eventsub-channel-redemption-add.js",
+      "twitch-eventsub-channel-stream-online": "dist/twitch/eventsub/twitch-eventsub-channel-stream-online.js",
+      "twitch-eventsub-channel-stream-offline": "dist/twitch/eventsub/twitch-eventsub-channel-stream-offline.js",
+      "twitch-eventsub-channel-subscription": "dist/twitch/eventsub/twitch-eventsub-channel-subscription.js",
+      "twitch-eventsub-channel-cheer": "dist/twitch/eventsub/twitch-eventsub-channel-cheer.js",
+      "twitch-eventsub-channel-raid-from": "dist/twitch/eventsub/twitch-eventsub-channel-raid-from.js",
+      "twitch-eventsub-channel-raid-to": "dist/twitch/eventsub/twitch-eventsub-channel-raid-to.js",
+      "twitch-eventsub-channel-follow": "dist/twitch/eventsub/twitch-eventsub-channel-follow.js",
+      "twitch-eventsub-channel-subscription-gift": "dist/twitch/eventsub/twitch-eventsub-channel-subscription-gift.js",
+      "twitch-eventsub-channel-chat-message": "dist/twitch/eventsub/twitch-eventsub-channel-chat-message.js",
+      "twitch-helix-get-users": "dist/twitch/helix/twitch-helix-get-users.js"
     }
   },
   "engines": {
