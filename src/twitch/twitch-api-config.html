@@ -3,10 +3,11 @@
     category: 'config',
     defaults: {
       name: { value: '', required: true },
-      broadcaster_id: { required: true, validate: RED.validators.number() },
       twitch_client_id: { required: true },
       twitch_client_secret: { required: true },
       twitch_refresh_token: { required: true },
+      twitch_user_id: { value: '' },
+      twitch_user_login: { value: '' },
     },
     inputs: 0,
     outputs: 1,
@@ -80,11 +81,20 @@
                         if (resp.access_token && resp.refresh_token) {
                             // SUCCESS!
                             stopPolling();
+
                             $('#node-config-input-twitch_refresh_token').val(resp.refresh_token);
-                            
+
+                            if (resp.twitch_user_id) {
+                                $('#node-config-input-twitch_user_id').val(resp.twitch_user_id);
+                                $('#node-config-input-twitch_user_login').val(resp.twitch_user_login);
+
+                                $('#twitch-user-display').text(
+                                `Logged in as ${resp.twitch_user_login} (${resp.twitch_user_id})`
+                                );
+                            }
+
                             $('#auth-step-2').hide();
                             $('#auth-step-success').show();
-                            RED.notify("Twitch Authentication Successful! Refresh Token updated.", "success");
                         }
                     },
                     error: function(xhr) {
@@ -104,6 +114,11 @@
         // Cleanup on close
         $('#node-config-dialog-cancel').click(stopPolling);
         $('#node-config-dialog-ok').click(stopPolling);
+        if (this.twitch_user_id && this.twitch_user_login) {
+            $('#twitch-user-display').text(
+                `Logged in as ${this.twitch_user_login} (${this.twitch_user_id})`
+            );
+        }
     }
   });
 </script>
@@ -146,12 +161,6 @@
         </div>
 
         <div class="form-row">
-            <label for="node-config-input-broadcaster_id"><i class="fa fa-tag"></i> Twitch Broadcaster ID</label>
-            <input type="text" id="node-config-input-broadcaster_id" placeholder="ex: 86587418">
-            <p>You can get your user id with the <a href="https://www.streamweasels.com/tools/convert-twitch-username-to-user-id/">Twitch Channel ID and User ID Convertor</a>.</p>
-        </div>
-
-        <div class="form-row">
             <label for="node-config-input-twitch_client_id"><i class="fa fa-tag"></i> Twitch Client ID</label>
             <input type="text" id="node-config-input-twitch_client_id" placeholder="ex: cnhszfrw4vbin9pziisb86oe9gsqds">
         </div>
@@ -189,15 +198,19 @@
         <hr>
 
         <div class="form-row">
+            <label><i class="fa fa-user"></i> Twitch Account</label>
+            <div id="twitch-user-display" style="padding-top:6px;font-weight:bold;">
+                Not logged in
+            </div>
+        </div>
+        <p>
+          If you are logged in above, DO NOT input a refresh token here.
+          <br/>Manual refresh token for testing with the <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
+        </p>
+        <div class="form-row">
             <label for="node-config-input-twitch_refresh_token"><i class="fa fa-lock"></i> Twitch Refresh Token</label>
             <input type="password" id="node-config-input-twitch_refresh_token" placeholder="">
         </div>
-
-        <p>
-          Enable to use a local WebSocket with <a href="https://dev.twitch.tv/docs/cli/webscokets-event-command/" target="_blank">Twitch CLI</a>.
-          <br/>Only for local testing. If enabled, normal events will not work!
-        </p>
-        
         <p>
             The Twitch logo is the property of Twitch Interactive, Inc.
             Its use is subject to Twitch's brand guidelines and terms of service.
