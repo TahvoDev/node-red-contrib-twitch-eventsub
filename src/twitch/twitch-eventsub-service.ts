@@ -6,7 +6,7 @@ import {HelixUser} from '@twurple/api/lib/endpoints/user/HelixUser';
 
 class TwitchEventsub {
   clientId?: string | null;
-  userId?: number | null;
+  userId?: string | null;
   user!: HelixUser | null;
   authProvider: RefreshingAuthProvider;
   apiClient!: ApiClient;
@@ -18,7 +18,7 @@ class TwitchEventsub {
 
   onAuthError?: () => void;
 
-  constructor(node: AbstractNode, userId: number, clientId: string, clientSecret: string) {
+  constructor(node: AbstractNode, userId: string, clientId: string, clientSecret: string) {
     this.node = node;
     this.userId = userId;
     this.clientId = clientId;

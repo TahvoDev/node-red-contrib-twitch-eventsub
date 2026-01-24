@@ -7,7 +7,7 @@ type TwitchEventsubConfigProps = {
   twitch_client_secret: string;
   twitch_auth_token: string;
   twitch_refresh_token: string;
-  twitch_user_id?: number;
+  twitch_user_id?: string;
   twitch_user_login?: string;
 };
 
@@ -117,15 +117,18 @@ module.exports = function (RED: Red) {
       text: 'Connecting...',
     };
     initialized = false;
-
+    pollingLogin = false;
+    
     constructor(config: TwitchEventsubConfigProps) {
       super(config, RED);
       this.config = config;
 
       this.on('close', (done: () => void) => {
+        this.initialized = false;
         this.takedown().then(done);
       });
     }
+
 
     init() {
       if (this.initialized) return;
@@ -137,6 +140,18 @@ module.exports = function (RED: Red) {
           shape: 'ring',
           text: 'Waiting for Twitch login…',
         });
+        
+        if (!this.config.twitch_refresh_token) {
+          if (!this.pollingLogin) {
+            this.pollingLogin = true;
+            setTimeout(() => {
+              this.pollingLogin = false;
+              this.init();
+            }, 2000);
+          }
+          return;
+        }
+
         return;
       }
 
@@ -152,6 +167,7 @@ module.exports = function (RED: Red) {
       this.twitchEventsub
         .init(this.config.twitch_refresh_token)
         .then(async () => {
+          this.initialized = true;
           this.updateStatus({
             fill: 'green',
             shape: 'ring',
@@ -180,12 +196,12 @@ module.exports = function (RED: Red) {
           });
         });
 
-      this.initialized = true;
     }
 
     async takedown() {
       if (this.twitchEventsub) {
         await this.twitchEventsub.stop();
+        this.twitchEventsub = undefined;
       }
       this.updateStatus({
         fill: 'grey',

@@ -1,7 +1,7 @@
-module.exports = function(RED) {
+module.exports = function (RED) {
   function TwitchHelixGetUsersNode(config) {
-    //@ts-expect-error any
-    const node = this as any;
+    // @ts-expect-error any
+    const node = this;
     RED.nodes.createNode(node, config);
 
     node.twitchConfig = RED.nodes.getNode(config.config);
@@ -10,20 +10,20 @@ module.exports = function(RED) {
       node.error('No Twitch Eventsub Config node configured');
       return;
     }
-    
+
     const apiClient = node.twitchConfig.apiClient;
 
     node.on('input', async (msg, send, done) => {
       try {
-        const id = msg.id || config.id;
+        const userId = msg.userId || config.userId;
         const login = msg.login || config.login;
 
-        if (!id && !login) {
-          throw new Error('No user id or login provided');
+        if (!userId && !login) {
+          throw new Error('No userId or login provided');
         }
 
-        msg.payload = id
-          ? await apiClient.users.getUserById(id)
+        msg.payload = userId
+          ? await apiClient.users.getUserById(userId)
           : await apiClient.users.getUserByName(login);
 
         send(msg);
@@ -35,5 +35,5 @@ module.exports = function(RED) {
   }
 
   TwitchHelixGetUsersNode.icon = 'twitch-icon.png';
-  RED.nodes.registerType("twitch-helix-get-users", TwitchHelixGetUsersNode);
+  RED.nodes.registerType('twitch-helix-get-users', TwitchHelixGetUsersNode);
 };
