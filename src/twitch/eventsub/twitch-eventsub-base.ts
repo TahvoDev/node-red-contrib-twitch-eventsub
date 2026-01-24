@@ -11,14 +11,14 @@ export class BaseTwitchEventsubNode {
     RED.nodes.createNode(this.node, config);
 
     this.twitchConfig = RED.nodes.getNode(config.config);
-    const nodeId = this.node.id;
+    const nodeUuid = randomUUID();
 
     if (this.twitchConfig) {
-      this.twitchConfig.addNode(nodeId, this.node);
+      this.twitchConfig.addNode(nodeUuid, this.node);
 
       this.node.on('close', (removed: boolean, done: () => void) => {
         if (removed) {
-          this.twitchConfig.removeNode(nodeId, done);
+          this.twitchConfig.removeNode(nodeUuid, done);
         } else {
           done();
         }
