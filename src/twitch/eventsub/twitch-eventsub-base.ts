@@ -1,24 +1,24 @@
-// Use CommonJS require so Node-RED can load it
-const { randomUUID } = require('crypto');
+import { randomUUID } from "crypto"; 
 
-class BaseTwitchEventsubNode {
+// 2. Export the class explicitly
+export class BaseTwitchEventsubNode {
   node: any;
-  id: string; 
   twitchConfig: any;
+  subscriptionType: string = "";
 
   constructor(RED: any, config: any) {
     this.node = this as any;
     RED.nodes.createNode(this.node, config);
 
-    this.id = randomUUID();
     this.twitchConfig = RED.nodes.getNode(config.config);
+    const nodeId = this.node.id;
 
     if (this.twitchConfig) {
-      this.twitchConfig.addNode(this.id, this.node);
+      this.twitchConfig.addNode(nodeId, this.node);
 
       this.node.on('close', (removed: boolean, done: () => void) => {
         if (removed) {
-          this.twitchConfig.removeNode(this.id, done);
+          this.twitchConfig.removeNode(nodeId, done);
         } else {
           done();
         }
@@ -28,7 +28,6 @@ class BaseTwitchEventsubNode {
     }
   }
 
-  // Send the mapped event data depending on the subcription type
   triggerTwitchEvent(event: any, subscriptionType: string) {
     if (subscriptionType === this.subscriptionType) {
       const mapped = this.mapEvent(event);
@@ -36,13 +35,7 @@ class BaseTwitchEventsubNode {
     }
   }
 
-  // Subclasses to map event data to payload
   mapEvent(event: any): any {
     return event;
-  }
-
-  // Subclasses determine subscription type
-  get subscriptionType(): string {
-    return '';
   }
 }

@@ -1,6 +1,15 @@
+// twitch-eventsub-channel-follow.ts
+
+import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
+
 module.exports = function(RED: any) {
+  
   class TwitchEventSubChannelFollowNode extends BaseTwitchEventsubNode {
-    get subscriptionType() { return 'channelFollow'; }
+    
+    constructor(config: any) {
+        super(RED, config);
+        this.subscriptionType = 'channelFollow';
+    }
 
     mapEvent(event: any) {
       return {

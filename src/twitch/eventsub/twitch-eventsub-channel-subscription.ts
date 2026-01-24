@@ -1,6 +1,15 @@
+// twitch-eventsub-channel-subscription.ts
+
+import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
+
 module.exports = function(RED: any) {
+  
   class TwitchEventSubChannelSubscriptionNode extends BaseTwitchEventsubNode {
-    get subscriptionType() { return 'channelSubscription'; }
+    
+    constructor(config: any) {
+        super(RED, config);
+        this.subscriptionType = 'channelSubscription';
+    }
 
     mapEvent(event: any) {
       return {
@@ -10,6 +19,9 @@ module.exports = function(RED: any) {
         broadcasterId: event.broadcasterId,
         broadcasterName: event.broadcasterName,
         broadcasterDisplayName: event.broadcasterDisplayName,
+        tier: event.tier,
+        isGift: event.isGift,
+        // Using the fields provided in your snippet
         id: event.id,
         input: event.input,
         redemptionDate: event.redemptionDate,

@@ -1,6 +1,13 @@
+import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
+
 module.exports = function(RED: any) {
+  
   class TwitchEventSubChannelChatMessageNode extends BaseTwitchEventsubNode {
-    get subscriptionType() { return 'channelChatMessage'; }
+    
+    constructor(config: any) {
+        super(RED, config);
+        this.subscriptionType = 'channelChatMessage';
+    }
 
     mapEvent(event: any) {
       return {

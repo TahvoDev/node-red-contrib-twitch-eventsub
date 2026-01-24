@@ -1,6 +1,15 @@
+// twitch-eventsub-channel-raid-to.ts
+
+import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
+
 module.exports = function(RED: any) {
+  
   class TwitchEventSubChannelRaidToNode extends BaseTwitchEventsubNode {
-    get subscriptionType() { return 'channelRaidTo'; }
+    
+    constructor(config: any) {
+        super(RED, config);
+        this.subscriptionType = 'channelRaidTo';
+    }
 
     mapEvent(event: any) {
       return {

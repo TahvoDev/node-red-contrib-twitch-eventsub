@@ -1,9 +1,18 @@
+// twitch-eventsub-channel-redemption-add.ts
+
+import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
+
 module.exports = function(RED: any) {
+  
   class TwitchEventSubChannelRedemptionAddNode extends BaseTwitchEventsubNode {
-    get subscriptionType() { return 'channelRedemptionAdd'; }
+    
+    constructor(config: any) {
+        super(RED, config);
+        this.subscriptionType = 'channelRedemptionAdd';
+    }
 
     mapEvent(event: any) {
-      const mapped = {
+      return {
         userId: event.userId,
         userName: event.userName,
         userDisplayName: event.userDisplayName,
@@ -20,8 +29,6 @@ module.exports = function(RED: any) {
         status: event.status,
         rawEvent: event
       };
-
-      return mapped;
     }
   }
 
