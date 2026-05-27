@@ -16,8 +16,8 @@ module.exports = function (RED: NodeAPI) {
         return { action: 'unblock', broadcasterId, targetId };
       } else {
         await apiClient.users.createBlock(broadcasterId, targetId, {
-          reason:        payload.reason        ?? config.reason        ?? undefined,
-          sourceContext: payload.sourceContext  ?? config.sourceContext ?? undefined,
+          reason:        msg.reason        ?? config.reason        ?? undefined,
+          sourceContext: msg.sourceContext  ?? config.sourceContext ?? undefined,
         });
         return { action: 'block', broadcasterId, targetId };
       }
