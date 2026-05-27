@@ -106,7 +106,7 @@ module.exports = function (RED: NodeAPI) {
     };
   }
 
-  class TwitchEventsubConfig extends AbstractNode {
+  class TwitchApiConfig extends AbstractNode {
     config: TwitchEventsubConfigProps;
     twitchEventsub?: TwitchEventsub;
     nodeListeners: { [key: string]: Node } = {};
@@ -230,5 +230,5 @@ module.exports = function (RED: NodeAPI) {
     }
   }
 
-  RED.nodes.registerType('twitch-api-config', TwitchEventsubConfig);
+  RED.nodes.registerType('twitch-api-config', TwitchApiConfig as any);
 };
