@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "scripts": {
-    "build": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\" && ttsc && npm run copy-static-assets",
+  "build": "rm -rf dist && tspc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
     "prepublishOnly": "npm run build"
