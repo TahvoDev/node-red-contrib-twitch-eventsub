@@ -11,11 +11,11 @@ export class BaseTwitchEventsubNode {
     this.twitchConfig.addNode(config.id, this.node);
 
     if (this.twitchConfig) {
-      this.twitchConfig.addNode(nodeUuid, this.node);
+      this.twitchConfig.addNode(config.id, this.node);
 
       this.node.on('close', (removed: boolean, done: () => void) => {
         if (removed) {
-          this.twitchConfig.removeNode(nodeUuid, done);
+          this.twitchConfig.removeNode(config.id, done);
         } else {
           done();
         }
