@@ -1,61 +1,35 @@
-module.exports = function (RED) {
-  function TwitchHelixGetUsersNode(config) {
-    // @ts-expect-error any
-    const node = this;
-    RED.nodes.createNode(node, config);
+import type { NodeAPI } from 'node-red';
+import { createHelixNode } from './twitch-helix-base';
 
-    node.twitchConfig = RED.nodes.getNode(config.config);
-    if (!node.twitchConfig) {
-      node.error('No Twitch Config node configured');
-      return;
-    }
+module.exports = function (RED: NodeAPI) {
+  function TwitchHelixGetUsersNode(this: any, config: any) {
+    createHelixNode(RED, this, config, async (apiClient, msg) => {
+      const payload = msg.payload ?? {};
+      const ids    = toArray(payload.userId ?? payload.userIds ?? config.userId);
+      const logins = toArray(payload.login  ?? payload.logins  ?? config.login);
 
-
-    node.on('input', async (msg, send, done) => {
-
-      const apiClient = node.twitchConfig.apiClient;
-
-      if (!apiClient) {
-        done(new Error('Twitch API not ready yet — is the config node connected?'));
-        return;
+      if (ids.length) {
+        const result = ids.length === 1
+        ? await apiClient.users.getUserById(ids[0])
+        : await apiClient.users.getUsersByIds(ids);
+        return Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
       }
-
-      try {
-        const payload = msg.payload ?? {};
-
-        // Coerce userId/userIds into a single array
-        const ids = toArray(payload.userId ?? payload.userIds ?? config.userId);
-        // Coerce login/logins into a single array
-        const logins = toArray(payload.login ?? payload.logins ?? config.login);
-
-        if (ids.length) {
-          const result = ids.length === 1
-          ? await apiClient.users.getUserById(ids[0])
-          : await apiClient.users.getUsersByIds(ids);
-          msg.payload = Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
-        } else if (logins.length) {
-          const result = logins.length === 1
-          ? await apiClient.users.getUserByName(logins[0])
-          : await apiClient.users.getUsersByNames(logins);
-          msg.payload = Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
-        }
-
-        send(msg);
-        done();
-      } catch (err) {
-        done(err);
+      if (logins.length) {
+        const result = logins.length === 1
+        ? await apiClient.users.getUserByName(logins[0])
+        : await apiClient.users.getUsersByNames(logins);
+        return Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
       }
+      throw new Error('No user query provided');
     });
   }
 
-  // Coerce a value into a non-empty array of strings, filtering blanks
-  function toArray(value) {
+  function toArray(value: any): string[] {
     if (!value) return [];
-    const arr = Array.isArray(value) ? value : [value];
-    return arr.map(String).filter(Boolean);
+    return (Array.isArray(value) ? value : [value]).map(String).filter(Boolean);
   }
 
-  function toPlainUser(user) {
+  function toPlainUser(user: any) {
     if (!user) return null;
     return {
       id: user.id,
@@ -68,6 +42,6 @@ module.exports = function (RED) {
     };
   }
 
-  TwitchHelixGetUsersNode.icon = 'twitch-icon.png';
-  RED.nodes.registerType('twitch-helix-get-users', TwitchHelixGetUsersNode);
+  (TwitchHelixGetUsersNode as any).icon = 'twitch-icon.png';
+  RED.nodes.registerType('twitch-helix-get-users', TwitchHelixGetUsersNode as any);
 };

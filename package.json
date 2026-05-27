@@ -47,7 +47,13 @@
       "twitch-eventsub-channel-follow": "dist/twitch/eventsub/twitch-eventsub-channel-follow.js",
       "twitch-eventsub-channel-subscription-gift": "dist/twitch/eventsub/twitch-eventsub-channel-subscription-gift.js",
       "twitch-eventsub-channel-chat-message": "dist/twitch/eventsub/twitch-eventsub-channel-chat-message.js",
-      "twitch-helix-get-users": "dist/twitch/helix/twitch-helix-get-users.js"
+      "twitch-helix-get-users": "dist/twitch/helix/twitch-helix-get-users.js",
+      "twitch-helix-user-block": "dist/twitch/helix/twitch-helix-user-block.js",
+      "twitch-helix-get-blocks": "dist/twitch/helix/twitch-helix-get-blocks.js",
+      "twitch-helix-get-authenticated-user": "dist/twitch/helix/twitch-helix-get-authenticated-user.js",
+      "twitch-helix-get-extensions": "dist/twitch/helix/twitch-helix-get-extensions.js",
+      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user.js",
+      "twitch-helix-update-extensions": "dist/twitch/helix/twitch-helix-update-extensions.js"
     }
   },
   "engines": {

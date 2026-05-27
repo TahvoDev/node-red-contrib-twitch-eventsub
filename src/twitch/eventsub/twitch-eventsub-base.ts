@@ -1,6 +1,5 @@
 import { randomUUID } from "crypto"; 
 
-// 2. Export the class explicitly
 export class BaseTwitchEventsubNode {
   node: any;
   twitchConfig: any;

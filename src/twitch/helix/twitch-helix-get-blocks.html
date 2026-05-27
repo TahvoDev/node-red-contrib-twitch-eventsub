@@ -1,0 +1,63 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-blocks', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+      userId: { value: '' },
+      limit:  { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    paletteLabel: 'get blocks',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get blocks' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-blocks">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="User ID to get blocks for" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-limit"><i class="fa fa-list"></i> Limit</label>
+    <input type="number" id="node-input-limit" placeholder="Results per page (max 100)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-blocks">
+  <p>Gets a list of users blocked by the given Twitch user.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.userId <span class="property-type">string</span></dt>
+    <dd>The user to get the block list for.</dd>
+    <dt>payload.limit <span class="property-type">number</span></dt>
+    <dd>Optional. Number of results per page, up to 100.</dd>
+    <dt>payload.after <span class="property-type">string</span></dt>
+    <dd>Optional. Pagination cursor from a previous result.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.data <span class="property-type">object[]</span></dt>
+    <dd>Array of blocked users, each with <code>userId</code>, <code>userLogin</code>, and <code>displayName</code>.</dd>
+    <dt>payload.cursor <span class="property-type">string | null</span></dt>
+    <dd>Pagination cursor for the next page, or null if no more pages.</dd>
+  </dl>
+</script>

@@ -1,0 +1,62 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-update-user', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      userId:      { value: '' },
+      description: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    paletteLabel: 'update user',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'update user' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-update-user">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="Authenticated user ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-description"><i class="fa fa-info-circle"></i> Description</label>
+    <input type="text" id="node-input-description" placeholder="Channel description" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-update-user">
+  <p>Updates the channel description of an authenticated Twitch user.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.userId <span class="property-type">string</span></dt>
+    <dd>The authenticated user's ID.</dd>
+    <dt>payload.description <span class="property-type">string</span></dt>
+    <dd>The new channel description. Pass an empty string to clear it.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>Updated user object with <code>id</code>, <code>name</code>, <code>displayName</code>, <code>description</code>, <code>broadcasterType</code>, and <code>creationDate</code>.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>Requires the <code>user:edit</code> scope.</p>
+</script>

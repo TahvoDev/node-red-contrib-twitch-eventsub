@@ -1,0 +1,77 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-extensions', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      userId:      { value: '' },
+      activeOnly:  { value: false },
+      withInactive:{ value: false },
+      withDev:     { value: false },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.png',
+    paletteLabel: 'get extensions',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get extensions' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-extensions">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="User ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-activeOnly"><i class="fa fa-toggle-on"></i> Active Only</label>
+    <input type="checkbox" id="node-input-activeOnly" style="width:auto;" />
+    <span style="margin-left:6px; color:#888; font-size:0.85em;">Returns installed slots with positions</span>
+  </div>
+  <div class="form-row">
+    <label for="node-input-withInactive"><i class="fa fa-eye-slash"></i> Include Inactive</label>
+    <input type="checkbox" id="node-input-withInactive" style="width:auto;" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-withDev"><i class="fa fa-code"></i> Include Dev</label>
+    <input type="checkbox" id="node-input-withDev" style="width:auto;" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-extensions">
+  <p>Gets extensions installed or available for an authenticated Twitch user.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.userId <span class="property-type">string</span></dt>
+    <dd>The user to get extensions for.</dd>
+    <dt>payload.activeOnly <span class="property-type">boolean</span></dt>
+    <dd>When <code>true</code>, returns only active/installed extensions with slot positions.</dd>
+    <dt>payload.withInactive <span class="property-type">boolean</span></dt>
+    <dd>When <code>activeOnly</code> is false, include inactive extensions.</dd>
+    <dt>payload.withDev <span class="property-type">boolean</span></dt>
+    <dd>When <code>activeOnly</code> is true, include extensions in development.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object | object[]</span></dt>
+    <dd>
+      When <code>activeOnly</code> is true: object with <code>panels</code>, <code>overlays</code>, and <code>components</code> arrays, each containing <code>slot</code>, <code>id</code>, <code>name</code>, and <code>version</code>.<br>
+      Otherwise: flat array of extension objects with <code>id</code>, <code>name</code>, <code>version</code>, and <code>active</code>.
+    </dd>
+  </dl>
+</script>
