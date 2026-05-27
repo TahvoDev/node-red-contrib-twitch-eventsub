@@ -5,8 +5,8 @@ module.exports = function(RED: any) {
   class TwitchEventSubChannelChatMessageNode extends BaseTwitchEventsubNode {
     
     constructor(config: any) {
-        super(RED, config);
-        this.subscriptionType = 'channelChatMessage';
+      super(RED, config);
+      this.register('channelChatMessage');
     }
 
     mapEvent(event: any) {

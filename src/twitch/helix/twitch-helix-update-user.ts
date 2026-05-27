@@ -22,6 +22,6 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchHelixUpdateUserNode as any).icon = 'twitch-icon.png';
+  (TwitchHelixUpdateUserNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-helix-update-user', TwitchHelixUpdateUserNode as any);
 };

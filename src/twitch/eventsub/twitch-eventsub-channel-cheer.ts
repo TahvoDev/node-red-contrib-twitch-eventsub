@@ -6,7 +6,7 @@ module.exports = function(RED: any) {
     
     constructor(config: any) {
         super(RED, config);
-        this.subscriptionType = 'channelCheer';
+        this.register('channelCheer');
     }
 
     mapEvent(event: any) {

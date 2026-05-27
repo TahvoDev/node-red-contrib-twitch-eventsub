@@ -20,4 +20,5 @@ function copyHtml(srcDir, destDir) {
 copyHtml("src", "dist");
 
 // Copy icons
-shell.cp("-R", "src/icons/*.svg", "dist/");
+shell.cp("-R", "src/icons/*.svg", "dist/icons/");
+

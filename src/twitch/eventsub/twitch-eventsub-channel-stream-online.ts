@@ -11,7 +11,7 @@ module.exports = function(RED: any) {
         super(RED, config);
         
         // Define the specific subscription type
-        this.subscriptionType = 'streamOnline';
+        this.register('streamOnline');
     }
 
     mapEvent(event: any) {

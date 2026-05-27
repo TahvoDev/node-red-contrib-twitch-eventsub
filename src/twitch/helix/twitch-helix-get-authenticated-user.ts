@@ -26,6 +26,6 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchHelixGetAuthenticatedUserNode as any).icon = 'twitch-icon.png';
+  (TwitchHelixGetAuthenticatedUserNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-helix-get-authenticated-user', TwitchHelixGetAuthenticatedUserNode as any);
 };

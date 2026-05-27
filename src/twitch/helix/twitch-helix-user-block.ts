@@ -24,6 +24,6 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchHelixUserBlockNode as any).icon = 'twitch-icon.png';
+  (TwitchHelixUserBlockNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-helix-user-block', TwitchHelixUserBlockNode as any);
 };

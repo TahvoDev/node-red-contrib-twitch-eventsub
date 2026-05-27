@@ -41,6 +41,6 @@ module.exports = function (RED: NodeAPI) {
     };
   }
 
-  (TwitchHelixGetExtensionsNode as any).icon = 'twitch-icon.png';
+  (TwitchHelixGetExtensionsNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-helix-get-extensions', TwitchHelixGetExtensionsNode as any);
 };

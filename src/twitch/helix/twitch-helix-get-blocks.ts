@@ -27,6 +27,6 @@ module.exports = function (RED: NodeAPI) {
     };
   }
 
-  (TwitchHelixGetBlocksNode as any).icon = 'twitch-icon.png';
+  (TwitchHelixGetBlocksNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-helix-get-blocks', TwitchHelixGetBlocksNode as any);
 };

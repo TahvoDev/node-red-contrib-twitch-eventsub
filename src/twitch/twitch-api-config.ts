@@ -2,7 +2,7 @@ import type { NodeAPI } from 'node-red';
 import { AbstractNode } from '../AbstractNode';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
-import { TwitchEventsubService } from './twitch-eventsub-service';
+import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
 
 type TwitchApiConfigProps = {
   id: string;
@@ -89,11 +89,10 @@ module.exports = function (RED: NodeAPI) {
     credentials: TwitchApiCredentials;
     apiClient?: ApiClient;
     eventsubService?: TwitchEventsubService;
-    nodeListeners: { [key: string]: Node } = {};
+    nodeListeners: { [key: string]: any } = {};
     currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
     authReady = false;
 
-    // Promise lock — prevents concurrent auth initializations
     private authInitPromise?: Promise<void>;
 
     constructor(config: TwitchApiConfigProps) {
@@ -108,8 +107,6 @@ module.exports = function (RED: NodeAPI) {
 
     async initAuth(): Promise<void> {
       if (this.authReady) return;
-
-      // Return existing promise if already in progress
       if (this.authInitPromise) return this.authInitPromise;
 
       this.authInitPromise = this._doAuth().finally(() => {
@@ -133,7 +130,6 @@ module.exports = function (RED: NodeAPI) {
           clientSecret: twitch_client_secret,
         });
 
-        // Notify user when token refresh fails permanently
         authProvider.onRefreshFailure(() => {
           this.authReady = false;
           this.apiClient = undefined;
@@ -171,7 +167,7 @@ module.exports = function (RED: NodeAPI) {
 
       this.eventsubService.onEventCb = (e, subscriptionType) => {
         Object.values(this.nodeListeners).forEach((node) => {
-          (node as any).triggerTwitchEvent(e, subscriptionType);
+          node.triggerTwitchEvent(e, subscriptionType);
         });
       };
 
@@ -197,20 +193,23 @@ module.exports = function (RED: NodeAPI) {
     updateStatus(status: Status) {
       this.currentStatus = status;
       Object.values(this.nodeListeners).forEach((node) => {
-        (node as any).status(status);
+        node.status(status);
       });
     }
 
-    // Called by EventSub nodes
-    addNode(id: string, node: Node) {
+    addNode(id: string, node: any, subscriptionType: string) {
       this.nodeListeners[id] = node;
-      (node as any).status(this.currentStatus);
+      node.status(this.currentStatus);
       this.initAuth()
-      .then(() => this.initEventsub())
+      .then(async () => {
+        if (!this.eventsubService) await this.initEventsub();
+        this.eventsubService?.addSubscription(subscriptionType);
+      })
       .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
     }
 
-    async removeNode(id: string, done: () => void) {
+    async removeNode(id: string, subscriptionType: string, done: () => void) {
+      this.eventsubService?.removeSubscription(subscriptionType);
       delete this.nodeListeners[id];
       if (Object.keys(this.nodeListeners).length === 0) {
         await this.takedown();
