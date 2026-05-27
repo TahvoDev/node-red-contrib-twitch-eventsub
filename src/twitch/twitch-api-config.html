@@ -4,10 +4,12 @@ RED.nodes.registerType('twitch-api-config', {
   defaults: {
     name: { value: '', required: true },
     twitch_client_id: { required: true },
-    twitch_client_secret: { required: true },
-    twitch_refresh_token: { required: false },
     twitch_user_id: { value: '' },
     twitch_user_login: { value: '' },
+  },
+  credentials: {
+    twitch_client_secret: { type: 'password' },
+    twitch_refresh_token: { type: 'password' },
   },
   inputs: 0,
   outputs: 0,
@@ -41,16 +43,16 @@ RED.nodes.registerType('twitch-api-config', {
       }
 
       const scopes = [
-                "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
-                "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
-                "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
-                "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
-                "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
-                "moderator:manage:unban_requests", "moderator:read:automod_settings",
-                "moderator:read:blocked_terms", "moderator:read:chat_settings",
-                "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
-                "moderator:read:shoutouts", "moderator:read:suspicious_users",
-                "moderator:read:unban_requests", "user:read:chat"
+        "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
+        "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
+        "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
+        "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
+        "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
+        "moderator:manage:unban_requests", "moderator:read:automod_settings",
+        "moderator:read:blocked_terms", "moderator:read:chat_settings",
+        "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
+        "moderator:read:shoutouts", "moderator:read:suspicious_users",
+        "moderator:read:unban_requests", "user:read:chat"
       ].join(' ');
 
       $.ajax({
@@ -97,6 +99,7 @@ RED.nodes.registerType('twitch-api-config', {
               );
 
               $('#auth-step-verify').hide();
+              $('#auth-step-login').show();
             }
           },
           error: function (xhr) {
@@ -127,7 +130,6 @@ RED.nodes.registerType('twitch-api-config', {
 });
 </script>
 
-
 <style>
   .red-ui-editor .form-row label, .red-ui-editor-dialog .form-row label {
     width: 130px;
@@ -140,36 +142,29 @@ RED.nodes.registerType('twitch-api-config', {
     text-decoration: underline;
   }
   .auth-box {
-      background: #f3f3f3;
-      border: 1px solid #dcdcdc;
-      padding: 10px;
-      border-radius: 4px;
-      margin-bottom: 10px;
-      text-align: center;
+    background: #f3f3f3;
+    border: 1px solid #dcdcdc;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    text-align: center;
   }
   .code-display {
-      font-family: monospace;
-      font-size: 1.5em;
-      font-weight: bold;
-      color: #9146FF; /* Twitch Purple */
-      margin: 10px 0;
-      display: block;
-      letter-spacing: 2px;
+    font-family: monospace;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #9146FF;
+    margin: 10px 0;
+    display: block;
+    letter-spacing: 2px;
   }
   .auth-status {
-        padding-top: 6px;
-        font-weight: bold;
-    }
-    .auth-ok {
-        color: #2ca02c;
-    }
-    .auth-warn {
-        color: #999;
-    }
-    .auth-wait {
-        color: #ff7f0e;
-    }
-
+    padding-top: 6px;
+    font-weight: bold;
+  }
+  .auth-ok { color: #2ca02c; }
+  .auth-warn { color: #999; }
+  .auth-wait { color: #ff7f0e; }
 </style>
 
 <script type="text/html" data-template-name="twitch-api-config">
@@ -198,13 +193,10 @@ RED.nodes.registerType('twitch-api-config', {
 
     <div class="form-row">
       <label><i class="fa fa-user"></i> Twitch Authentication</label>
-      <div id="twitch-auth-status" class="auth-status">
-        Not logged in
-      </div>
+      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
     </div>
 
     <div class="auth-box">
-
       <div id="auth-step-login">
         <a class="red-ui-button" id="node-config-btn-twitch-auth">
           <i class="fa fa-twitch"></i> Login with Twitch
@@ -212,16 +204,15 @@ RED.nodes.registerType('twitch-api-config', {
       </div>
 
       <div id="auth-step-verify" style="display:none;">
-        <p>
-          Open:
-          <a id="twitch-auth-link" target="_blank">Twitch activation page</a>
-        </p>
+        <p>Open: <a id="twitch-auth-link" target="_blank">Twitch activation page</a></p>
         <p>Enter code:</p>
         <div id="twitch-user-code" class="code-display">----</div>
         <p><i class="fa fa-spinner fa-spin"></i> Waiting for approval…</p>
       </div>
-
     </div>
+
+    <input type="hidden" id="node-config-input-twitch_user_id">
+    <input type="hidden" id="node-config-input-twitch_user_login">
 
     <details style="margin-top:10px;">
       <summary>Advanced / Manual Token</summary>
