@@ -109,6 +109,10 @@ module.exports = function (RED: NodeAPI) {
       });
     }
 
+    get apiClient() {
+      return this.twitchEventsub?.apiClient;
+    }
+
     init() {
       if (this.initialized) return;
 

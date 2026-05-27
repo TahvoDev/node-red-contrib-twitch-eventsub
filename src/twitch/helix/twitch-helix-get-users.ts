@@ -5,26 +5,40 @@ module.exports = function (RED) {
     RED.nodes.createNode(node, config);
 
     node.twitchConfig = RED.nodes.getNode(config.config);
-
     if (!node.twitchConfig) {
-      node.error('No Twitch Eventsub Config node configured');
+      node.error('No Twitch Config node configured');
       return;
     }
 
-    const apiClient = node.twitchConfig.apiClient;
 
     node.on('input', async (msg, send, done) => {
+
+      const apiClient = node.twitchConfig.apiClient;
+
+      if (!apiClient) {
+        done(new Error('Twitch API not ready yet — is the config node connected?'));
+        return;
+      }
+
       try {
-        const userId = msg.userId || config.userId;
-        const login = msg.login || config.login;
+        const payload = msg.payload ?? {};
 
-        if (!userId && !login) {
-          throw new Error('No userId or login provided');
+        // Coerce userId/userIds into a single array
+        const ids = toArray(payload.userId ?? payload.userIds ?? config.userId);
+        // Coerce login/logins into a single array
+        const logins = toArray(payload.login ?? payload.logins ?? config.login);
+
+        if (ids.length) {
+          const result = ids.length === 1
+          ? await apiClient.users.getUserById(ids[0])
+          : await apiClient.users.getUsersByIds(ids);
+          msg.payload = Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
+        } else if (logins.length) {
+          const result = logins.length === 1
+          ? await apiClient.users.getUserByName(logins[0])
+          : await apiClient.users.getUsersByNames(logins);
+          msg.payload = Array.isArray(result) ? result.map(toPlainUser) : toPlainUser(result);
         }
-
-        msg.payload = userId
-          ? await apiClient.users.getUserById(userId)
-          : await apiClient.users.getUserByName(login);
 
         send(msg);
         done();
@@ -32,6 +46,26 @@ module.exports = function (RED) {
         done(err);
       }
     });
+  }
+
+  // Coerce a value into a non-empty array of strings, filtering blanks
+  function toArray(value) {
+    if (!value) return [];
+    const arr = Array.isArray(value) ? value : [value];
+    return arr.map(String).filter(Boolean);
+  }
+
+  function toPlainUser(user) {
+    if (!user) return null;
+    return {
+      id: user.id,
+      name: user.name,
+      displayName: user.displayName,
+      profilePictureUrl: user.profilePictureUrl,
+      description: user.description,
+      broadcasterType: user.broadcasterType,
+      creationDate: user.creationDate,
+    };
   }
 
   TwitchHelixGetUsersNode.icon = 'twitch-icon.png';

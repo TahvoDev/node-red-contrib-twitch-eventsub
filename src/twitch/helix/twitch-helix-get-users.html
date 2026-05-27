@@ -1,52 +1,75 @@
-<script type="text/html" data-template-name="twitch-helix-get-users">
-  <div class="form-row">
-    <label for="node-input-name">
-      <i class="fa fa-tag"></i> Name
-    </label>
-    <input type="text" id="node-input-name" placeholder="Name" />
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-config">
-      <i class="fa fa-cog"></i> Twitch Config
-    </label>
-    <input type="text" id="node-input-config" />
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-userId">
-      <i class="fa fa-hashtag" aria-hidden="true"></i> User ID
-    </label>
-    <input type="text" id="node-input-userId" placeholder="ID" />
-  </div>
-
-  <div class="form-row">
-    <label for="node-input-login">
-      <i class="fa fa-user" aria-hidden="true"></i> Login
-    </label>
-    <input type="text" id="node-input-login" placeholder="Login" />
-  </div>
-</script>
-
 <script type="text/javascript">
   RED.nodes.registerType('twitch-helix-get-users', {
     category: 'twitch api',
     color: '#b9a3e3',
     defaults: {
-      name: { value: '' },
+      name:   { value: '' },
       config: { type: 'twitch-api-config', required: true },
       userId: { value: '' },
-      login: { value: '' }
+      login:  { value: '' },
     },
     inputs: 1,
     outputs: 1,
     icon: 'twitch-icon.png',
-    label: function () {
-      return this.name || 'get users';
-    },
     paletteLabel: 'get users',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get users' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
     labelStyle: function () {
       return this.name ? 'node_label_italic' : '';
-    }
+    },
   });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-users">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="Numeric Twitch ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-login"><i class="fa fa-user"></i> Login</label>
+    <input type="text" id="node-input-login" placeholder="e.g. shroud" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-users">
+  <p>Looks up one or more Twitch users by ID or login name.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload.userId <span class="property-type">string | string[]</span></dt>
+    <dd>One or more numeric Twitch user IDs.</dd>
+
+    <dt>payload.login <span class="property-type">string | string[]</span></dt>
+    <dd>One or more Twitch login names (e.g. <code>shroud</code>).</dd>
+  </dl>
+  <p>
+    IDs take priority over logins. A single value or an array are both accepted.
+    Node config values are used as defaults when <code>msg.payload</code> provides neither.
+  </p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object | object[]</span></dt>
+    <dd>
+      A single user object for one result, or an array for multiple. Each object includes
+      <code>id</code>, <code>name</code>, <code>displayName</code>, <code>profilePictureUrl</code>,
+      <code>description</code>, and <code>broadcasterType</code>.
+    </dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>
+    Requires a <strong>Twitch API Config</strong> node. Up to 100 users can be fetched in a single request.
+  </p>
 </script>
