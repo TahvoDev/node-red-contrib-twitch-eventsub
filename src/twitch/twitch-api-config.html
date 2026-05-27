@@ -1,0 +1,231 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-api-config', {
+  category: 'config',
+  defaults: {
+    name: { value: '', required: true },
+    twitch_client_id: { required: true },
+    twitch_user_id: { value: '' },
+    twitch_user_login: { value: '' },
+  },
+  credentials: {
+    twitch_client_secret: { type: 'password' },
+    twitch_refresh_token: { type: 'password' },
+  },
+  inputs: 0,
+  outputs: 0,
+  label: function () {
+    return this.name;
+  },
+  oneditprepare: function () {
+    let pollInterval = null;
+
+    function stopPolling() {
+      if (pollInterval) {
+        clearInterval(pollInterval);
+        pollInterval = null;
+      }
+    }
+
+    function setAuthStatus(text, state) {
+      const el = $('#twitch-auth-status');
+      el
+        .removeClass('auth-ok auth-warn auth-wait')
+        .addClass(state || '')
+        .text(text);
+    }
+
+    $('#node-config-btn-twitch-auth').click(function () {
+      const clientId = $('#node-config-input-twitch_client_id').val();
+
+      if (!clientId) {
+        RED.notify('Please enter a Client ID first.', 'error');
+        return;
+      }
+
+      const scopes = [
+        "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
+        "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
+        "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
+        "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
+        "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
+        "moderator:manage:unban_requests", "moderator:read:automod_settings",
+        "moderator:read:blocked_terms", "moderator:read:chat_settings",
+        "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
+        "moderator:read:shoutouts", "moderator:read:suspicious_users",
+        "moderator:read:unban_requests", "user:read:chat"
+      ].join(' ');
+
+      $.ajax({
+        url: 'twitch-eventsub/auth/device',
+        type: 'POST',
+        data: { client_id: clientId, scopes },
+        success: function (resp) {
+          $('#auth-step-login').hide();
+          $('#auth-step-verify').show();
+
+          $('#twitch-auth-link')
+            .attr('href', resp.verification_uri)
+            .text(resp.verification_uri);
+
+          $('#twitch-user-code').text(resp.user_code);
+
+          setAuthStatus('Waiting for Twitch authorization…', 'auth-wait');
+          startPolling(clientId, resp.device_code, resp.interval);
+        },
+        error: function (xhr) {
+          RED.notify('Auth start failed: ' + xhr.responseText, 'error');
+        },
+      });
+    });
+
+    function startPolling(clientId, deviceCode, intervalSeconds) {
+      stopPolling();
+      pollInterval = setInterval(function () {
+        $.ajax({
+          url: 'twitch-eventsub/auth/token',
+          type: 'POST',
+          data: { client_id: clientId, device_code: deviceCode },
+          success: function (resp) {
+            if (resp.refresh_token) {
+              stopPolling();
+
+              $('#node-config-input-twitch_refresh_token').val(resp.refresh_token);
+              $('#node-config-input-twitch_user_id').val(resp.twitch_user_id);
+              $('#node-config-input-twitch_user_login').val(resp.twitch_user_login);
+
+              setAuthStatus(
+                `Logged in as ${resp.twitch_user_login} (${resp.twitch_user_id})`,
+                'auth-ok'
+              );
+
+              $('#auth-step-verify').hide();
+              $('#auth-step-login').show();
+            }
+          },
+          error: function (xhr) {
+            const err = JSON.parse(xhr.responseText || '{}');
+            if (err.message !== 'authorization_pending' && err.message !== 'slow_down') {
+              stopPolling();
+              setAuthStatus('Authentication failed', 'auth-warn');
+              $('#auth-step-verify').hide();
+              $('#auth-step-login').show();
+            }
+          },
+        });
+      }, intervalSeconds * 1000 + 200);
+    }
+
+    $('#node-config-dialog-cancel').click(stopPolling);
+    $('#node-config-dialog-ok').click(stopPolling);
+
+    if (this.twitch_user_id && this.twitch_user_login) {
+      setAuthStatus(
+        `Logged in as ${this.twitch_user_login} (${this.twitch_user_id})`,
+        'auth-ok'
+      );
+    } else {
+      setAuthStatus('Not logged in', 'auth-warn');
+    }
+  },
+});
+</script>
+
+<style>
+  .red-ui-editor .form-row label, .red-ui-editor-dialog .form-row label {
+    width: 130px;
+  }
+  .twitch-api-config-form a {
+    color: #55aaea;
+    text-decoration: underline;
+  }
+  .twitch-api-config-form a:hover {
+    text-decoration: underline;
+  }
+  .auth-box {
+    background: #f3f3f3;
+    border: 1px solid #dcdcdc;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 10px;
+    text-align: center;
+  }
+  .code-display {
+    font-family: monospace;
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #9146FF;
+    margin: 10px 0;
+    display: block;
+    letter-spacing: 2px;
+  }
+  .auth-status {
+    padding-top: 6px;
+    font-weight: bold;
+  }
+  .auth-ok { color: #2ca02c; }
+  .auth-warn { color: #999; }
+  .auth-wait { color: #ff7f0e; }
+</style>
+
+<script type="text/html" data-template-name="twitch-api-config">
+  <div class="twitch-api-config-form">
+
+    <div class="form-row">
+      <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+      <input type="text" id="node-config-input-name">
+    </div>
+
+    <div class="form-row">
+      <label for="node-config-input-twitch_client_id">
+        <i class="fa fa-key"></i> Client ID
+      </label>
+      <input type="text" id="node-config-input-twitch_client_id">
+    </div>
+
+    <div class="form-row">
+      <label for="node-config-input-twitch_client_secret">
+        <i class="fa fa-lock"></i> Client Secret
+      </label>
+      <input type="password" id="node-config-input-twitch_client_secret">
+    </div>
+
+    <hr>
+
+    <div class="form-row">
+      <label><i class="fa fa-user"></i> Twitch Authentication</label>
+      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
+    </div>
+
+    <div class="auth-box">
+      <div id="auth-step-login">
+        <a class="red-ui-button" id="node-config-btn-twitch-auth">
+          <i class="fa fa-twitch"></i> Login with Twitch
+        </a>
+      </div>
+
+      <div id="auth-step-verify" style="display:none;">
+        <p>Open: <a id="twitch-auth-link" target="_blank">Twitch activation page</a></p>
+        <p>Enter code:</p>
+        <div id="twitch-user-code" class="code-display">----</div>
+        <p><i class="fa fa-spinner fa-spin"></i> Waiting for approval…</p>
+      </div>
+    </div>
+
+    <input type="hidden" id="node-config-input-twitch_user_id">
+    <input type="hidden" id="node-config-input-twitch_user_login">
+
+    <details style="margin-top:10px;">
+      <summary>Advanced / Manual Token</summary>
+      <p class="red-ui-help">
+        Only use this if you are generating tokens manually (e.g. Twitch CLI).
+      </p>
+      <div class="form-row">
+        <label for="node-config-input-twitch_refresh_token">
+          <i class="fa fa-lock"></i> Refresh Token
+        </label>
+        <input type="password" id="node-config-input-twitch_refresh_token">
+      </div>
+    </details>
+
+  </div>
+</script>

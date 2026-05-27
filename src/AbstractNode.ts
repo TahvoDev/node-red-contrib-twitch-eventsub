@@ -1,7 +1,7 @@
 /// FROM https://github.com/geonet-mrn/node-red-typescript-essentials
 
 import { NodeStatus } from './node_status';
-import { Red } from './Red';
+import type { NodeAPI } from 'node-red';
 
 
 export abstract class AbstractNode {
@@ -98,8 +98,8 @@ export abstract class AbstractNode {
 
     // TODO: 4 Decide whether "config" in AbstractNode should be a class member or not. "config" *is* a class
     // member in all derived classes, but can have a different type there. What is the best/correct solution here?
-    constructor(config: any, public RED: Red) {
+    constructor(config: any, public RED: NodeAPI) {
 
-        RED.nodes.createNode(this, config);
+        RED.nodes.createNode(this as any, config);
     }
 }

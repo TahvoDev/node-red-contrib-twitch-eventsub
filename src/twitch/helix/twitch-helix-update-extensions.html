@@ -1,0 +1,61 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-update-extensions', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+      userId: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'update extensions',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'update extensions' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-update-extensions">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="Authenticated user ID" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-update-extensions">
+  <p>Updates the active extensions installed for an authenticated Twitch user.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>userId <span class="property-type">string</span></dt>
+    <dd>The authenticated user's ID.</dd>
+    <dt>data <span class="property-type">object</span></dt>
+    <dd>
+      The extension update payload. See the
+      <a href="https://dev.twitch.tv/docs/api/reference#update-user-extensions" target="_blank">Twitch API docs</a>
+      for the format. Do not wrap in a <code>data</code> key.
+    </dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>Updated extension slots as <code>panels</code>, <code>overlays</code>, and <code>components</code> arrays, each with <code>slot</code>, <code>id</code>, <code>name</code>, and <code>version</code>.</dd>
+  </dl>
+
+  <h3>Details</h3>
+  <p>Requires the <code>user:edit:broadcast</code> scope.</p>
+</script>

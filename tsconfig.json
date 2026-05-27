@@ -2,20 +2,21 @@
   "compilerOptions": {
     "module": "commonjs",
     "esModuleInterop": true,
-    "target": "es5",
+    "target": "es2015",
     "noImplicitAny": false,
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,
     "allowJs": true,
     "outDir": "dist",
-    "baseUrl": ".",
+    "rootDir": "src",
+    "ignoreDeprecations": "6.0",
     "types": [
       "node"
     ],
     "paths": {
-      "/@/*": ["./src/*"],
+      "/@/*": ["./src/*"]
     },
     "plugins": [{ "transform": "./transformers/getKeysOfType.ts" }]
   },

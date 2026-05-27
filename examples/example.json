@@ -30,7 +30,7 @@
   },
   {
     "id": "baeb5701833381a7",
-    "type": "twitch-eventsub-config",
+    "type": "twitch-api-config",
     "name": "my_twitch_username",
     "broadcaster_id": "12345678",
     "twitch_client_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
