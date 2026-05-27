@@ -1,4 +1,4 @@
-import type { Red } from '../Red';
+import type { NodeAPI } from 'node-red';
 import { AbstractNode } from '../AbstractNode';
 import { TwitchEventsub } from './twitch-eventsub-service';
 
@@ -17,11 +17,10 @@ type Status = {
   text: string;
 };
 
-module.exports = function (RED: Red) {
-  const REDAny = RED as any;
+module.exports = function (RED: NodeAPI) {
 
   // 1. Initiate Device Code Flow
-  REDAny.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
+  RED.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
     const { client_id, scopes } = req.body;
 
     if (!client_id || !scopes) {
@@ -54,7 +53,7 @@ module.exports = function (RED: Red) {
   });
 
   // 2. Poll for Token
-  REDAny.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
+  RED.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
     const { client_id, device_code } = req.body;
 
     try {
@@ -118,7 +117,7 @@ module.exports = function (RED: Red) {
     };
     initialized = false;
     pollingLogin = false;
-    
+
     constructor(config: TwitchEventsubConfigProps) {
       super(config, RED);
       this.config = config;
@@ -128,7 +127,6 @@ module.exports = function (RED: Red) {
         this.takedown().then(done);
       });
     }
-
 
     init() {
       if (this.initialized) return;
@@ -140,7 +138,7 @@ module.exports = function (RED: Red) {
           shape: 'ring',
           text: 'Waiting for Twitch login…',
         });
-        
+
         if (!this.config.twitch_refresh_token) {
           if (!this.pollingLogin) {
             this.pollingLogin = true;
@@ -165,37 +163,36 @@ module.exports = function (RED: Red) {
       }
 
       this.twitchEventsub
-        .init(this.config.twitch_refresh_token)
-        .then(async () => {
-          this.initialized = true;
-          this.updateStatus({
-            fill: 'green',
-            shape: 'ring',
-            text: 'Subscribing to events...',
-          });
-
-          this.twitchEventsub!.onEventCb = (e, subscriptionType) => {
-            Object.values(this.nodeListeners).forEach((node) => {
-              (node as any).triggerTwitchEvent(e, subscriptionType);
-            });
-          };
-
-          await this.twitchEventsub!.addSubscriptions();
-
-          this.updateStatus({
-            fill: 'green',
-            shape: 'ring',
-            text: `Logged in as ${this.config.twitch_user_login ?? 'unknown'}`,
-          });
-        })
-        .catch(() => {
-          this.updateStatus({
-            fill: 'red',
-            shape: 'ring',
-            text: 'Twitch auth failed',
-          });
+      .init(this.config.twitch_refresh_token)
+      .then(async () => {
+        this.initialized = true;
+        this.updateStatus({
+          fill: 'green',
+          shape: 'ring',
+          text: 'Subscribing to events...',
         });
 
+        this.twitchEventsub!.onEventCb = (e, subscriptionType) => {
+          Object.values(this.nodeListeners).forEach((node) => {
+            (node as any).triggerTwitchEvent(e, subscriptionType);
+          });
+        };
+
+        await this.twitchEventsub!.addSubscriptions();
+
+        this.updateStatus({
+          fill: 'green',
+          shape: 'ring',
+          text: `Logged in as ${this.config.twitch_user_login ?? 'unknown'}`,
+        });
+      })
+      .catch(() => {
+        this.updateStatus({
+          fill: 'red',
+          shape: 'ring',
+          text: 'Twitch auth failed',
+        });
+      });
     }
 
     async takedown() {

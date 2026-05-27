@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "scripts": {
-  "build": "rm -rf dist && tspc && npm run copy-static-assets",
+    "build": "rm -rf dist && tspc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
     "prepublishOnly": "npm run build"
@@ -54,6 +54,8 @@
     "node": ">=14.0.0"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node-red": "^1.3.5",
     "node-fetch": "^3.3.2",
     "shelljs": "^0.10.0",
     "ttypescript": "^1.5.15",
