@@ -1,5 +1,3 @@
-import { randomUUID } from "crypto"; 
-
 export class BaseTwitchEventsubNode {
   node: any;
   twitchConfig: any;
@@ -10,7 +8,7 @@ export class BaseTwitchEventsubNode {
     RED.nodes.createNode(this.node, config);
 
     this.twitchConfig = RED.nodes.getNode(config.config);
-    const nodeUuid = randomUUID();
+    this.twitchConfig.addNode(config.id, this.node);
 
     if (this.twitchConfig) {
       this.twitchConfig.addNode(nodeUuid, this.node);

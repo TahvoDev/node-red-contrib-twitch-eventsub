@@ -1,6 +1,8 @@
 import type { NodeAPI } from 'node-red';
 import { AbstractNode } from '../AbstractNode';
-import { TwitchEventsub } from './twitch-eventsub-service';
+import { RefreshingAuthProvider } from '@twurple/auth';
+import { ApiClient } from '@twurple/api';
+import { TwitchEventsubService } from './twitch-eventsub-service';
 
 type TwitchApiConfigProps = {
   id: string;
@@ -26,12 +28,10 @@ module.exports = function (RED: NodeAPI) {
 
   RED.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
     const { client_id, scopes } = req.body;
-
     if (!client_id || !scopes) {
       res.status(400).json({ error: 'Missing client_id or scopes' });
       return;
     }
-
     try {
       const params = new URLSearchParams({ client_id, scopes });
       const response = await fetch('https://id.twitch.tv/oauth2/device', {
@@ -39,8 +39,7 @@ module.exports = function (RED: NodeAPI) {
         body: params,
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
-      const data = await response.json();
-      res.status(response.status).json(data);
+      res.status(response.status).json(await response.json());
     } catch (error) {
       res.status(500).json({ error: (error as Error).message });
     }
@@ -48,7 +47,6 @@ module.exports = function (RED: NodeAPI) {
 
   RED.httpAdmin.post('/twitch-eventsub/auth/token', async (req: any, res: any) => {
     const { client_id, device_code } = req.body;
-
     try {
       const params = new URLSearchParams({
         client_id,
@@ -61,12 +59,10 @@ module.exports = function (RED: NodeAPI) {
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       });
       const data = await response.json();
-
       if (!response.ok) {
         res.status(response.status).json(data);
         return;
       }
-
       const user = await fetchTwitchUser(data.access_token, client_id);
       res.json({ ...data, twitch_user_id: user.id, twitch_user_login: user.login });
     } catch (error) {
@@ -82,9 +78,7 @@ module.exports = function (RED: NodeAPI) {
       },
     });
     const json = await res.json();
-    if (!res.ok || !json.data?.length) {
-      throw new Error('Failed to fetch Twitch user');
-    }
+    if (!res.ok || !json.data?.length) throw new Error('Failed to fetch Twitch user');
     return { id: json.data[0].id as string, login: json.data[0].login as string };
   }
 
@@ -93,10 +87,14 @@ module.exports = function (RED: NodeAPI) {
   class TwitchApiConfig extends AbstractNode {
     config: TwitchApiConfigProps;
     credentials: TwitchApiCredentials;
-    twitchEventsub?: TwitchEventsub;
+    apiClient?: ApiClient;
+    eventsubService?: TwitchEventsubService;
     nodeListeners: { [key: string]: Node } = {};
     currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
-    initialized = false;
+    authReady = false;
+
+    // Promise lock — prevents concurrent auth initializations
+    private authInitPromise?: Promise<void>;
 
     constructor(config: TwitchApiConfigProps) {
       super(config, RED);
@@ -104,18 +102,24 @@ module.exports = function (RED: NodeAPI) {
       this.credentials = RED.nodes.getCredentials(config.id) as TwitchApiCredentials;
 
       this.on('close', (done: () => void) => {
-        this.initialized = false;
         this.takedown().then(done);
       });
     }
 
-    get apiClient() {
-      return this.twitchEventsub?.apiClient;
+    async initAuth(): Promise<void> {
+      if (this.authReady) return;
+
+      // Return existing promise if already in progress
+      if (this.authInitPromise) return this.authInitPromise;
+
+      this.authInitPromise = this._doAuth().finally(() => {
+        this.authInitPromise = undefined;
+      });
+
+      return this.authInitPromise;
     }
 
-    init() {
-      if (this.initialized) return;
-
+    private async _doAuth(): Promise<void> {
       const { twitch_refresh_token, twitch_client_secret } = this.credentials ?? {};
 
       if (!twitch_refresh_token || !this.config.twitch_user_id) {
@@ -123,46 +127,71 @@ module.exports = function (RED: NodeAPI) {
         return;
       }
 
-      if (!this.twitchEventsub) {
-        this.twitchEventsub = new TwitchEventsub(
-          this,
-          this.config.twitch_user_id,
-          this.config.twitch_client_id,
-          twitch_client_secret
-        );
-      }
-
-      this.twitchEventsub
-      .init(twitch_refresh_token)
-      .then(async () => {
-        this.initialized = true;
-        this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
-
-        this.twitchEventsub!.onEventCb = (e, subscriptionType) => {
-          Object.values(this.nodeListeners).forEach((node) => {
-            (node as any).triggerTwitchEvent(e, subscriptionType);
-          });
-        };
-
-        await this.twitchEventsub!.addSubscriptions();
-        this.updateStatus({
-          fill: 'green',
-          shape: 'dot',
-          text: `Logged in as ${this.config.twitch_user_login ?? 'unknown'}`,
+      try {
+        const authProvider = new RefreshingAuthProvider({
+          clientId: this.config.twitch_client_id,
+          clientSecret: twitch_client_secret,
         });
-      })
-      .catch((e: Error) => {
+
+        // Notify user when token refresh fails permanently
+        authProvider.onRefreshFailure(() => {
+          this.authReady = false;
+          this.apiClient = undefined;
+          this.updateStatus({ fill: 'red', shape: 'ring', text: 'Token refresh failed — re-authenticate' });
+        });
+
+        await authProvider.addUserForToken(
+          {
+            accessToken: '',
+            refreshToken: twitch_refresh_token,
+            expiresIn: 0,
+            obtainmentTimestamp: 0,
+          },
+          [this.config.twitch_user_id]
+        );
+
+        this.apiClient = new ApiClient({ authProvider });
+        this.authReady = true;
+        this.log('Auth ready');
+        this.updateStatus({ fill: 'green', shape: 'ring', text: 'Auth ready' });
+      } catch (e: any) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: `Auth failed: ${e.message}` });
+        throw e;
+      }
+    }
+
+    async initEventsub(): Promise<void> {
+      if (this.eventsubService || !this.apiClient) return;
+
+      this.eventsubService = new TwitchEventsubService(
+        this,
+        this.config.twitch_user_id!,
+        this.apiClient
+      );
+
+      this.eventsubService.onEventCb = (e, subscriptionType) => {
+        Object.values(this.nodeListeners).forEach((node) => {
+          (node as any).triggerTwitchEvent(e, subscriptionType);
+        });
+      };
+
+      this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
+      await this.eventsubService.start();
+      this.updateStatus({
+        fill: 'green',
+        shape: 'dot',
+        text: `Logged in as ${this.config.twitch_user_login ?? 'unknown'}`,
       });
     }
 
     async takedown() {
-      if (this.twitchEventsub) {
-        await this.twitchEventsub.stop();
-        this.twitchEventsub = undefined;
+      if (this.eventsubService) {
+        await this.eventsubService.stop();
+        this.eventsubService = undefined;
       }
+      this.apiClient = undefined;
+      this.authReady = false;
       this.updateStatus({ fill: 'grey', shape: 'ring', text: 'Disconnected' });
-      this.initialized = false;
     }
 
     updateStatus(status: Status) {
@@ -172,10 +201,13 @@ module.exports = function (RED: NodeAPI) {
       });
     }
 
+    // Called by EventSub nodes
     addNode(id: string, node: Node) {
       this.nodeListeners[id] = node;
       (node as any).status(this.currentStatus);
-      this.init();
+      this.initAuth()
+      .then(() => this.initEventsub())
+      .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
     }
 
     async removeNode(id: string, done: () => void) {
