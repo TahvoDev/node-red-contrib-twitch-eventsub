@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "scripts": {
-    "build": "rm -rf dist && tspc && npm run copy-static-assets",
+    "build": "rm -rf dist && tsc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
     "prepublishOnly": "npm run build"
@@ -35,6 +35,7 @@
   },
   "node-red": {
     "version": ">=2.0.0",
+    "icons": "dist/icons",
     "nodes": {
       "twitch-api-config": "dist/twitch/twitch-api-config.js",
       "twitch-eventsub-channel-redemption-add": "dist/twitch/eventsub/twitch-eventsub-channel-redemption-add.js",
@@ -57,15 +58,12 @@
     }
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node-red": "^1.3.5",
-    "node-fetch": "^3.3.2",
     "shelljs": "^0.10.0",
-    "ts-patch": "^4.0.1",
-    "ttypescript": "^1.5.15",
     "typescript": "^6.0.3"
   }
 }
