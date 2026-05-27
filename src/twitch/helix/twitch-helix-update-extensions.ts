@@ -4,9 +4,9 @@ import { createHelixNode } from './twitch-helix-base';
 module.exports = function (RED: NodeAPI) {
   function TwitchHelixUpdateExtensionsNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
-      const payload = msg.payload ?? {};
-      const userId = payload.userId ?? config.userId;
-      const data   = payload.data;
+
+      const userId = msg.userId ?? config.userId;
+      const data   = msg.data;
 
       if (!userId) throw new Error('userId is required');
       if (!data)   throw new Error('payload.data with extension update payload is required');

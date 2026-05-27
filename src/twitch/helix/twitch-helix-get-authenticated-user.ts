@@ -4,9 +4,9 @@ import { createHelixNode } from './twitch-helix-base';
 module.exports = function (RED: NodeAPI) {
   function TwitchHelixGetAuthenticatedUserNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
-      const payload   = msg.payload ?? {};
-      const userId    = payload.userId    ?? config.userId;
-      const withEmail = payload.withEmail ?? config.withEmail ?? false;
+
+      const userId    = msg.userId    ?? config.userId;
+      const withEmail = msg.withEmail ?? config.withEmail ?? false;
 
       if (!userId) throw new Error('userId is required');
 

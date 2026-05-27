@@ -4,11 +4,11 @@ import { createHelixNode } from './twitch-helix-base';
 module.exports = function (RED: NodeAPI) {
   function TwitchHelixGetExtensionsNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
-      const payload      = msg.payload ?? {};
-      const userId       = payload.userId       ?? config.userId;
-      const activeOnly   = payload.activeOnly   ?? config.activeOnly ?? false;
-      const withInactive = payload.withInactive ?? config.withInactive ?? false;
-      const withDev      = payload.withDev      ?? config.withDev ?? false;
+
+      const userId       = msg.userId       ?? config.userId;
+      const activeOnly   = msg.activeOnly   ?? config.activeOnly ?? false;
+      const withInactive = msg.withInactive ?? config.withInactive ?? false;
+      const withDev      = msg.withDev      ?? config.withDev ?? false;
 
       if (!userId) throw new Error('userId is required');
 

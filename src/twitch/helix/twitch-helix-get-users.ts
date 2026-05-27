@@ -4,9 +4,9 @@ import { createHelixNode } from './twitch-helix-base';
 module.exports = function (RED: NodeAPI) {
   function TwitchHelixGetUsersNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
-      const payload = msg.payload ?? {};
-      const ids    = toArray(payload.userId ?? payload.userIds ?? config.userId);
-      const logins = toArray(payload.login  ?? payload.logins  ?? config.login);
+
+      const ids    = toArray(msg.userId ?? msg.userIds ?? config.userId);
+      const logins = toArray(msg.login  ?? msg.logins  ?? config.login);
 
       if (ids.length) {
         const result = ids.length === 1

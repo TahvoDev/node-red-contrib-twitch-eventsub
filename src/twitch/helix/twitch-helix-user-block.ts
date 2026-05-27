@@ -4,10 +4,10 @@ import { createHelixNode } from './twitch-helix-base';
 module.exports = function (RED: NodeAPI) {
   function TwitchHelixUserBlockNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
-      const payload = msg.payload ?? {};
-      const action        = payload.action        ?? config.action ?? 'block';
-      const broadcasterId = payload.broadcasterId ?? config.broadcasterId;
-      const targetId      = payload.targetId      ?? config.targetId;
+
+      const action        = msg.action        ?? config.action ?? 'block';
+      const broadcasterId = msg.broadcasterId ?? config.broadcasterId;
+      const targetId      = msg.targetId      ?? config.targetId;
 
       if (!broadcasterId || !targetId) throw new Error('broadcasterId and targetId are required');
 
