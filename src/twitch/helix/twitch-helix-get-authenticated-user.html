@@ -5,19 +5,13 @@
     defaults: {
       name:      { value: '' },
       config:    { type: 'twitch-api-config', required: true },
-      userId:    { value: '' },
       withEmail: { value: false },
     },
     inputs: 1,
     outputs: 1,
     icon: 'twitch-icon.svg',
     paletteLabel: 'get auth user',
-    label: function () {
-      if (this.name) return this.name;
-      const config = RED.nodes.node(this.config);
-      return 'get auth user' + (config ? ' (' + (config.name || '') + ')' : '');
-    },
-    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    label: function () { return this.name || 'get auth user'; }
   });
 </script>
 
@@ -31,29 +25,16 @@
     <input type="text" id="node-input-config" />
   </div>
   <div class="form-row">
-    <label for="node-input-userId"><i class="fa fa-hashtag"></i> User ID</label>
-    <input type="text" id="node-input-userId" placeholder="Authenticated user ID" />
-  </div>
-  <div class="form-row">
     <label for="node-input-withEmail"><i class="fa fa-envelope"></i> Include Email</label>
     <input type="checkbox" id="node-input-withEmail" style="width:auto;" />
   </div>
 </script>
 
 <script type="text/html" data-help-name="twitch-helix-get-authenticated-user">
-  <p>Gets the full profile of an authenticated Twitch user, optionally including their email address.</p>
-
+  <p>Fetches the profile of the currently authenticated Twitch user.</p>
   <h3>Inputs</h3>
   <dl class="message-properties">
-    <dt>userId <span class="property-type">string</span></dt>
-    <dd>The authenticated user's ID.</dd>
-    <dt>withEmail <span class="property-type">boolean</span></dt>
-    <dd>Optional. Set to <code>true</code> to include the email address. Requires the <code>user:read:email</code> scope.</dd>
-  </dl>
-
-  <h3>Outputs</h3>
-  <dl class="message-properties">
-    <dt>payload <span class="property-type">object</span></dt>
-    <dd>User object with <code>id</code>, <code>name</code>, <code>displayName</code>, <code>email</code>, <code>profilePictureUrl</code>, <code>description</code>, <code>broadcasterType</code>, and <code>creationDate</code>.</dd>
+    <dt>payload <span class="property-type">boolean</span></dt>
+    <dd>Optional. Set to <code>true</code> to include email (requires <code>user:read:email</code> scope).</dd>
   </dl>
 </script>

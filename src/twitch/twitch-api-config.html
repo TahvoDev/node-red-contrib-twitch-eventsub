@@ -42,18 +42,26 @@ RED.nodes.registerType('twitch-api-config', {
         return;
       }
 
-      const scopes = [
-        "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
-        "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
-        "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
-        "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
-        "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
-        "moderator:manage:unban_requests", "moderator:read:automod_settings",
-        "moderator:read:blocked_terms", "moderator:read:chat_settings",
-        "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
-        "moderator:read:shoutouts", "moderator:read:suspicious_users",
-        "moderator:read:unban_requests", "user:read:chat"
-      ].join(' ');
+    const scopes = [
+      "bits:read", "channel:moderate", "channel:read:ads", "channel:read:charity",
+      "channel:read:goals", "channel:read:guest_star", "channel:read:hype_train",
+      "channel:read:polls", "channel:read:predictions", "channel:read:redemptions",
+      "channel:read:subscriptions", "channel:read:vips", "chat:read", "moderation:read",
+      "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
+      "moderator:manage:unban_requests", "moderator:read:automod_settings",
+      "moderator:read:blocked_terms", "moderator:read:chat_settings",
+      "moderator:read:followers", "moderator:read:guest_star", "moderator:read:shield_mode",
+      "moderator:read:shoutouts", "moderator:read:suspicious_users",
+      "moderator:read:unban_requests",
+
+      "user:edit",
+      "user:edit:broadcast",
+      "user:read:blocked_users",
+      "user:read:broadcast",
+      "user:read:chat",
+      "user:read:email",
+      "user:manage:blocked_users"
+    ].join(' ');
 
       $.ajax({
         url: 'twitch-eventsub/auth/device',
