@@ -1,0 +1,40 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-shoutout-create', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: { name: { value: '' }, config: { type: 'twitch-api-config', required: true } },
+    inputs: 0, outputs: 1, icon: 'twitch-icon.svg',
+    paletteLabel: 'shoutout create',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'shoutout create' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+<script type="text/html" data-template-name="twitch-eventsub-channel-shoutout-create">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+</script>
+<script type="text/html" data-help-name="twitch-eventsub-channel-shoutout-create">
+  <p>Triggers when the channel sends a shoutout to another broadcaster.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.broadcasterId <span class="property-type">string</span></dt><dd>ID of this channel's broadcaster.</dd>
+    <dt>payload.moderatorId <span class="property-type">string</span></dt><dd>ID of the moderator who sent the shoutout.</dd>
+    <dt>payload.moderatorName <span class="property-type">string</span></dt><dd>Login name of the moderator.</dd>
+    <dt>payload.shoutedOutBroadcasterId <span class="property-type">string</span></dt><dd>ID of the broadcaster who received the shoutout.</dd>
+    <dt>payload.shoutedOutBroadcasterName <span class="property-type">string</span></dt><dd>Login name of the shouted-out broadcaster.</dd>
+    <dt>payload.shoutedOutBroadcasterDisplayName <span class="property-type">string</span></dt><dd>Display name of the shouted-out broadcaster.</dd>
+    <dt>payload.viewerCount <span class="property-type">number</span></dt><dd>Number of viewers at the time of the shoutout.</dd>
+    <dt>payload.startDate <span class="property-type">Date</span></dt><dd>When the shoutout occurred.</dd>
+    <dt>payload.rawEvent <span class="property-type">object</span></dt><dd>Complete raw event from Twitch.</dd>
+  </dl>
+</script>

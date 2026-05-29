@@ -1,0 +1,55 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-update', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'channel update',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'channel update' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-update">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-update">
+  <p>Triggers when a broadcaster updates their channel — title, category, or mature content flag.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.broadcasterId <span class="property-type">string</span></dt>
+    <dd>ID of the broadcaster.</dd>
+    <dt>payload.broadcasterName <span class="property-type">string</span></dt>
+    <dd>Login name of the broadcaster.</dd>
+    <dt>payload.broadcasterDisplayName <span class="property-type">string</span></dt>
+    <dd>Display name of the broadcaster.</dd>
+    <dt>payload.title <span class="property-type">string</span></dt>
+    <dd>New stream title.</dd>
+    <dt>payload.categoryId <span class="property-type">string</span></dt>
+    <dd>ID of the new category/game.</dd>
+    <dt>payload.categoryName <span class="property-type">string</span></dt>
+    <dd>Name of the new category/game.</dd>
+    <dt>payload.isMature <span class="property-type">boolean</span></dt>
+    <dd>Whether the channel is marked as mature content.</dd>
+    <dt>payload.rawEvent <span class="property-type">object</span></dt>
+    <dd>Complete raw event from Twitch.</dd>
+  </dl>
+</script>
