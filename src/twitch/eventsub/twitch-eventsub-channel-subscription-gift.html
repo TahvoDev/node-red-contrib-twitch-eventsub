@@ -72,18 +72,4 @@
               </ul>
           </dd>
       </dl>
-      
-      <h3>Example Usage</h3>
-      <p>To thank someone for gifting subscriptions, connect this node to a function node with code like:</p>
-      <pre><code>// Check if the gift is anonymous
-if (msg.payload.isAnonymous) {
-    msg.payload = {
-        message: `Thank you anonymous gifter for ${msg.payload.amount} gift subscriptions!`
-    };
-} else {
-    msg.payload = {
-        message: `Thank you ${msg.payload.gifterDisplayName} for ${msg.payload.amount} gift subscriptions!`
-    };
-}
-return msg;</code></pre>
   </script>
