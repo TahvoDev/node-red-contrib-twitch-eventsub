@@ -1,0 +1,67 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-prediction-event', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:      { value: '' },
+      config:    { type: 'twitch-api-config', required: true },
+      eventType: { value: 'all' }, // New default selector option
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'prediction events',
+    label: function () {
+      if (this.name) return this.name;
+
+      const typeLabels = {
+        'all': 'all prediction events',
+        'begin': 'prediction begin',
+        'progress': 'prediction progress',
+        'lock': 'prediction lock',
+        'end': 'prediction end'
+      };
+
+      const currentLabel = typeLabels[this.eventType] || 'prediction event';
+      return currentLabel;
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-prediction-event">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-eventType"><i class="fa fa-filter"></i> Event Type</label>
+    <select id="node-input-eventType">
+      <option value="all">All Events</option>
+      <option value="begin">Prediction Begin</option>
+      <option value="progress">Prediction Progress</option>
+      <option value="lock">Prediction Lock</option>
+      <option value="end">Prediction End</option>
+    </select>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-prediction-event">
+  <p>Fires a message output whenever a Twitch Channel Prediction updates state based on the configured dropdown filter.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.eventType <span class="property-type">string</span></dt>
+    <dd>The structural state variation: <code>begin</code>, <code>progress</code>, <code>lock</code>, or <code>end</code>.</dd>
+
+    <dt>payload.id <span class="property-type">string</span></dt>
+    <dd>Unique identification token of the prediction session.</dd>
+
+    <dt>payload.title <span class="property-type">string</span></dt>
+    <dd>The prediction question text.</dd>
+  </dl>
+</script>

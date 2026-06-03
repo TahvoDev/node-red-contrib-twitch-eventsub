@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-api",
   "scripts": {
-    "build": "rm -rf dist && tspc && npm run copy-static-assets",
+    "build": "rm -rf dist && tsc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
     "prepublishOnly": "npm run build"
@@ -35,37 +35,43 @@
   },
   "node-red": {
     "version": ">=2.0.0",
+    "icons": "dist/icons",
     "nodes": {
       "twitch-api-config": "dist/twitch/twitch-api-config.js",
       "twitch-eventsub-channel-redemption-add": "dist/twitch/eventsub/twitch-eventsub-channel-redemption-add.js",
       "twitch-eventsub-channel-stream-online": "dist/twitch/eventsub/twitch-eventsub-channel-stream-online.js",
       "twitch-eventsub-channel-stream-offline": "dist/twitch/eventsub/twitch-eventsub-channel-stream-offline.js",
       "twitch-eventsub-channel-subscription": "dist/twitch/eventsub/twitch-eventsub-channel-subscription.js",
+      "twitch-eventsub-channel-subscription-message": "dist/twitch/eventsub/twitch-eventsub-channel-subscription-message.js",
+      "twitch-eventsub-channel-subscription-gift": "dist/twitch/eventsub/twitch-eventsub-channel-subscription-gift.js",
       "twitch-eventsub-channel-cheer": "dist/twitch/eventsub/twitch-eventsub-channel-cheer.js",
       "twitch-eventsub-channel-raid-from": "dist/twitch/eventsub/twitch-eventsub-channel-raid-from.js",
       "twitch-eventsub-channel-raid-to": "dist/twitch/eventsub/twitch-eventsub-channel-raid-to.js",
       "twitch-eventsub-channel-follow": "dist/twitch/eventsub/twitch-eventsub-channel-follow.js",
-      "twitch-eventsub-channel-subscription-gift": "dist/twitch/eventsub/twitch-eventsub-channel-subscription-gift.js",
       "twitch-eventsub-channel-chat-message": "dist/twitch/eventsub/twitch-eventsub-channel-chat-message.js",
+      "twitch-eventsub-channel-update":             "dist/twitch/eventsub/twitch-eventsub-channel-update.js",
+      "twitch-eventsub-channel-ban":                "dist/twitch/eventsub/twitch-eventsub-channel-ban.js",
+      "twitch-eventsub-channel-unban":              "dist/twitch/eventsub/twitch-eventsub-channel-unban.js",
+      "twitch-eventsub-channel-poll-begin":         "dist/twitch/eventsub/twitch-eventsub-channel-poll-event.js",
+      "twitch-eventsub-channel-prediction-event":   "dist/twitch/eventsub/twitch-eventsub-channel-prediction-event.js",
+      "twitch-eventsub-channel-hype-train-event":   "dist/twitch/eventsub/twitch-eventsub-channel-hype-train-event.js",
+      "twitch-eventsub-channel-hype-train-event":   "dist/twitch/eventsub/twitch-eventsub-channel-hype-train-event.js",
+      "twitch-eventsub-channel-shoutout-create":    "dist/twitch/eventsub/twitch-eventsub-channel-shoutout-create.js",
+      "twitch-eventsub-channel-shoutout-receive":   "dist/twitch/eventsub/twitch-eventsub-channel-shoutout-receive.js",
       "twitch-helix-get-users": "dist/twitch/helix/twitch-helix-get-users.js",
       "twitch-helix-user-block": "dist/twitch/helix/twitch-helix-user-block.js",
       "twitch-helix-get-blocks": "dist/twitch/helix/twitch-helix-get-blocks.js",
       "twitch-helix-get-authenticated-user": "dist/twitch/helix/twitch-helix-get-authenticated-user.js",
-      "twitch-helix-get-extensions": "dist/twitch/helix/twitch-helix-get-extensions.js",
-      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user.js",
-      "twitch-helix-update-extensions": "dist/twitch/helix/twitch-helix-update-extensions.js"
+      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js"
     }
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node-red": "^1.3.5",
-    "node-fetch": "^3.3.2",
     "shelljs": "^0.10.0",
-    "ts-patch": "^4.0.1",
-    "ttypescript": "^1.5.15",
     "typescript": "^6.0.3"
   }
 }

@@ -1,0 +1,59 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-ban', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'ban',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'ban' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-ban">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-ban">
+  <p>Triggers when a user is banned or timed out in the channel.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.userId <span class="property-type">string</span></dt>
+    <dd>ID of the banned user.</dd>
+    <dt>payload.userName <span class="property-type">string</span></dt>
+    <dd>Login name of the banned user.</dd>
+    <dt>payload.userDisplayName <span class="property-type">string</span></dt>
+    <dd>Display name of the banned user.</dd>
+    <dt>payload.moderatorId <span class="property-type">string</span></dt>
+    <dd>ID of the moderator who issued the ban.</dd>
+    <dt>payload.moderatorName <span class="property-type">string</span></dt>
+    <dd>Login name of the moderator.</dd>
+    <dt>payload.reason <span class="property-type">string</span></dt>
+    <dd>Reason given for the ban.</dd>
+    <dt>payload.isPermanent <span class="property-type">boolean</span></dt>
+    <dd>Whether the ban is permanent. If false, <code>endDate</code> contains the timeout expiry.</dd>
+    <dt>payload.startDate <span class="property-type">Date</span></dt>
+    <dd>When the ban started.</dd>
+    <dt>payload.endDate <span class="property-type">Date | null</span></dt>
+    <dd>When the timeout ends. Null for permanent bans.</dd>
+    <dt>payload.rawEvent <span class="property-type">object</span></dt>
+    <dd>Complete raw event from Twitch.</dd>
+  </dl>
+</script>

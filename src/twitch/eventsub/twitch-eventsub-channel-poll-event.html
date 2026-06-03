@@ -1,0 +1,63 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-poll-event', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:      { value: '' },
+      config:    { type: 'twitch-api-config', required: true },
+      eventType: { value: 'all' },
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'poll events',
+    label: function () {
+      if (this.name) return this.name;
+
+      const typeLabels = {
+        'all': 'all poll events',
+        'begin': 'poll begin',
+        'progress': 'poll progress',
+        'end': 'poll end'
+      };
+
+      const currentLabel = typeLabels[this.eventType] || 'poll event';
+      const config = RED.nodes.node(this.config);
+      return currentLabel;
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-poll-event">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-eventType"><i class="fa fa-filter"></i> Event Type</label>
+    <select id="node-input-eventType">
+      <option value="all">All Poll Events</option>
+      <option value="begin">Poll Begin</option>
+      <option value="progress">Poll Progress</option>
+      <option value="end">Poll End</option>
+    </select>
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-poll-event">
+  <p>Fires when a Twitch Channel Poll changes state based on the configured dropdown filter.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.eventType <span class="property-type">string</span></dt>
+    <dd>Values: <code>begin</code>, <code>progress</code>, or <code>end</code>.</dd>
+    <dt>payload.title <span class="property-type">string</span></dt>
+    <dd>The poll question.</dd>
+    <dt>payload.choices <span class="property-type">array</span></dt>
+    <dd>Array of choices with vote counts (channel points, bits, and total votes).</dd>
+  </dl>
+</script>

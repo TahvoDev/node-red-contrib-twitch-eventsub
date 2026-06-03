@@ -5,17 +5,24 @@ module.exports = function (RED: NodeAPI) {
   function TwitchHelixGetBlocksNode(this: any, config: any) {
     createHelixNode(RED, this, config, async (apiClient, msg) => {
 
-      const userId = msg.userId ?? config.userId;
-      const limit  = msg.limit  ?? config.limit  ?? undefined;
-      const after  = msg.after  ?? undefined;
+      const limit = msg.limit ?? config.limit ?? 20;
+      const after = msg.after ?? undefined;
 
-      if (!userId) throw new Error('userId is required');
+      const configNode = RED.nodes.getNode(config.config) as any;
+      const userId = configNode?.config?.twitch_user_id;
 
-      const result = await apiClient.users.getBlocks(userId, { limit, after });
-      return {
-        data:   result.data.map(toPlainBlock),
-        cursor: result.cursor ?? null,
-      };
+      if (!userId) {
+        throw new Error('Twitch User ID not found in configuration. Please re-authenticate your config node.');
+      }
+
+      return await apiClient.asUser(String(userId), async (ctx) => {
+        const result = await ctx.users.getBlocks(String(userId), { limit, after });
+
+        return {
+          data: result.data.map(toPlainBlock),
+                                    cursor: result.cursor ?? null,
+        };
+      });
     });
   }
 
