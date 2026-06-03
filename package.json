@@ -9,7 +9,7 @@
       "prepare": "rm -rf dist && tsc && node scripts/copy-static-assets.js",
       "prepublishOnly": "npm run prepare",
       "node-red-check": "node-red-dev validate"
-  }
+  },
   "keywords": [
     "node-red",
     "twitch",
