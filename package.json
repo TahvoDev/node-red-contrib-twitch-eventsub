@@ -9,7 +9,8 @@
     "build": "rm -rf dist && tsc && npm run copy-static-assets",
     "copy-static-assets": "node scripts/copy-static-assets.js",
     "node-red-check": "node-red-dev validate",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "prepare": "npm run build"
   },
   "keywords": [
     "node-red",
