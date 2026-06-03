@@ -1,0 +1,91 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-streams', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      userId:      { value: '' },
+      userName:    { value: '' },
+      game:        { value: '' },
+      streamType:  { value: 'all' },
+      limit:       { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'get streams',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get streams' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-streams">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+
+  <hr>
+  <h4>Stream Filters</h4>
+
+  <div class="form-row">
+    <label for="node-input-userId"><i class="fa fa-user"></i> User ID</label>
+    <input type="text" id="node-input-userId" placeholder="e.g., 125328655" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-userName"><i class="fa fa-user-circle"></i> User Name</label>
+    <input type="text" id="node-input-userName" placeholder="e.g., Neon_Woof" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-game"><i class="fa fa-gamepad"></i> Game ID</label>
+    <input type="text" id="node-input-game" placeholder="e.g., 509658" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-limit"><i class="fa fa-list"></i> Limit</label>
+    <input type="number" id="node-input-limit" placeholder="Results per page (default 20, max 100)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-streams">
+  <p>Fetches a list of active Twitch streams based on your configuration parameters.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt class="optional">userId <span class="property-type">string | string[]</span></dt>
+    <dd>Streamer's unique numeric Twitch account ID.</dd>
+
+    <dt class="optional">userName <span class="property-type">string | string[]</span></dt>
+    <dd>Streamer's exact login handle profile name.</dd>
+
+    <dt class="optional">game <span class="property-type">string | string[]</span></dt>
+    <dd>The internal database ID number for a game category.</dd>
+
+    <dt class="optional">language <span class="property-type">string | string[]</span></dt>
+    <dd>ISO language identifier tag (e.g. "en", "de").</dd>
+
+    <dt class="optional">limit <span class="property-type">number</span></dt>
+    <dd>Page sizing limits, bound between 1 and 100.</dd>
+
+    <dt class="optional">after <span class="property-type">string</span></dt>
+    <dd>Forward pagination token index key.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload.data <span class="property-type">object[]</span></dt>
+    <dd>An array collection of matched live streaming items containing details like titles, user logins, viewer metrics, and thumbnails.</dd>
+
+    <dt>payload.cursor <span class="property-type">string | null</span></dt>
+    <dd>The dynamic token hash reference utilized to pull subsequent data windows.</dd>
+  </dl>
+</script>

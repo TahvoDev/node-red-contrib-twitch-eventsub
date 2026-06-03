@@ -63,7 +63,8 @@
       "twitch-helix-user-block": "dist/twitch/helix/twitch-helix-user-block.js",
       "twitch-helix-get-blocks": "dist/twitch/helix/twitch-helix-get-blocks.js",
       "twitch-helix-get-authenticated-user": "dist/twitch/helix/twitch-helix-get-authenticated-user.js",
-      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js"
+      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js",
+      "twitch-helix-get-streams": "dist/twitch/helix/twitch-helix-get-streams.js"
     }
   },
   "engines": {
