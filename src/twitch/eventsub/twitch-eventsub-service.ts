@@ -18,6 +18,7 @@ const SUBSCRIPTION_HANDLERS: Record<string, SubscriptionHandler> = {
   channelRedemptionAdd:         (l, id, cb) => l.onChannelRedemptionAdd(id, cb),
   channelSubscription:          (l, id, cb) => l.onChannelSubscription(id, cb),
   channelSubscriptionGift:      (l, id, cb) => l.onChannelSubscriptionGift(id, cb),
+  channelSubscriptionMessage:   (l, id, cb) => l.onChannelSubscriptionMessage(id, cb),
   channelRaidFrom:              (l, id, cb) => l.onChannelRaidFrom(id, cb),
   channelRaidTo:                (l, id, cb) => l.onChannelRaidTo(id, cb),
 
@@ -43,6 +44,7 @@ const SUBSCRIPTION_HANDLERS: Record<string, SubscriptionHandler> = {
   // Shoutouts
   channelShoutoutCreate:        (l, id, cb) => l.onChannelShoutoutCreate(id, id, cb),
   channelShoutoutReceive:       (l, id, cb) => l.onChannelShoutoutReceive(id, id, cb),
+
 };
 
 class TwitchEventsubService {
