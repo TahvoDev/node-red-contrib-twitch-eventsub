@@ -9,14 +9,14 @@
       inputs: 0,
       outputs: 1,
       icon: 'twitch-icon.svg',
-      paletteLabel: "raid to",
+      paletteLabel: "incoming raid",
       label: function() {
         if (this.name) {
           return this.name;
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'raid to' + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'incoming raid + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });

@@ -19,8 +19,7 @@ module.exports = function(RED: any) {
         broadcasterId: event.broadcasterId,
         broadcasterName: event.broadcasterName,
         broadcasterDisplayName: event.broadcasterDisplayName,
-        followDate: event.followDate,
-        rawEvent: event,
+        followDate: event.followDate
       };
     }
   }
