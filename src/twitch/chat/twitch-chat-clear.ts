@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, runChatAction } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatClearNode(this: any, config: any) {
+  function TwitchChatClearNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,7 +12,7 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
         // Omitting the message ID clears the whole chat.
         await ctx.moderation.deleteChatMessages(broadcasterId);
@@ -20,6 +20,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatClearNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-clear', TwitchChatClearNode as any);
 };

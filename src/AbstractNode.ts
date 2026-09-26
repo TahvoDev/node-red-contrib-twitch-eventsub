@@ -1,7 +1,6 @@
 /// FROM https://github.com/geonet-mrn/node-red-typescript-essentials
 
-import { NodeStatus } from './node_status';
-import type { NodeAPI } from 'node-red';
+import type { NodeAPI, NodeStatus } from 'node-red';
 
 
 export abstract class AbstractNode {

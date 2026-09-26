@@ -69,6 +69,10 @@ The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no lo
 moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
 target channel.
 
+`chat in` sets `msg.user` to the **sender** of the message, and the `ban` / `timeout` / `unban` nodes
+fall back to it as the target. Wire `chat in` straight into a moderation node and the sender is
+actioned; set `msg.targetUser` to moderate someone else.
+
 ### Example: reply to `!hello`
 
 `chat in` → `chat command` (command `hello`, prefix `!`) → a function node that builds the reply →

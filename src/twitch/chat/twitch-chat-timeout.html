@@ -43,8 +43,8 @@ RED.nodes.registerType('twitch-chat-timeout', {
 
   <h3>Inputs</h3>
   <dl class="message-properties">
-    <dt>user <span class="property-type">string</span></dt>
-    <dd>Login name (or numeric user ID) of the user to time out.</dd>
+    <dt>targetUser <span class="property-type">string</span></dt>
+    <dd>Login name (or numeric user ID) of the user to time out. Falls back to <code>msg.user</code> when unset.</dd>
 
     <dt>duration <span class="property-type">number</span></dt>
     <dd>Timeout length in seconds.</dd>
@@ -55,6 +55,9 @@ RED.nodes.registerType('twitch-chat-timeout', {
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
+
+  <p><b>Target vs. sender:</b> <b>chat in</b> sets <code>msg.user</code> to the sender of the message.
+  Set <code>msg.targetUser</code> before this node if the user to time out is not the message sender.</p>
 
   <p>The authenticated account must be a moderator or the broadcaster of the target channel.</p>
 </script>

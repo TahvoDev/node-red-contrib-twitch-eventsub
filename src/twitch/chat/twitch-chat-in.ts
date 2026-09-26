@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, normalizeChannel } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, normalizeChannel, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatInNode(this: any, config: any) {
+  function TwitchChatInNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -20,7 +20,7 @@ module.exports = function (RED: NodeAPI) {
       .initChat()
       .then((client) => {
         if (!client) return;
-        listener = client.onMessage((channel: string, _user: string, text: string, message: any) => {
+        listener = client.onMessage((channel, _user, text, message) => {
           if (channelFilter && channelFilter !== channel.toLowerCase()) return;
 
           const userInfo = message.userInfo;
@@ -49,7 +49,7 @@ module.exports = function (RED: NodeAPI) {
       })
       .catch((e) => node.error(e));
 
-    node.on('close', (_removed: boolean, done: () => void) => {
+    node.on('close', (done) => {
       listener?.unbind();
       connection.removeListener(node.id);
       node.status({});
@@ -57,6 +57,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatInNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-in', TwitchChatInNode as any);
 };

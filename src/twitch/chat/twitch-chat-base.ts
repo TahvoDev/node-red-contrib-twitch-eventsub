@@ -1,12 +1,64 @@
-import type { NodeAPI } from 'node-red';
+import type { Node, NodeAPI, NodeDef, NodeMessageInFlow } from 'node-red';
 import type { ChatClient } from '@twurple/chat';
 import type { ApiClient, BaseApiClient } from '@twurple/api';
+import type { AuthProvider } from '@twurple/auth';
 
 export type ChatStatus = {
   fill: 'red' | 'green' | 'yellow' | 'blue' | 'grey';
   shape: 'ring' | 'dot';
   text: string;
 };
+
+/** Config shared by every node that talks to a chat connection. */
+export interface ChatNodeConfig extends NodeDef {
+  connection?: string;
+  channel?: string;
+}
+
+export interface ChatConnectionConfig extends NodeDef {
+  account?: string;
+  channels?: string;
+  isBot?: boolean;
+}
+
+export interface ChatCommandConfig extends NodeDef {
+  command?: string;
+  prefix?: string;
+  requireMod?: boolean;
+  requireSub?: boolean;
+  requireVip?: boolean;
+  requireBroadcaster?: boolean;
+}
+
+/**
+ * The shape the chat nodes produce and consume. It extends Node-RED's message so
+ * the fields added by twitch-chat-in are type-checked instead of being `any`.
+ */
+export interface TwitchChatMessage extends NodeMessageInFlow {
+  channel?: string;
+  user?: string;
+  targetUser?: string;
+  displayName?: string;
+  userId?: string;
+  text?: string;
+  id?: string;
+  replyTo?: string;
+  messageId?: string;
+  reason?: string;
+  duration?: number | string;
+  color?: string;
+  command?: string;
+  args?: string[];
+  bits?: number;
+  isCheer?: boolean;
+  isMod?: boolean;
+  isSubscriber?: boolean;
+  isVip?: boolean;
+  isBroadcaster?: boolean;
+  emotes?: Array<{ name: string; positions: string[] }>;
+  badges?: Array<{ name: string; version: string }>;
+  _raw?: unknown;
+}
 
 /**
  * The subset of the twitch-chat-connection config node that the other chat nodes
@@ -18,7 +70,7 @@ export interface ChatConnection {
   getChatClient(): ChatClient | undefined;
   getApiClient(): ApiClient | undefined;
   getUserId(): string | undefined;
-  addListener(id: string, node: any): void;
+  addListener(id: string, node: Node): void;
   removeListener(id: string): void;
 }
 
@@ -31,6 +83,7 @@ export interface ChatAccount {
   userId?: string;
   config: { twitch_user_id?: string };
   initAuth(): Promise<void>;
+  getAuthProvider(): AuthProvider | undefined;
 }
 
 /** Twitch channel names are lowercase and never carry a leading #. */
@@ -46,7 +99,10 @@ export function parseChannels(raw: unknown): string[] {
     .filter(Boolean);
 }
 
-export function getChatConnection(RED: NodeAPI, config: any): ChatConnection | undefined {
+export function getChatConnection(
+  RED: NodeAPI,
+  config: { connection?: string }
+): ChatConnection | undefined {
   if (!config.connection) return undefined;
   return (RED.nodes.getNode(config.connection) as unknown as ChatConnection) || undefined;
 }
@@ -58,7 +114,7 @@ export function getChatConnection(RED: NodeAPI, config: any): ChatConnection | u
  */
 export async function resolveUserId(ctx: BaseApiClient, user: unknown): Promise<string> {
   const raw = String(user ?? '').trim();
-  if (!raw) throw new Error('Target user is required');
+  if (!raw) throw new Error('Target user is required — set msg.targetUser or msg.user');
   if (/^\d+$/.test(raw)) return raw;
 
   const found = await ctx.users.getUserByName(raw);
@@ -71,13 +127,13 @@ export async function resolveUserId(ctx: BaseApiClient, user: unknown): Promise<
  * per message with msg.channel, and msg.replyTo threads the message.
  */
 export async function sendChatMessage(
-  node: any,
+  node: Node,
   connection: ChatConnection | undefined,
-  config: any,
-  msg: any,
+  config: ChatNodeConfig,
+  msg: TwitchChatMessage,
   done?: (err?: Error) => void
 ): Promise<void> {
-  const finish = typeof done === 'function' ? done : () => {};
+  const finish = done ?? (() => {});
 
   if (!connection) {
     node.error('No Twitch Chat Connection node configured', msg);
@@ -120,10 +176,10 @@ export async function sendChatMessage(
  * The handler receives a user-scoped API client and the broadcaster's ID.
  */
 export async function runChatAction(
-  node: any,
+  node: Node,
   connection: ChatConnection | undefined,
-  config: any,
-  msg: any,
+  config: ChatNodeConfig,
+  msg: TwitchChatMessage,
   handler: (ctx: BaseApiClient, broadcasterId: string) => Promise<void>
 ): Promise<void> {
   if (!connection) {

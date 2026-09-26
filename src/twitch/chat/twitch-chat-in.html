@@ -61,7 +61,8 @@ RED.nodes.registerType('twitch-chat-in', {
     <dd>The raw chat message text.</dd>
 
     <dt>user / displayName / userId <span class="property-type">string</span></dt>
-    <dd>The sender's login, display name and numeric user ID.</dd>
+    <dd>The sender's login, display name and numeric user ID. Moderation nodes use this as the
+    target only when <code>msg.targetUser</code> is not set, so set that first to act on someone else.</dd>
 
     <dt>id <span class="property-type">string</span></dt>
     <dd>The Twitch message ID, usable with <b>chat reply</b> and <b>chat delete message</b>.</dd>

@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, normalizeChannel } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, normalizeChannel, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatJoinNode(this: any, config: any) {
+  function TwitchChatJoinNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,34 +12,32 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', async (msg: any, _send: any, done: any) => {
-      const finish = typeof done === 'function' ? done : () => {};
+    node.on('input', async (msg, _send, done) => {
       try {
         const client = await connection.initChat();
         if (!client) {
           node.error('Twitch chat connection is not ready', msg);
-          finish();
+          done();
           return;
         }
 
         const channel = normalizeChannel(msg.channel ?? config.channel);
         if (!channel) {
           node.error('No channel specified', msg);
-          finish();
+          done();
           return;
         }
 
         await client.join(channel);
         node.status({});
-        finish();
+        done();
       } catch (err) {
         node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
         node.error(err, msg);
-        finish(err as Error);
+        done(err as Error);
       }
     });
   }
 
-  (TwitchChatJoinNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-join', TwitchChatJoinNode as any);
 };

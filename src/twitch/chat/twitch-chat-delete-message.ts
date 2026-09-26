@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, runChatAction } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatDeleteMessageNode(this: any, config: any) {
+  function TwitchChatDeleteMessageNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,7 +12,7 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
         if (!msg.messageId) {
           throw new Error('msg.messageId is required for twitch-chat-delete-message');
@@ -22,6 +22,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatDeleteMessageNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-delete-message', TwitchChatDeleteMessageNode as any);
 };

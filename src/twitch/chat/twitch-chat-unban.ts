@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, resolveUserId, runChatAction } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, resolveUserId, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatUnbanNode(this: any, config: any) {
+  function TwitchChatUnbanNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,14 +12,13 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const userId = await resolveUserId(ctx, msg.user);
+        const userId = await resolveUserId(ctx, msg.targetUser ?? msg.user);
         await ctx.moderation.unbanUser(broadcasterId, userId);
       });
     });
   }
 
-  (TwitchChatUnbanNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-unban', TwitchChatUnbanNode as any);
 };

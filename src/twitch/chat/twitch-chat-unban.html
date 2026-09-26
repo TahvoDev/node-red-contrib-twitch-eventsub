@@ -43,12 +43,15 @@ RED.nodes.registerType('twitch-chat-unban', {
 
   <h3>Inputs</h3>
   <dl class="message-properties">
-    <dt>user <span class="property-type">string</span></dt>
-    <dd>Login name (or numeric user ID) of the user to unban.</dd>
+    <dt>targetUser <span class="property-type">string</span></dt>
+    <dd>Login name (or numeric user ID) of the user to unban. Falls back to <code>msg.user</code> when unset.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
+
+  <p><b>Target vs. sender:</b> <b>chat in</b> sets <code>msg.user</code> to the sender of the message.
+  Set <code>msg.targetUser</code> before this node if the user to unban is not the message sender.</p>
 
   <p>The authenticated account must be a moderator or the broadcaster of the target channel.</p>
 </script>

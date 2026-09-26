@@ -1,19 +1,13 @@
-import type { NodeAPI } from 'node-red';
+import type { Node, NodeAPI } from 'node-red';
 import { AbstractNode } from '../../AbstractNode';
 import { ChatClient } from '@twurple/chat';
 import type { ApiClient } from '@twurple/api';
 import {
   type ChatAccount,
+  type ChatConnectionConfig,
   type ChatStatus,
   parseChannels,
 } from './twitch-chat-base';
-
-type TwitchChatConnectionProps = {
-  id: string;
-  account: string;
-  channels: string;
-  isBot: boolean;
-};
 
 module.exports = function (RED: NodeAPI) {
 
@@ -23,18 +17,18 @@ module.exports = function (RED: NodeAPI) {
    * credentials themselves.
    */
   class TwitchChatConnection extends AbstractNode {
-    config: TwitchChatConnectionProps;
+    config: ChatConnectionConfig;
     account?: ChatAccount;
     chatClient?: ChatClient;
     currentStatus: ChatStatus = { fill: 'grey', shape: 'ring', text: 'Disconnected' };
 
-    private listeners: { [key: string]: any } = {};
+    private listeners: { [key: string]: Node } = {};
     private initPromise?: Promise<ChatClient | undefined>;
 
-    constructor(config: TwitchChatConnectionProps) {
+    constructor(config: ChatConnectionConfig) {
       super(config, RED);
       this.config = config;
-      this.account = RED.nodes.getNode(config.account) as unknown as ChatAccount | undefined;
+      this.account = RED.nodes.getNode(config.account ?? '') as unknown as ChatAccount | undefined;
 
       if (!this.account) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: 'No Twitch account configured' });
@@ -42,6 +36,7 @@ module.exports = function (RED: NodeAPI) {
         this.initChat().catch((e) => this.error(e));
       }
 
+      // Tear the IRC connection down on redeploy/removal or it leaks.
       this.on('close', (done: () => void) => {
         this.chatClient?.quit();
         this.chatClient = undefined;
@@ -67,10 +62,10 @@ module.exports = function (RED: NodeAPI) {
       this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Connecting...' });
       await this.account.initAuth();
 
-      // The config node keeps its AuthProvider private on the ApiClient, so reach
-      // it through the same instance rather than building a second refreshing
-      // provider, which would fight over the rotating refresh token.
-      const authProvider = this.account.apiClient?._authProvider;
+      // The config node exposes its AuthProvider directly; reusing that instance
+      // avoids building a second refreshing provider that would fight over the
+      // rotating refresh token.
+      const authProvider = this.account.getAuthProvider();
       if (!authProvider) {
         this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch auth' });
         return undefined;
@@ -111,7 +106,7 @@ module.exports = function (RED: NodeAPI) {
       return this.account?.userId ?? this.account?.config?.twitch_user_id;
     }
 
-    addListener(id: string, node: any) {
+    addListener(id: string, node: Node) {
       this.listeners[id] = node;
       node.status(this.currentStatus);
       this.initChat().catch((e) => this.error(e));
@@ -123,7 +118,7 @@ module.exports = function (RED: NodeAPI) {
 
     updateStatus(status: ChatStatus) {
       this.currentStatus = status;
-      this.status(status as any);
+      this.status(status);
       Object.values(this.listeners).forEach((node) => node.status(status));
     }
   }

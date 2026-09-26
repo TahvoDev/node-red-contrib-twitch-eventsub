@@ -1,7 +1,8 @@
-import type { NodeAPI } from 'node-red';
+import type { Node, NodeAPI } from 'node-red';
+import type { ChatCommandConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatCommandNode(this: any, config: any) {
+  function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -9,7 +10,7 @@ module.exports = function (RED: NodeAPI) {
     const command = String(config.command ?? '');
     const trigger = `${prefix}${command}`.toLowerCase();
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       const text =
         typeof msg.text === 'string'
           ? msg.text
@@ -34,6 +35,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatCommandNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-command', TwitchChatCommandNode as any);
 };

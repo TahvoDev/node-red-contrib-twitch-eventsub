@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, sendChatMessage } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, sendChatMessage, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatSendNode(this: any, config: any) {
+  function TwitchChatSendNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,11 +12,10 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any, _send: any, done: any) => {
+    node.on('input', (msg, _send, done) => {
       sendChatMessage(node, connection, config, msg, done);
     });
   }
 
-  (TwitchChatSendNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-send', TwitchChatSendNode as any);
 };

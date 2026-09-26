@@ -1,6 +1,6 @@
-import type { NodeAPI } from 'node-red';
+import type { Node, NodeAPI } from 'node-red';
 import type { HelixChatAnnouncementColor } from '@twurple/api';
-import { getChatConnection, runChatAction } from './twitch-chat-base';
+import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 const ANNOUNCEMENT_COLORS: HelixChatAnnouncementColor[] = [
   'primary',
@@ -11,7 +11,7 @@ const ANNOUNCEMENT_COLORS: HelixChatAnnouncementColor[] = [
 ];
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatAnnounceNode(this: any, config: any) {
+  function TwitchChatAnnounceNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -21,7 +21,7 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
         const color = String(msg.color ?? 'primary').toLowerCase() as HelixChatAnnouncementColor;
         if (!ANNOUNCEMENT_COLORS.includes(color)) {
@@ -38,6 +38,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatAnnounceNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-announce', TwitchChatAnnounceNode as any);
 };

@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, sendChatMessage } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, sendChatMessage, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatReplyNode(this: any, config: any) {
+  function TwitchChatReplyNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,16 +12,15 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any, _send: any, done: any) => {
+    node.on('input', (msg, _send, done) => {
       if (!msg.replyTo) {
         node.error('msg.replyTo is required for twitch-chat-reply', msg);
-        if (typeof done === 'function') done();
+        done();
         return;
       }
       sendChatMessage(node, connection, config, msg, done);
     });
   }
 
-  (TwitchChatReplyNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-reply', TwitchChatReplyNode as any);
 };

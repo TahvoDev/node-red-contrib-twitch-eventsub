@@ -1,8 +1,8 @@
-import type { NodeAPI } from 'node-red';
-import { getChatConnection, resolveUserId, runChatAction } from './twitch-chat-base';
+import type { Node, NodeAPI } from 'node-red';
+import { getChatConnection, resolveUserId, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatTimeoutNode(this: any, config: any) {
+  function TwitchChatTimeoutNode(this: Node, config: ChatNodeConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -12,14 +12,14 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg: any) => {
+    node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
         const duration = Number(msg.duration);
         if (!Number.isFinite(duration) || duration <= 0) {
           throw new Error('msg.duration (seconds) is required for twitch-chat-timeout');
         }
 
-        const userId = await resolveUserId(ctx, msg.user);
+        const userId = await resolveUserId(ctx, msg.targetUser ?? msg.user);
         await ctx.moderation.banUser(broadcasterId, {
           user: userId,
           duration,
@@ -29,6 +29,5 @@ module.exports = function (RED: NodeAPI) {
     });
   }
 
-  (TwitchChatTimeoutNode as any).icon = 'twitch-icon.svg';
   RED.nodes.registerType('twitch-chat-timeout', TwitchChatTimeoutNode as any);
 };
