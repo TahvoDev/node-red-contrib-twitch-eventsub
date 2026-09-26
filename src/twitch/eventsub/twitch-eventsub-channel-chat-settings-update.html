@@ -1,0 +1,54 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-channel-chat-settings-update', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'chat settings',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'chat settings' + (config ? ' (' + (config.name || '') + ')' : '');
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-channel-chat-settings-update">
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-channel-chat-settings-update">
+  <p>Fires when the chat settings (emote, follower, slow mode) change.</p>
+  <p><b>Note:</b> this subscription is made with the broadcaster as both broadcaster and moderator, so only actions performed by the broadcaster themself are reported.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>
+      <ul>
+        <li><code>broadcasterId</code> - <i>string</i></li>
+        <li><code>broadcasterName</code> - <i>string</i></li>
+        <li><code>broadcasterDisplayName</code> - <i>string</i></li>
+        <li><code>emoteOnlyModeEnabled</code> - <i>boolean</i></li>
+        <li><code>followerOnlyModeEnabled</code> - <i>boolean</i></li>
+        <li><code>followerOnlyModeDelay</code> - <i>number | null</i></li>
+        <li><code>slowModeEnabled</code> - <i>boolean</i></li>
+        <li><code>slowModeDelay</code> - <i>number | null</i></li>
+        <li><code>subscriberOnlyModeEnabled</code> - <i>boolean</i></li>
+        <li><code>uniqueChatModeEnabled</code> - <i>boolean</i></li>
+        <li><code>rawEvent</code> - <i>object</i> - the full unmodified event</li>
+      </ul>
+    </dd>
+  </dl>
+</script>

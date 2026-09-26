@@ -1,33 +1,16 @@
+// twitch-eventsub-channel-hype-train-progress.ts
+
 import { BaseTwitchEventsubNode } from './twitch-eventsub-base';
 
 module.exports = function (RED: any) {
-  class TwitchEventsubChannelHypeTrainEventNode extends BaseTwitchEventsubNode {
-    private selectedEventType: string;
-
+  class TwitchEventsubHypeTrainProgressNode extends BaseTwitchEventsubNode {
     constructor(config: any) {
       super(RED, config);
-
-      this.selectedEventType = config.eventType ?? 'all';
-
-      // Register all three hype train EventSub webhook targets
-      this.register('channelHypeTrainBegin');
       this.register('channelHypeTrainProgress');
-      this.register('channelHypeTrainEnd');
     }
 
-    mapEvent(e: any, type?: string) {
-      let resolvedType = 'unknown';
-      if (type) {
-        resolvedType = type.replace('channelHypeTrain', '').toLowerCase(); // 'begin', 'progress', or 'end'
-      }
-
-      // Drop the output if it doesn't match the dropdown selection filter
-      if (this.selectedEventType !== 'all' && this.selectedEventType !== resolvedType) {
-        return null;
-      }
-
+    mapEvent(e: any) {
       return {
-        eventType:              resolvedType,
         id:                     e.id,
         broadcasterId:          e.broadcasterId,
         broadcasterName:        e.broadcasterName,
@@ -36,7 +19,6 @@ module.exports = function (RED: any) {
         total:                  e.total,
         progress:               e.progress,
         goal:                   e.goal,
-
         // Map the contributors list cleanly
         topContributions: e.topContributions?.map((c: any) => ({
           userId:      c.userId,
@@ -45,7 +27,6 @@ module.exports = function (RED: any) {
           type:        c.type, // 'bits' or 'subscription'
           total:       c.total,
         })) ?? [],
-
         lastContribution: e.lastContribution ? {
           userId:      e.lastContribution.userId,
           userName:    e.lastContribution.userName,
@@ -53,7 +34,6 @@ module.exports = function (RED: any) {
           type:        e.lastContribution.type,
           total:       e.lastContribution.total,
         } : null,
-
         startDate:              e.startDate ?? null,
         endDate:                e.endDate ?? null, // Populated on 'end'
         cooldownEndDate:        e.cooldownEndDate ?? null, // Populated on 'end'
@@ -62,5 +42,5 @@ module.exports = function (RED: any) {
     }
   }
 
-  RED.nodes.registerType('twitch-eventsub-channel-hypetrain-event', TwitchEventsubChannelHypeTrainEventNode);
+  RED.nodes.registerType('twitch-eventsub-channel-hype-train-progress', TwitchEventsubHypeTrainProgressNode);
 };

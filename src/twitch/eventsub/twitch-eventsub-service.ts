@@ -45,7 +45,102 @@ const SUBSCRIPTION_HANDLERS: Record<string, SubscriptionHandler> = {
   channelShoutoutCreate:        (l, id, cb) => l.onChannelShoutoutCreate(id, id, cb),
   channelShoutoutReceive:       (l, id, cb) => l.onChannelShoutoutReceive(id, id, cb),
 
+  // Goals
+  channelGoalBegin:            (l, id, cb) => l.onChannelGoalBegin(id, cb),
+  channelGoalProgress:         (l, id, cb) => l.onChannelGoalProgress(id, cb),
+  channelGoalEnd:              (l, id, cb) => l.onChannelGoalEnd(id, cb),
+
+  // Moderation
+  channelModerate:             (l, id, cb) => l.onChannelModerate(id, id, cb),
+  channelModeratorAdd:         (l, id, cb) => l.onChannelModeratorAdd(id, cb),
+  channelModeratorRemove:      (l, id, cb) => l.onChannelModeratorRemove(id, cb),
+  channelVipAdd:               (l, id, cb) => l.onChannelVipAdd(id, cb),
+  channelVipRemove:            (l, id, cb) => l.onChannelVipRemove(id, cb),
+  channelWarningSend:          (l, id, cb) => l.onChannelWarningSend(id, id, cb),
+  channelWarningAcknowledge:   (l, id, cb) => l.onChannelWarningAcknowledge(id, id, cb),
+  channelUnbanRequestCreate:   (l, id, cb) => l.onChannelUnbanRequestCreate(id, id, cb),
+  channelUnbanRequestResolve:  (l, id, cb) => l.onChannelUnbanRequestResolve(id, id, cb),
+  channelSuspiciousUserMessage:(l, id, cb) => l.onChannelSuspiciousUserMessage(id, id, cb),
+  channelSuspiciousUserUpdate: (l, id, cb) => l.onChannelSuspiciousUserUpdate(id, id, cb),
+
+  // Chat settings, clearing and holds
+  channelChatClear:            (l, id, cb) => l.onChannelChatClear(id, id, cb),
+  channelChatClearUserMessages:(l, id, cb) => l.onChannelChatClearUserMessages(id, id, cb),
+  channelChatMessageDelete:    (l, id, cb) => l.onChannelChatMessageDelete(id, id, cb),
+  channelChatNotification:     (l, id, cb) => l.onChannelChatNotification(id, id, cb),
+  channelChatSettingsUpdate:   (l, id, cb) => l.onChannelChatSettingsUpdate(id, id, cb),
+  channelChatUserMessageHold:  (l, id, cb) => l.onChannelChatUserMessageHold(id, id, cb),
+  channelChatUserMessageUpdate:(l, id, cb) => l.onChannelChatUserMessageUpdate(id, id, cb),
+  channelShieldModeBegin:      (l, id, cb) => l.onChannelShieldModeBegin(id, id, cb),
+  channelShieldModeEnd:        (l, id, cb) => l.onChannelShieldModeEnd(id, id, cb),
+
+  // AutoMod
+  autoModMessageHold:          (l, id, cb) => l.onAutoModMessageHold(id, id, cb),
+  autoModMessageHoldV2:        (l, id, cb) => l.onAutoModMessageHoldV2(id, id, cb),
+  autoModMessageUpdate:        (l, id, cb) => l.onAutoModMessageUpdate(id, id, cb),
+  autoModMessageUpdateV2:      (l, id, cb) => l.onAutoModMessageUpdateV2(id, id, cb),
+  autoModSettingsUpdate:       (l, id, cb) => l.onAutoModSettingsUpdate(id, id, cb),
+  autoModTermsUpdate:          (l, id, cb) => l.onAutoModTermsUpdate(id, id, cb),
+
+  // Shared chat
+  channelSharedChatSessionBegin:  (l, id, cb) => l.onChannelSharedChatSessionBegin(id, cb),
+  channelSharedChatSessionUpdate: (l, id, cb) => l.onChannelSharedChatSessionUpdate(id, cb),
+  channelSharedChatSessionEnd:    (l, id, cb) => l.onChannelSharedChatSessionEnd(id, cb),
+
+  // Subscriptions and rewards
+  channelSubscriptionEnd:      (l, id, cb) => l.onChannelSubscriptionEnd(id, cb),
+  channelRedemptionUpdate:     (l, id, cb) => l.onChannelRedemptionUpdate(id, cb),
+  channelRewardAdd:            (l, id, cb) => l.onChannelRewardAdd(id, cb),
+  channelRewardUpdate:         (l, id, cb) => l.onChannelRewardUpdate(id, cb),
+  channelRewardRemove:         (l, id, cb) => l.onChannelRewardRemove(id, cb),
+  channelAutomaticRewardRedemptionAdd:  (l, id, cb) => l.onChannelAutomaticRewardRedemptionAdd(id, cb),
+  channelAutomaticRewardRedemptionAddV2:(l, id, cb) => l.onChannelAutomaticRewardRedemptionAddV2(id, cb),
+
+  // Hype Train v2
+  channelHypeTrainBeginV2:     (l, id, cb) => l.onChannelHypeTrainBeginV2(id, cb),
+  channelHypeTrainProgressV2:  (l, id, cb) => l.onChannelHypeTrainProgressV2(id, cb),
+  channelHypeTrainEndV2:       (l, id, cb) => l.onChannelHypeTrainEndV2(id, cb),
+
+  // Charity
+  channelCharityCampaignStart:   (l, id, cb) => l.onChannelCharityCampaignStart(id, cb),
+  channelCharityCampaignProgress:(l, id, cb) => l.onChannelCharityCampaignProgress(id, cb),
+  channelCharityCampaignStop:    (l, id, cb) => l.onChannelCharityCampaignStop(id, cb),
+  channelCharityDonation:        (l, id, cb) => l.onChannelCharityDonation(id, cb),
+
+  // Bits and ad breaks
+  channelBitsUse:              (l, id, cb) => l.onChannelBitsUse(id, cb),
+  channelAdBreakBegin:         (l, id, cb) => l.onChannelAdBreakBegin(id, cb),
+
+  // User
+  userUpdate:                  (l, id, cb) => l.onUserUpdate(id, cb),
+  userWhisperMessage:          (l, id, cb) => l.onUserWhisperMessage(id, cb),
+  userAuthorizationGrant:      (l, id, cb) => l.onUserAuthorizationGrant(cb),
+  userAuthorizationRevoke:     (l, id, cb) => l.onUserAuthorizationRevoke(cb),
+
 };
+
+const RESTORE_RETRY_DELAY = 2000;
+const MAX_RESTORE_RETRIES = 5;
+
+/**
+ * Twitch refuses to deliver these topics over an EventSub WebSocket session: it only
+ * accepts them on webhooks and conduits. They are also not tied to the user of the
+ * token, which is why Twurple refuses them with "topic without user authentication".
+ * Asking for them again would only produce a permanent error on every deploy, so they
+ * are reported once as unsupported instead.
+ *
+ * https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/
+ */
+export const WEBSOCKET_UNSUPPORTED: Record<string, string> = {
+  userAuthorizationGrant:  'user.authorization.grant',
+  userAuthorizationRevoke: 'user.authorization.revoke',
+};
+
+export function websocketUnsupportedReason(type: string): string | undefined {
+  const topic = WEBSOCKET_UNSUPPORTED[type];
+  if (!topic) return undefined;
+  return `${topic} is only delivered to webhooks and conduits, not over the EventSub WebSocket transport, so this node will not receive events`;
+}
 
 class TwitchEventsubService {
   listener: EventSubWsListener;
@@ -54,8 +149,15 @@ class TwitchEventsubService {
   started = false;
 
   private subscriptionCounts: Map<string, number> = new Map();
+  private reconnectingUsers: Set<string> = new Set();
+  private pendingSubscriptions: Set<string> = new Set();
+  private warnedUnsupported: Set<string> = new Set();
+  private restoring = false;
+  private retryTimer?: NodeJS.Timeout;
+  private retries = 0;
 
   onEventCb?: (event: any, subscriptionType: string) => void;
+  onUnsupportedCb?: (subscriptionType: string) => void;
 
   constructor(node: AbstractNode, userId: string, apiClient: ApiClient) {
     this.node = node;
@@ -81,18 +183,81 @@ class TwitchEventsubService {
   }
 
   private registerSubscription(type: string) {
+    const unsupported = websocketUnsupportedReason(type);
+    if (unsupported) {
+      // Twurple would throw for these, and the throw happens inside a listener callback
+      // during restore, which is enough to take the whole runtime down. They can never
+      // deliver over a WebSocket, so say so once and leave them alone.
+      if (!this.warnedUnsupported.has(type)) {
+        this.warnedUnsupported.add(type);
+        this.node.warn(unsupported);
+        this.onUnsupportedCb?.(type);
+      }
+      return;
+    }
+
     const handler = SUBSCRIPTION_HANDLERS[type];
     if (!handler) {
       this.node.warn(`Unknown subscription type: ${type}`);
       return;
     }
-    handler(this.listener, this.userId, (event) => {
-      if (this.onEventCb) this.onEventCb(event, type);
-    });
+    try {
+      handler(this.listener, this.userId, (event) => {
+        if (this.onEventCb) this.onEventCb(event, type);
+      });
+      this.pendingSubscriptions.delete(type);
       this.node.log(`Subscribed to ${type}`);
+    } catch (error) {
+      // While restoring, Twurple refuses a few topics until the socket is ready again, so
+      // they are retried a few times instead of taking the whole runtime down with them.
+      if (this.restoring) {
+        this.pendingSubscriptions.add(type);
+        this.node.warn(`Could not resubscribe to ${type} yet: ${(error as Error).message}`);
+      } else {
+        this.node.error(`Failed to subscribe to ${type}: ${error as Error}`);
+      }
+    }
+  }
+
+  private restoreSubscriptions() {
+    this.restoring = true;
+    this.subscriptionCounts.forEach((_, type) => this.registerSubscription(type));
+    this.restoring = false;
+    this.schedulePendingRetry();
+  }
+
+  /**
+   * A socket only reports itself ready a moment after the connect event, and topics that
+   * need a user token are refused until then, so the leftovers get another try shortly after.
+   */
+  private schedulePendingRetry() {
+    if (!this.pendingSubscriptions.size || this.retries >= MAX_RESTORE_RETRIES) return;
+
+    this.retries += 1;
+    this.retryTimer = setTimeout(() => {
+      const pending = this.pendingSubscriptions.size;
+      this.node.log(`Retrying ${pending} EventSub subscription(s)`);
+      this.restoreSubscriptions();
+    }, RESTORE_RETRY_DELAY);
   }
 
   async start(): Promise<void> {
+    // Twitch closes and reopens EventSub WebSocket connections on its own
+    // schedule, and the subscriptions do not survive that. Twurple reports the
+    // connection change but does not resubscribe, so we have to do it here or
+    // the nodes stay connected while silently receiving nothing.
+    this.retries = 0;
+    this.listener.onUserSocketConnect((userId: string) => {
+      if (!this.reconnectingUsers.delete(userId)) return;
+
+      this.node.log('WebSocket reconnected, restoring EventSub subscriptions');
+      this.restoreSubscriptions();
+    });
+
+    this.listener.onUserSocketDisconnect((userId: string) => {
+      this.reconnectingUsers.add(userId);
+    });
+
     this.subscriptionCounts.forEach((_, type) => this.registerSubscription(type));
     this.node.log('EventSub WebSocket listener started');
     this.listener.start();
@@ -100,12 +265,20 @@ class TwitchEventsubService {
   }
 
   async stop(): Promise<void> {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = undefined;
+    }
     if (this.listener) {
       await this.listener.stop();
       this.node.log('EventSub WebSocket listener stopped');
     }
     this.started = false;
     this.subscriptionCounts.clear();
+    this.reconnectingUsers.clear();
+    this.pendingSubscriptions.clear();
+    this.warnedUnsupported.clear();
+    this.retries = 0;
   }
 }
 

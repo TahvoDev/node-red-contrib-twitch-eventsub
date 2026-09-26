@@ -3,9 +3,11 @@ RED.nodes.registerType('twitch-api-config', {
   category: 'config',
   defaults: {
     name: { value: '', required: true },
-    twitch_client_id: { required: true },
+    twitch_client_id: { required: false },
     twitch_user_id: { value: '' },
     twitch_user_login: { value: '' },
+    twitch_mock_server_port: { value: '' },
+    twitch_mock_user_id: { value: '' },
   },
   credentials: {
     twitch_client_secret: { type: 'password' },
@@ -232,6 +234,30 @@ RED.nodes.registerType('twitch-api-config', {
           <i class="fa fa-lock"></i> Refresh Token
         </label>
         <input type="password" id="node-config-input-twitch_refresh_token">
+      </div>
+    </details>
+
+    <details style="margin-top:10px;">
+      <summary>Mock server (local testing)</summary>
+      <p class="red-ui-help">
+        Points Twurple at a local <a href="https://github.com/twitchdev/twitch-cli" target="_blank">Twitch CLI</a>
+        mock instead of Twitch, so events can be triggered offline. Fill in the
+        <b>port</b> and the normal Client ID / login above are ignored.
+        Start the mock with <code>twitch mock-api start</code> and
+        <code>twitch event websocket start-server</code> behind a single port
+        (Twurple sends Helix, subscription and WebSocket traffic to one port).
+      </p>
+      <div class="form-row">
+        <label for="node-config-input-twitch_mock_server_port">
+          <i class="fa fa-server"></i> Mock Port
+        </label>
+        <input type="text" id="node-config-input-twitch_mock_server_port" placeholder="8080">
+      </div>
+      <div class="form-row">
+        <label for="node-config-input-twitch_mock_user_id">
+          <i class="fa fa-user"></i> Mock User ID
+        </label>
+        <input type="text" id="node-config-input-twitch_mock_user_id" placeholder="printed by mock-api start">
       </div>
     </details>
 

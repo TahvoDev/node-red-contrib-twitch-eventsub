@@ -1,0 +1,59 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-eventsub-automod-settings-update', {
+    category: 'twitch events',
+    color: '#b9a3e3',
+    defaults: {
+      name:   { value: '' },
+      config: { type: 'twitch-api-config', required: true }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'automod settings',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'automod settings' + (config ? ' (' + (config.name || '') + ')' : '');
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub-automod-settings-update">
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub-automod-settings-update">
+  <p>Fires when the AutoMod settings for the channel change.</p>
+  <p><b>Note:</b> this subscription is made with the broadcaster as both broadcaster and moderator, so only actions performed by the broadcaster themself are reported.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>
+      <ul>
+        <li><code>broadcasterId</code> - <i>string</i></li>
+        <li><code>broadcasterName</code> - <i>string</i></li>
+        <li><code>broadcasterDisplayName</code> - <i>string</i></li>
+        <li><code>moderatorId</code> - <i>string</i></li>
+        <li><code>moderatorName</code> - <i>string</i></li>
+        <li><code>moderatorDisplayName</code> - <i>string</i></li>
+        <li><code>overallLevel</code> - <i>AutoModLevel | null</i></li>
+        <li><code>aggression</code> - <i>AutoModLevel</i></li>
+        <li><code>bullying</code> - <i>AutoModLevel</i></li>
+        <li><code>disability</code> - <i>AutoModLevel</i></li>
+        <li><code>misogyny</code> - <i>AutoModLevel</i></li>
+        <li><code>raceEthnicityOrReligion</code> - <i>AutoModLevel</i></li>
+        <li><code>sexBasedTerms</code> - <i>AutoModLevel</i></li>
+        <li><code>sexualitySexOrGender</code> - <i>AutoModLevel</i></li>
+        <li><code>swearing</code> - <i>AutoModLevel</i></li>
+        <li><code>rawEvent</code> - <i>object</i> - the full unmodified event</li>
+      </ul>
+    </dd>
+  </dl>
+</script>
