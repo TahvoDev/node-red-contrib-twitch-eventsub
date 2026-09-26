@@ -30,6 +30,14 @@ the CLI and reports how many the mock delivered and how many notifications the c
 rejected. The Twitch CLI can only generate the event types it supports, so a few nodes
 stay quiet; the script reports exactly which ones it could not trigger.
 
+### Adding a new event
+All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry
+there (type, palette label, description, Twurple `subscribe` call and the payload field
+mapping), then run `npm run build`. The build generates the runtime module and editor
+file for the new node and updates the `node-red` node manifest in `package.json`. The
+field mapping supports a plain property name, a renamed property, a default value and a
+`map` function for anything more complex.
+
 ### Credits
 Twitch EventSub for Node-RED [xurei/node-red-contrib-twitch-eventsub](https://github.com/xurei/node-red-contrib-twitch-eventsub/tree/master)
 [Twurple](https://www.npmjs.com/package/@twurple/api).

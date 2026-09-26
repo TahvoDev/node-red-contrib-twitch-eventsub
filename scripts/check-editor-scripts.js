@@ -10,7 +10,7 @@ const vm = require('vm');
  * script blocks and fail the build instead.
  */
 
-const srcDir = path.resolve(__dirname, '..', 'src');
+const distDir = path.resolve(__dirname, '..', 'dist');
 const scriptBlock = /<script[^>]*\btype=["']text\/javascript["'][^>]*>([\s\S]*?)<\/script>/gi;
 
 function htmlFiles(dir) {
@@ -22,7 +22,7 @@ function htmlFiles(dir) {
 }
 
 const failures = [];
-const checked = htmlFiles(srcDir);
+const checked = htmlFiles(distDir);
 
 for (const file of checked) {
     const html = fs.readFileSync(file, 'utf8');
