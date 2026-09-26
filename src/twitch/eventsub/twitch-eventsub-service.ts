@@ -122,6 +122,26 @@ const SUBSCRIPTION_HANDLERS: Record<string, SubscriptionHandler> = {
 const RESTORE_RETRY_DELAY = 2000;
 const MAX_RESTORE_RETRIES = 5;
 
+/**
+ * Twitch refuses to deliver these topics over an EventSub WebSocket session: it only
+ * accepts them on webhooks and conduits. They are also not tied to the user of the
+ * token, which is why Twurple refuses them with "topic without user authentication".
+ * Asking for them again would only produce a permanent error on every deploy, so they
+ * are reported once as unsupported instead.
+ *
+ * https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/
+ */
+export const WEBSOCKET_UNSUPPORTED: Record<string, string> = {
+  userAuthorizationGrant:  'user.authorization.grant',
+  userAuthorizationRevoke: 'user.authorization.revoke',
+};
+
+export function websocketUnsupportedReason(type: string): string | undefined {
+  const topic = WEBSOCKET_UNSUPPORTED[type];
+  if (!topic) return undefined;
+  return `${topic} is only delivered to webhooks and conduits, not over the EventSub WebSocket transport, so this node will not receive events`;
+}
+
 class TwitchEventsubService {
   listener: EventSubWsListener;
   node: AbstractNode;
@@ -131,11 +151,13 @@ class TwitchEventsubService {
   private subscriptionCounts: Map<string, number> = new Map();
   private reconnectingUsers: Set<string> = new Set();
   private pendingSubscriptions: Set<string> = new Set();
+  private warnedUnsupported: Set<string> = new Set();
   private restoring = false;
   private retryTimer?: NodeJS.Timeout;
   private retries = 0;
 
   onEventCb?: (event: any, subscriptionType: string) => void;
+  onUnsupportedCb?: (subscriptionType: string) => void;
 
   constructor(node: AbstractNode, userId: string, apiClient: ApiClient) {
     this.node = node;
@@ -161,6 +183,19 @@ class TwitchEventsubService {
   }
 
   private registerSubscription(type: string) {
+    const unsupported = websocketUnsupportedReason(type);
+    if (unsupported) {
+      // Twurple would throw for these, and the throw happens inside a listener callback
+      // during restore, which is enough to take the whole runtime down. They can never
+      // deliver over a WebSocket, so say so once and leave them alone.
+      if (!this.warnedUnsupported.has(type)) {
+        this.warnedUnsupported.add(type);
+        this.node.warn(unsupported);
+        this.onUnsupportedCb?.(type);
+      }
+      return;
+    }
+
     const handler = SUBSCRIPTION_HANDLERS[type];
     if (!handler) {
       this.node.warn(`Unknown subscription type: ${type}`);
@@ -242,6 +277,7 @@ class TwitchEventsubService {
     this.subscriptionCounts.clear();
     this.reconnectingUsers.clear();
     this.pendingSubscriptions.clear();
+    this.warnedUnsupported.clear();
     this.retries = 0;
   }
 }

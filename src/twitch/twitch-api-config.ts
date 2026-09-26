@@ -116,6 +116,8 @@ module.exports = function (RED: NodeAPI) {
     authReady = false;
     userId?: string;
     mockServerPort?: number;
+    nodeTypes: { [key: string]: string } = {};
+    unsupportedNodes: Set<string> = new Set();
 
     private authInitPromise?: Promise<void>;
 
@@ -243,13 +245,32 @@ module.exports = function (RED: NodeAPI) {
         });
       };
 
+      this.eventsubService.onUnsupportedCb = (subscriptionType) => {
+        this.markUnsupported(subscriptionType);
+      };
+
       this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
       await this.eventsubService.start();
       this.updateStatus({
         fill: 'green',
         shape: 'dot',
-        text: `Logged in as ${this.config.twitch_user_login ?? 'unknown'}`,
+        text: `Logged in as ${this.describeUser()}`,
       });
+    }
+
+    /**
+     * The login is empty for a mock config and the id is all a mock has, so fall back
+     * to it rather than printing "Logged in as ".
+     */
+    private describeUser(): string {
+      const login = (this.config.twitch_user_login ?? '').trim();
+      const id = (this.userId ?? '').trim();
+
+      if (this.mockServerPort) {
+        return `${login || `mock user ${id || 'unknown'}`} (mock :${this.mockServerPort})`;
+      }
+      if (login && id) return `${login} (${id})`;
+      return login || id || 'unknown user';
     }
 
     async takedown() {
@@ -264,25 +285,42 @@ module.exports = function (RED: NodeAPI) {
 
     updateStatus(status: Status) {
       this.currentStatus = status;
-      Object.values(this.nodeListeners).forEach((node) => {
-        node.status(status);
+      Object.entries(this.nodeListeners).forEach(([id, node]) => {
+        if (!this.unsupportedNodes.has(id)) {
+          node.status(status);
+        }
       });
     }
 
     addNode(id: string, node: any, subscriptionType: string) {
       this.nodeListeners[id] = node;
+      this.nodeTypes[id] = subscriptionType;
       node.status(this.currentStatus);
       this.initAuth()
-      .then(async () => {
-        if (!this.eventsubService) await this.initEventsub();
-        this.eventsubService?.addSubscription(subscriptionType);
-      })
-      .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
+        .then(async () => {
+          if (!this.eventsubService) await this.initEventsub();
+          this.eventsubService?.addSubscription(subscriptionType);
+        })
+        .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
+    }
+
+    markUnsupported(subscriptionType: string) {
+      Object.entries(this.nodeTypes).forEach(([id, type]) => {
+        if (type !== subscriptionType) return;
+        this.unsupportedNodes.add(id);
+        this.nodeListeners[id]?.status({
+          fill: 'grey',
+          shape: 'ring',
+          text: 'Not available over WebSocket',
+        });
+      });
     }
 
     async removeNode(id: string, subscriptionType: string, done: () => void) {
       this.eventsubService?.removeSubscription(subscriptionType);
       delete this.nodeListeners[id];
+      delete this.nodeTypes[id];
+      this.unsupportedNodes.delete(id);
       if (Object.keys(this.nodeListeners).length === 0) {
         await this.takedown();
       }
