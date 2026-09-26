@@ -138,7 +138,10 @@ event area to a `twitch ...` category, and `eventsub-icons.ts` maps the event to
 that the build renders white on Node-RED's standard 40x60 icon canvas, so it keeps the
 same padding as the stock icons. To use a new glyph, `npm i --no-save bootstrap-icons`,
 add the name in `eventsub-icons.ts`, then run `npx tsc && npm run collect-glyphs` to
-vendor its path into `src/icons/glyphs.json`.
+vendor its path into `src/icons/glyphs.json`. The Twitch Chat nodes use the same
+mechanism: their glyphs live in `src/twitch/chat/twitch-chat-icons.ts` and are
+rendered by `scripts/generate-chat-icons.js`, and both generators share
+`scripts/render-glyph-icon.js`.
 
 ## Credits
 

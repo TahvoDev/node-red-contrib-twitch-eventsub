@@ -1,7 +1,7 @@
 <script type="text/javascript">
 RED.nodes.registerType('twitch-chat-command', {
   category: 'Twitch Chat',
-  color: '#9146FF',
+  color: '#b9a3e3',
   defaults: {
     name: { value: '' },
     command: { value: '' },
@@ -13,7 +13,7 @@ RED.nodes.registerType('twitch-chat-command', {
   },
   inputs: 1,
   outputs: 1,
-  icon: 'twitch-icon.svg',
+  icon: 'twitch-chat-command.svg',
   paletteLabel: 'chat command',
   label: function () {
     if (this.name) return this.name;

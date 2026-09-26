@@ -1,7 +1,7 @@
 <script type="text/javascript">
 RED.nodes.registerType('twitch-chat-reply', {
   category: 'Twitch Chat',
-  color: '#9146FF',
+  color: '#b9a3e3',
   defaults: {
     name: { value: '' },
     connection: { type: 'twitch-chat-connection', required: true },
@@ -9,7 +9,7 @@ RED.nodes.registerType('twitch-chat-reply', {
   },
   inputs: 1,
   outputs: 0,
-  icon: 'twitch-icon.svg',
+  icon: 'twitch-chat-reply.svg',
   paletteLabel: 'chat reply',
   label: function () {
     if (this.name) return this.name;

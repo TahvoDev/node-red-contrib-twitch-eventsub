@@ -1,7 +1,7 @@
 <script type="text/javascript">
 RED.nodes.registerType('twitch-chat-clear', {
   category: 'Twitch Chat',
-  color: '#9146FF',
+  color: '#b9a3e3',
   defaults: {
     name: { value: '' },
     connection: { type: 'twitch-chat-connection', required: true },
@@ -9,7 +9,7 @@ RED.nodes.registerType('twitch-chat-clear', {
   },
   inputs: 1,
   outputs: 0,
-  icon: 'twitch-icon.svg',
+  icon: 'twitch-chat-clear.svg',
   paletteLabel: 'chat clear',
   label: function () {
     if (this.name) return this.name;

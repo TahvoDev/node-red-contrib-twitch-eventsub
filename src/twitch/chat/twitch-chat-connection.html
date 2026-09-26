@@ -1,7 +1,7 @@
 <script type="text/javascript">
 RED.nodes.registerType('twitch-chat-connection', {
   category: 'config',
-  color: '#9146FF',
+  color: '#b9a3e3',
   defaults: {
     name: { value: '', required: true },
     account: { type: 'twitch-api-config', required: true },
@@ -10,7 +10,7 @@ RED.nodes.registerType('twitch-chat-connection', {
   },
   inputs: 0,
   outputs: 0,
-  icon: 'twitch-icon.svg',
+  icon: 'twitch-chat-connection.svg',
   label: function () {
     return this.name || 'twitch-chat-connection';
   },
