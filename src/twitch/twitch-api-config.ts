@@ -3,12 +3,15 @@ import { AbstractNode } from '../AbstractNode';
 import { RefreshingAuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
+import { MockAuthProvider } from './mock-auth-provider';
 
 type TwitchApiConfigProps = {
   id: string;
   twitch_client_id: string;
   twitch_user_id?: string;
   twitch_user_login?: string;
+  twitch_mock_server_port?: string;
+  twitch_mock_user_id?: string;
 };
 
 type TwitchApiCredentials = {
@@ -21,6 +24,25 @@ type Status = {
   shape: 'ring' | 'dot';
   text: string;
 };
+
+// A mock server never validates tokens, but Twurple checks the scopes on the
+// token it is given and falls back to the real validate endpoint when the scope
+// list is unknown, so the mock provider has to claim a full set up front.
+const MOCK_SCOPES = [
+  'bits:read', 'channel:moderate', 'channel:read:ads', 'channel:read:charity',
+  'channel:read:goals', 'channel:read:guest_star', 'channel:read:hype_train',
+  'channel:read:polls', 'channel:read:predictions', 'channel:read:redemptions',
+  'channel:read:subscriptions', 'channel:read:vips', 'chat:read', 'moderation:read',
+  'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
+  'moderator:manage:unban_requests', 'moderator:read:automod_settings',
+  'moderator:read:blocked_terms', 'moderator:read:chat_settings',
+  'moderator:read:followers', 'moderator:read:guest_star', 'moderator:read:shield_mode',
+  'moderator:read:shoutouts', 'moderator:read:suspicious_users',
+  'moderator:read:unban_requests', 'moderator:read:whispers',
+  'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
+  'user:read:broadcast', 'user:read:chat', 'user:read:email',
+  'user:manage:blocked_users',
+];
 
 module.exports = function (RED: NodeAPI) {
 
@@ -92,6 +114,8 @@ module.exports = function (RED: NodeAPI) {
     nodeListeners: { [key: string]: any } = {};
     currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
     authReady = false;
+    userId?: string;
+    mockServerPort?: number;
 
     private authInitPromise?: Promise<void>;
 
@@ -117,6 +141,13 @@ module.exports = function (RED: NodeAPI) {
     }
 
     private async _doAuth(): Promise<void> {
+      const mockPort = this.parseMockServerPort();
+
+      if (mockPort) {
+        await this._initMockAuth(mockPort);
+        return;
+      }
+
       const { twitch_refresh_token, twitch_client_secret } = this.credentials ?? {};
 
       if (!twitch_refresh_token || !this.config.twitch_user_id) {
@@ -146,6 +177,7 @@ module.exports = function (RED: NodeAPI) {
           [this.config.twitch_user_id]
         );
 
+        this.userId = this.config.twitch_user_id;
         this.apiClient = new ApiClient({ authProvider });
         this.authReady = true;
         this.log('Auth ready');
@@ -156,12 +188,52 @@ module.exports = function (RED: NodeAPI) {
       }
     }
 
+    private parseMockServerPort(): number | undefined {
+      const raw = (this.config.twitch_mock_server_port ?? '').trim();
+      if (!raw) return undefined;
+
+      const port = Number(raw);
+      if (!Number.isInteger(port) || port < 1 || port > 65535) {
+        this.updateStatus({ fill: 'red', shape: 'ring', text: `Bad mock server port: ${raw}` });
+        return undefined;
+      }
+
+      return port;
+    }
+
+    private async _initMockAuth(mockPort: number): Promise<void> {
+      const userId = this.config.twitch_mock_user_id || this.config.twitch_user_id;
+
+      if (!userId) {
+        this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Mock server needs a user ID' });
+        return;
+      }
+
+      try {
+        const authProvider = new MockAuthProvider(
+          this.config.twitch_client_id || 'mock-client-id',
+          userId,
+          MOCK_SCOPES
+        );
+
+        this.userId = userId;
+        this.mockServerPort = mockPort;
+        this.apiClient = new ApiClient({ authProvider, mockServerPort: mockPort });
+        this.authReady = true;
+        this.log(`Mock server on port ${mockPort} as user ${userId}`);
+        this.updateStatus({ fill: 'blue', shape: 'ring', text: `Mock server :${mockPort}` });
+      } catch (e: any) {
+        this.updateStatus({ fill: 'red', shape: 'ring', text: `Mock init failed: ${e.message}` });
+        throw e;
+      }
+    }
+
     async initEventsub(): Promise<void> {
-      if (this.eventsubService || !this.apiClient) return;
+      if (this.eventsubService || !this.apiClient || !this.userId) return;
 
       this.eventsubService = new TwitchEventsubService(
         this,
-        this.config.twitch_user_id!,
+        this.userId,
         this.apiClient
       );
 

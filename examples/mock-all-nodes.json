@@ -1,0 +1,2438 @@
+[
+  {
+    "id": "tab-mock-00000000000001",
+    "type": "tab",
+    "label": "twitch mock",
+    "disabled": false,
+    "info": "All 78 EventSub nodes wired to the isolated Twitch CLI mock server.",
+    "env": []
+  },
+  {
+    "id": "twitchconfig0000000000000001",
+    "type": "twitch-api-config",
+    "name": "twitch mock (local)",
+    "twitch_client_id": "",
+    "twitch_user_id": "",
+    "twitch_user_login": "",
+    "twitch_mock_server_port": "8080",
+    "twitch_mock_user_id": "3963854"
+  },
+  {
+    "id": "etwitch-eventsub-automod-message-hold771415562835",
+    "type": "twitch-eventsub-automod-message-hold",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message hold",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-message-hold159224231445"
+      ]
+    ],
+    "x": 180,
+    "y": 120
+  },
+  {
+    "id": "dtwitch-eventsub-automod-message-hold159224231445",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message hold",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-automod-message-hold-v2637343868432",
+    "type": "twitch-eventsub-automod-message-hold-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message hold v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-message-hold-v2197499158888"
+      ]
+    ],
+    "x": 640,
+    "y": 120
+  },
+  {
+    "id": "dtwitch-eventsub-automod-message-hold-v2197499158888",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message hold v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-automod-message-update811123091799",
+    "type": "twitch-eventsub-automod-message-update",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-message-update137379895543"
+      ]
+    ],
+    "x": 1100,
+    "y": 120
+  },
+  {
+    "id": "dtwitch-eventsub-automod-message-update137379895543",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-automod-message-update-v2288050040885",
+    "type": "twitch-eventsub-automod-message-update-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message update v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-message-update-v2626381023834"
+      ]
+    ],
+    "x": 1560,
+    "y": 120
+  },
+  {
+    "id": "dtwitch-eventsub-automod-message-update-v2626381023834",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod message update v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 120,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-automod-settings-update368811258964",
+    "type": "twitch-eventsub-automod-settings-update",
+    "z": "tab-mock-00000000000001",
+    "name": "automod settings update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-settings-update209763931393"
+      ]
+    ],
+    "x": 180,
+    "y": 310
+  },
+  {
+    "id": "dtwitch-eventsub-automod-settings-update209763931393",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod settings update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 310,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-automod-terms-update003631824357",
+    "type": "twitch-eventsub-automod-terms-update",
+    "z": "tab-mock-00000000000001",
+    "name": "automod terms update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-automod-terms-update007658497316"
+      ]
+    ],
+    "x": 640,
+    "y": 310
+  },
+  {
+    "id": "dtwitch-eventsub-automod-terms-update007658497316",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automod terms update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 310,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-ad-break-begin775969350411",
+    "type": "twitch-eventsub-channel-ad-break-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "ad break begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-ad-break-begin027891861694"
+      ]
+    ],
+    "x": 1100,
+    "y": 310
+  },
+  {
+    "id": "dtwitch-eventsub-channel-ad-break-begin027891861694",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "ad break begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 310,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-automatic-reward-redemption-add754039893693",
+    "type": "twitch-eventsub-channel-automatic-reward-redemption-add",
+    "z": "tab-mock-00000000000001",
+    "name": "automatic reward redemption add",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-automatic-reward-redemption-add287000753500"
+      ]
+    ],
+    "x": 1560,
+    "y": 310
+  },
+  {
+    "id": "dtwitch-eventsub-channel-automatic-reward-redemption-add287000753500",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automatic reward redemption add",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 310,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-automatic-reward-redemption-add-v2890308373542",
+    "type": "twitch-eventsub-channel-automatic-reward-redemption-add-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "automatic reward redemption add v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-automatic-reward-redemption-add-v2991303900968"
+      ]
+    ],
+    "x": 180,
+    "y": 500
+  },
+  {
+    "id": "dtwitch-eventsub-channel-automatic-reward-redemption-add-v2991303900968",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "automatic reward redemption add v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 500,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-ban213329461864",
+    "type": "twitch-eventsub-channel-ban",
+    "z": "tab-mock-00000000000001",
+    "name": "ban",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-ban645804942351"
+      ]
+    ],
+    "x": 640,
+    "y": 500
+  },
+  {
+    "id": "dtwitch-eventsub-channel-ban645804942351",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "ban",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 500,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-bits-use633966708993",
+    "type": "twitch-eventsub-channel-bits-use",
+    "z": "tab-mock-00000000000001",
+    "name": "bits use",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-bits-use858954963893"
+      ]
+    ],
+    "x": 1100,
+    "y": 500
+  },
+  {
+    "id": "dtwitch-eventsub-channel-bits-use858954963893",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "bits use",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 500,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-charity-campaign-progress541548574621",
+    "type": "twitch-eventsub-channel-charity-campaign-progress",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign progress",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-charity-campaign-progress599536176421"
+      ]
+    ],
+    "x": 1560,
+    "y": 500
+  },
+  {
+    "id": "dtwitch-eventsub-channel-charity-campaign-progress599536176421",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign progress",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 500,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-charity-campaign-start341479134392",
+    "type": "twitch-eventsub-channel-charity-campaign-start",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign start",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-charity-campaign-start448735586913"
+      ]
+    ],
+    "x": 180,
+    "y": 690
+  },
+  {
+    "id": "dtwitch-eventsub-channel-charity-campaign-start448735586913",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign start",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 690,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-charity-campaign-stop798319611962",
+    "type": "twitch-eventsub-channel-charity-campaign-stop",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign stop",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-charity-campaign-stop899790492849"
+      ]
+    ],
+    "x": 640,
+    "y": 690
+  },
+  {
+    "id": "dtwitch-eventsub-channel-charity-campaign-stop899790492849",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "charity campaign stop",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 690,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-charity-donation139303278807",
+    "type": "twitch-eventsub-channel-charity-donation",
+    "z": "tab-mock-00000000000001",
+    "name": "charity donation",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-charity-donation882650893933"
+      ]
+    ],
+    "x": 1100,
+    "y": 690
+  },
+  {
+    "id": "dtwitch-eventsub-channel-charity-donation882650893933",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "charity donation",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 690,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-clear250629676402",
+    "type": "twitch-eventsub-channel-chat-clear",
+    "z": "tab-mock-00000000000001",
+    "name": "chat clear",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-clear249395043190"
+      ]
+    ],
+    "x": 1560,
+    "y": 690
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-clear249395043190",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat clear",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 690,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-clear-user-messages105117836784",
+    "type": "twitch-eventsub-channel-chat-clear-user-messages",
+    "z": "tab-mock-00000000000001",
+    "name": "chat clear user messages",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-clear-user-messages476107942802"
+      ]
+    ],
+    "x": 180,
+    "y": 880
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-clear-user-messages476107942802",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat clear user messages",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 880,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-message394049823598",
+    "type": "twitch-eventsub-channel-chat-message",
+    "z": "tab-mock-00000000000001",
+    "name": "chat message",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-message602714321160"
+      ]
+    ],
+    "x": 640,
+    "y": 880
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-message602714321160",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 880,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-message-delete529075848702",
+    "type": "twitch-eventsub-channel-chat-message-delete",
+    "z": "tab-mock-00000000000001",
+    "name": "chat message delete",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-message-delete313129844092"
+      ]
+    ],
+    "x": 1100,
+    "y": 880
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-message-delete313129844092",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat message delete",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 880,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-notification592715602462",
+    "type": "twitch-eventsub-channel-chat-notification",
+    "z": "tab-mock-00000000000001",
+    "name": "chat notification",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-notification967512639507"
+      ]
+    ],
+    "x": 1560,
+    "y": 880
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-notification967512639507",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat notification",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 880,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-settings-update677754763871",
+    "type": "twitch-eventsub-channel-chat-settings-update",
+    "z": "tab-mock-00000000000001",
+    "name": "chat settings update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-settings-update485344258790"
+      ]
+    ],
+    "x": 180,
+    "y": 1070
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-settings-update485344258790",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat settings update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 1070,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-user-message-hold277625219325",
+    "type": "twitch-eventsub-channel-chat-user-message-hold",
+    "z": "tab-mock-00000000000001",
+    "name": "chat user message hold",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-user-message-hold753402542343"
+      ]
+    ],
+    "x": 640,
+    "y": 1070
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-user-message-hold753402542343",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat user message hold",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 1070,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-chat-user-message-update648514023055",
+    "type": "twitch-eventsub-channel-chat-user-message-update",
+    "z": "tab-mock-00000000000001",
+    "name": "chat user message update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-chat-user-message-update407037968331"
+      ]
+    ],
+    "x": 1100,
+    "y": 1070
+  },
+  {
+    "id": "dtwitch-eventsub-channel-chat-user-message-update407037968331",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "chat user message update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 1070,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-cheer177623861344",
+    "type": "twitch-eventsub-channel-cheer",
+    "z": "tab-mock-00000000000001",
+    "name": "cheer",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-cheer437387909216"
+      ]
+    ],
+    "x": 1560,
+    "y": 1070
+  },
+  {
+    "id": "dtwitch-eventsub-channel-cheer437387909216",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "cheer",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 1070,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-follow643237262202",
+    "type": "twitch-eventsub-channel-follow",
+    "z": "tab-mock-00000000000001",
+    "name": "follow",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-follow844105801727"
+      ]
+    ],
+    "x": 180,
+    "y": 1260
+  },
+  {
+    "id": "dtwitch-eventsub-channel-follow844105801727",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "follow",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 1260,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-goal-begin880454804007",
+    "type": "twitch-eventsub-channel-goal-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "goal begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-goal-begin928282960081"
+      ]
+    ],
+    "x": 640,
+    "y": 1260
+  },
+  {
+    "id": "dtwitch-eventsub-channel-goal-begin928282960081",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "goal begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 1260,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-goal-end560038536088",
+    "type": "twitch-eventsub-channel-goal-end",
+    "z": "tab-mock-00000000000001",
+    "name": "goal end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-goal-end203276608304"
+      ]
+    ],
+    "x": 1100,
+    "y": 1260
+  },
+  {
+    "id": "dtwitch-eventsub-channel-goal-end203276608304",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "goal end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 1260,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-goal-progress412377928528",
+    "type": "twitch-eventsub-channel-goal-progress",
+    "z": "tab-mock-00000000000001",
+    "name": "goal progress",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-goal-progress187892008996"
+      ]
+    ],
+    "x": 1560,
+    "y": 1260
+  },
+  {
+    "id": "dtwitch-eventsub-channel-goal-progress187892008996",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "goal progress",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 1260,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-begin451729684078",
+    "type": "twitch-eventsub-channel-hype-train-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-begin578028239639"
+      ]
+    ],
+    "x": 180,
+    "y": 1450
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-begin578028239639",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 1450,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-begin-v2404818542850",
+    "type": "twitch-eventsub-channel-hype-train-begin-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train begin v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-begin-v2268921025496"
+      ]
+    ],
+    "x": 640,
+    "y": 1450
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-begin-v2268921025496",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train begin v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 1450,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-end840362954273",
+    "type": "twitch-eventsub-channel-hype-train-end",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-end749556142728"
+      ]
+    ],
+    "x": 1100,
+    "y": 1450
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-end749556142728",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 1450,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-end-v2308684756225",
+    "type": "twitch-eventsub-channel-hype-train-end-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train end v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-end-v2306951693554"
+      ]
+    ],
+    "x": 1560,
+    "y": 1450
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-end-v2306951693554",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train end v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 1450,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-progress469570312582",
+    "type": "twitch-eventsub-channel-hype-train-progress",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train progress",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-progress633563134264"
+      ]
+    ],
+    "x": 180,
+    "y": 1640
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-progress633563134264",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train progress",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 1640,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-hype-train-progress-v2185345684592",
+    "type": "twitch-eventsub-channel-hype-train-progress-v2",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train progress v2",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-hype-train-progress-v2444834293977"
+      ]
+    ],
+    "x": 640,
+    "y": 1640
+  },
+  {
+    "id": "dtwitch-eventsub-channel-hype-train-progress-v2444834293977",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "hype train progress v2",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 1640,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-moderation752200383783",
+    "type": "twitch-eventsub-channel-moderation",
+    "z": "tab-mock-00000000000001",
+    "name": "moderation",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-moderation141326637424"
+      ]
+    ],
+    "x": 1100,
+    "y": 1640
+  },
+  {
+    "id": "dtwitch-eventsub-channel-moderation141326637424",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "moderation",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 1640,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-moderator-add854525031233",
+    "type": "twitch-eventsub-channel-moderator-add",
+    "z": "tab-mock-00000000000001",
+    "name": "moderator add",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-moderator-add690494035912"
+      ]
+    ],
+    "x": 1560,
+    "y": 1640
+  },
+  {
+    "id": "dtwitch-eventsub-channel-moderator-add690494035912",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "moderator add",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 1640,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-moderator-remove503305342087",
+    "type": "twitch-eventsub-channel-moderator-remove",
+    "z": "tab-mock-00000000000001",
+    "name": "moderator remove",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-moderator-remove676199447290"
+      ]
+    ],
+    "x": 180,
+    "y": 1830
+  },
+  {
+    "id": "dtwitch-eventsub-channel-moderator-remove676199447290",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "moderator remove",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 1830,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-poll-begin888502951125",
+    "type": "twitch-eventsub-channel-poll-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "poll begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-poll-begin653719433261"
+      ]
+    ],
+    "x": 640,
+    "y": 1830
+  },
+  {
+    "id": "dtwitch-eventsub-channel-poll-begin653719433261",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "poll begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 1830,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-poll-end708605806145",
+    "type": "twitch-eventsub-channel-poll-end",
+    "z": "tab-mock-00000000000001",
+    "name": "poll end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-poll-end492400966199"
+      ]
+    ],
+    "x": 1100,
+    "y": 1830
+  },
+  {
+    "id": "dtwitch-eventsub-channel-poll-end492400966199",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "poll end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 1830,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-poll-progress606572547585",
+    "type": "twitch-eventsub-channel-poll-progress",
+    "z": "tab-mock-00000000000001",
+    "name": "poll progress",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-poll-progress056081764775"
+      ]
+    ],
+    "x": 1560,
+    "y": 1830
+  },
+  {
+    "id": "dtwitch-eventsub-channel-poll-progress056081764775",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "poll progress",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 1830,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-prediction-begin836054749661",
+    "type": "twitch-eventsub-channel-prediction-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-prediction-begin258341667805"
+      ]
+    ],
+    "x": 180,
+    "y": 2020
+  },
+  {
+    "id": "dtwitch-eventsub-channel-prediction-begin258341667805",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2020,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-prediction-end320941383875",
+    "type": "twitch-eventsub-channel-prediction-end",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-prediction-end082130789234"
+      ]
+    ],
+    "x": 640,
+    "y": 2020
+  },
+  {
+    "id": "dtwitch-eventsub-channel-prediction-end082130789234",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2020,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-prediction-lock024942493447",
+    "type": "twitch-eventsub-channel-prediction-lock",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction lock",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-prediction-lock777338827735"
+      ]
+    ],
+    "x": 1100,
+    "y": 2020
+  },
+  {
+    "id": "dtwitch-eventsub-channel-prediction-lock777338827735",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction lock",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2020,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-prediction-progress752473994682",
+    "type": "twitch-eventsub-channel-prediction-progress",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction progress",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-prediction-progress894055944811"
+      ]
+    ],
+    "x": 1560,
+    "y": 2020
+  },
+  {
+    "id": "dtwitch-eventsub-channel-prediction-progress894055944811",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "prediction progress",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2020,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-raid-from128874465108",
+    "type": "twitch-eventsub-channel-raid-from",
+    "z": "tab-mock-00000000000001",
+    "name": "raid from",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-raid-from253307519382"
+      ]
+    ],
+    "x": 180,
+    "y": 2210
+  },
+  {
+    "id": "dtwitch-eventsub-channel-raid-from253307519382",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "raid from",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2210,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-raid-to429679442818",
+    "type": "twitch-eventsub-channel-raid-to",
+    "z": "tab-mock-00000000000001",
+    "name": "raid to",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-raid-to079062371469"
+      ]
+    ],
+    "x": 640,
+    "y": 2210
+  },
+  {
+    "id": "dtwitch-eventsub-channel-raid-to079062371469",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "raid to",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2210,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-redemption-add511636208409",
+    "type": "twitch-eventsub-channel-redemption-add",
+    "z": "tab-mock-00000000000001",
+    "name": "redemption add",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-redemption-add466304466125"
+      ]
+    ],
+    "x": 1100,
+    "y": 2210
+  },
+  {
+    "id": "dtwitch-eventsub-channel-redemption-add466304466125",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "redemption add",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2210,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-redemption-update561328999865",
+    "type": "twitch-eventsub-channel-redemption-update",
+    "z": "tab-mock-00000000000001",
+    "name": "redemption update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-redemption-update352048537394"
+      ]
+    ],
+    "x": 1560,
+    "y": 2210
+  },
+  {
+    "id": "dtwitch-eventsub-channel-redemption-update352048537394",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "redemption update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2210,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-reward-add413477089098",
+    "type": "twitch-eventsub-channel-reward-add",
+    "z": "tab-mock-00000000000001",
+    "name": "reward add",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-reward-add546484160232"
+      ]
+    ],
+    "x": 180,
+    "y": 2400
+  },
+  {
+    "id": "dtwitch-eventsub-channel-reward-add546484160232",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "reward add",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2400,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-reward-remove576868248331",
+    "type": "twitch-eventsub-channel-reward-remove",
+    "z": "tab-mock-00000000000001",
+    "name": "reward remove",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-reward-remove250772020114"
+      ]
+    ],
+    "x": 640,
+    "y": 2400
+  },
+  {
+    "id": "dtwitch-eventsub-channel-reward-remove250772020114",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "reward remove",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2400,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-reward-update728176195624",
+    "type": "twitch-eventsub-channel-reward-update",
+    "z": "tab-mock-00000000000001",
+    "name": "reward update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-reward-update468948172931"
+      ]
+    ],
+    "x": 1100,
+    "y": 2400
+  },
+  {
+    "id": "dtwitch-eventsub-channel-reward-update468948172931",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "reward update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2400,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shared-chat-session-begin480307426702",
+    "type": "twitch-eventsub-channel-shared-chat-session-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shared-chat-session-begin859665712437"
+      ]
+    ],
+    "x": 1560,
+    "y": 2400
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shared-chat-session-begin859665712437",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2400,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shared-chat-session-end003471117758",
+    "type": "twitch-eventsub-channel-shared-chat-session-end",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shared-chat-session-end841803394474"
+      ]
+    ],
+    "x": 180,
+    "y": 2590
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shared-chat-session-end841803394474",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2590,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shared-chat-session-update667903891312",
+    "type": "twitch-eventsub-channel-shared-chat-session-update",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shared-chat-session-update591369263376"
+      ]
+    ],
+    "x": 640,
+    "y": 2590
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shared-chat-session-update591369263376",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shared chat session update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2590,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shield-mode-begin193744374066",
+    "type": "twitch-eventsub-channel-shield-mode-begin",
+    "z": "tab-mock-00000000000001",
+    "name": "shield mode begin",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shield-mode-begin753942502745"
+      ]
+    ],
+    "x": 1100,
+    "y": 2590
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shield-mode-begin753942502745",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shield mode begin",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2590,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shield-mode-end463588817248",
+    "type": "twitch-eventsub-channel-shield-mode-end",
+    "z": "tab-mock-00000000000001",
+    "name": "shield mode end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shield-mode-end143275096950"
+      ]
+    ],
+    "x": 1560,
+    "y": 2590
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shield-mode-end143275096950",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shield mode end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2590,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shoutout-create673074734984",
+    "type": "twitch-eventsub-channel-shoutout-create",
+    "z": "tab-mock-00000000000001",
+    "name": "shoutout create",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shoutout-create087350041133"
+      ]
+    ],
+    "x": 180,
+    "y": 2780
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shoutout-create087350041133",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shoutout create",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2780,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-shoutout-receive645178663970",
+    "type": "twitch-eventsub-channel-shoutout-receive",
+    "z": "tab-mock-00000000000001",
+    "name": "shoutout receive",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-shoutout-receive949432491507"
+      ]
+    ],
+    "x": 640,
+    "y": 2780
+  },
+  {
+    "id": "dtwitch-eventsub-channel-shoutout-receive949432491507",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "shoutout receive",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2780,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-stream-offline560281457218",
+    "type": "twitch-eventsub-channel-stream-offline",
+    "z": "tab-mock-00000000000001",
+    "name": "stream offline",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-stream-offline305298224750"
+      ]
+    ],
+    "x": 1100,
+    "y": 2780
+  },
+  {
+    "id": "dtwitch-eventsub-channel-stream-offline305298224750",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "stream offline",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2780,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-stream-online750824274607",
+    "type": "twitch-eventsub-channel-stream-online",
+    "z": "tab-mock-00000000000001",
+    "name": "stream online",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-stream-online632572689317"
+      ]
+    ],
+    "x": 1560,
+    "y": 2780
+  },
+  {
+    "id": "dtwitch-eventsub-channel-stream-online632572689317",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "stream online",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2780,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-subscription201497790093",
+    "type": "twitch-eventsub-channel-subscription",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-subscription401686429050"
+      ]
+    ],
+    "x": 180,
+    "y": 2970
+  },
+  {
+    "id": "dtwitch-eventsub-channel-subscription401686429050",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 2970,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-subscription-end953189151902",
+    "type": "twitch-eventsub-channel-subscription-end",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription end",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-subscription-end868207478943"
+      ]
+    ],
+    "x": 640,
+    "y": 2970
+  },
+  {
+    "id": "dtwitch-eventsub-channel-subscription-end868207478943",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription end",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 2970,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-subscription-gift103172578660",
+    "type": "twitch-eventsub-channel-subscription-gift",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription gift",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-subscription-gift674722568275"
+      ]
+    ],
+    "x": 1100,
+    "y": 2970
+  },
+  {
+    "id": "dtwitch-eventsub-channel-subscription-gift674722568275",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription gift",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 2970,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-subscription-message747514200245",
+    "type": "twitch-eventsub-channel-subscription-message",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription message",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-subscription-message955101776727"
+      ]
+    ],
+    "x": 1560,
+    "y": 2970
+  },
+  {
+    "id": "dtwitch-eventsub-channel-subscription-message955101776727",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "subscription message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 2970,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-suspicious-user-message696671247632",
+    "type": "twitch-eventsub-channel-suspicious-user-message",
+    "z": "tab-mock-00000000000001",
+    "name": "suspicious user message",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-suspicious-user-message067761639438"
+      ]
+    ],
+    "x": 180,
+    "y": 3160
+  },
+  {
+    "id": "dtwitch-eventsub-channel-suspicious-user-message067761639438",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "suspicious user message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 3160,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-suspicious-user-update453678063873",
+    "type": "twitch-eventsub-channel-suspicious-user-update",
+    "z": "tab-mock-00000000000001",
+    "name": "suspicious user update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-suspicious-user-update622539949284"
+      ]
+    ],
+    "x": 640,
+    "y": 3160
+  },
+  {
+    "id": "dtwitch-eventsub-channel-suspicious-user-update622539949284",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "suspicious user update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 3160,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-unban525680447637",
+    "type": "twitch-eventsub-channel-unban",
+    "z": "tab-mock-00000000000001",
+    "name": "unban",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-unban370276111072"
+      ]
+    ],
+    "x": 1100,
+    "y": 3160
+  },
+  {
+    "id": "dtwitch-eventsub-channel-unban370276111072",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "unban",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 3160,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-unban-request-create979602191877",
+    "type": "twitch-eventsub-channel-unban-request-create",
+    "z": "tab-mock-00000000000001",
+    "name": "unban request create",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-unban-request-create421792334074"
+      ]
+    ],
+    "x": 1560,
+    "y": 3160
+  },
+  {
+    "id": "dtwitch-eventsub-channel-unban-request-create421792334074",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "unban request create",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 3160,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-unban-request-resolve584401043632",
+    "type": "twitch-eventsub-channel-unban-request-resolve",
+    "z": "tab-mock-00000000000001",
+    "name": "unban request resolve",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-unban-request-resolve312310069066"
+      ]
+    ],
+    "x": 180,
+    "y": 3350
+  },
+  {
+    "id": "dtwitch-eventsub-channel-unban-request-resolve312310069066",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "unban request resolve",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 3350,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-update725234993693",
+    "type": "twitch-eventsub-channel-update",
+    "z": "tab-mock-00000000000001",
+    "name": "update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-update313816799596"
+      ]
+    ],
+    "x": 640,
+    "y": 3350
+  },
+  {
+    "id": "dtwitch-eventsub-channel-update313816799596",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 3350,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-vip-add042441980653",
+    "type": "twitch-eventsub-channel-vip-add",
+    "z": "tab-mock-00000000000001",
+    "name": "vip add",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-vip-add387724881163"
+      ]
+    ],
+    "x": 1100,
+    "y": 3350
+  },
+  {
+    "id": "dtwitch-eventsub-channel-vip-add387724881163",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "vip add",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 3350,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-vip-remove314294385861",
+    "type": "twitch-eventsub-channel-vip-remove",
+    "z": "tab-mock-00000000000001",
+    "name": "vip remove",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-vip-remove394365400832"
+      ]
+    ],
+    "x": 1560,
+    "y": 3350
+  },
+  {
+    "id": "dtwitch-eventsub-channel-vip-remove394365400832",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "vip remove",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 3350,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-warning-acknowledge510489310995",
+    "type": "twitch-eventsub-channel-warning-acknowledge",
+    "z": "tab-mock-00000000000001",
+    "name": "warning acknowledge",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-warning-acknowledge211210202916"
+      ]
+    ],
+    "x": 180,
+    "y": 3540
+  },
+  {
+    "id": "dtwitch-eventsub-channel-warning-acknowledge211210202916",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "warning acknowledge",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 3540,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-channel-warning-send657822110341",
+    "type": "twitch-eventsub-channel-warning-send",
+    "z": "tab-mock-00000000000001",
+    "name": "warning send",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-channel-warning-send892405643963"
+      ]
+    ],
+    "x": 640,
+    "y": 3540
+  },
+  {
+    "id": "dtwitch-eventsub-channel-warning-send892405643963",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "warning send",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 3540,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-user-authorization-grant942946788672",
+    "type": "twitch-eventsub-user-authorization-grant",
+    "z": "tab-mock-00000000000001",
+    "name": "user authorization grant",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-user-authorization-grant126128205152"
+      ]
+    ],
+    "x": 1100,
+    "y": 3540
+  },
+  {
+    "id": "dtwitch-eventsub-user-authorization-grant126128205152",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "user authorization grant",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1310,
+    "y": 3540,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-user-authorization-revoke829453579399",
+    "type": "twitch-eventsub-user-authorization-revoke",
+    "z": "tab-mock-00000000000001",
+    "name": "user authorization revoke",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-user-authorization-revoke950160614912"
+      ]
+    ],
+    "x": 1560,
+    "y": 3540
+  },
+  {
+    "id": "dtwitch-eventsub-user-authorization-revoke950160614912",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "user authorization revoke",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 1770,
+    "y": 3540,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-user-update306310012490",
+    "type": "twitch-eventsub-user-update",
+    "z": "tab-mock-00000000000001",
+    "name": "user update",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-user-update655079706521"
+      ]
+    ],
+    "x": 180,
+    "y": 3730
+  },
+  {
+    "id": "dtwitch-eventsub-user-update655079706521",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "user update",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 390,
+    "y": 3730,
+    "wires": []
+  },
+  {
+    "id": "etwitch-eventsub-user-whisper-message592767617378",
+    "type": "twitch-eventsub-user-whisper-message",
+    "z": "tab-mock-00000000000001",
+    "name": "user whisper message",
+    "config": "twitchconfig0000000000000001",
+    "wires": [
+      [
+        "dtwitch-eventsub-user-whisper-message047549838688"
+      ]
+    ],
+    "x": 640,
+    "y": 3730
+  },
+  {
+    "id": "dtwitch-eventsub-user-whisper-message047549838688",
+    "type": "debug",
+    "z": "tab-mock-00000000000001",
+    "name": "user whisper message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "payload",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 850,
+    "y": 3730,
+    "wires": []
+  }
+]

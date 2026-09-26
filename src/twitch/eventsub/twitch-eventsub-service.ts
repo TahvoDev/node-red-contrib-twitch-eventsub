@@ -119,6 +119,9 @@ const SUBSCRIPTION_HANDLERS: Record<string, SubscriptionHandler> = {
 
 };
 
+const RESTORE_RETRY_DELAY = 2000;
+const MAX_RESTORE_RETRIES = 5;
+
 class TwitchEventsubService {
   listener: EventSubWsListener;
   node: AbstractNode;
@@ -126,6 +129,11 @@ class TwitchEventsubService {
   started = false;
 
   private subscriptionCounts: Map<string, number> = new Map();
+  private reconnectingUsers: Set<string> = new Set();
+  private pendingSubscriptions: Set<string> = new Set();
+  private restoring = false;
+  private retryTimer?: NodeJS.Timeout;
+  private retries = 0;
 
   onEventCb?: (event: any, subscriptionType: string) => void;
 
@@ -158,13 +166,63 @@ class TwitchEventsubService {
       this.node.warn(`Unknown subscription type: ${type}`);
       return;
     }
-    handler(this.listener, this.userId, (event) => {
-      if (this.onEventCb) this.onEventCb(event, type);
-    });
+    try {
+      handler(this.listener, this.userId, (event) => {
+        if (this.onEventCb) this.onEventCb(event, type);
+      });
+      this.pendingSubscriptions.delete(type);
       this.node.log(`Subscribed to ${type}`);
+    } catch (error) {
+      // While restoring, Twurple refuses a few topics until the socket is ready again, so
+      // they are retried a few times instead of taking the whole runtime down with them.
+      if (this.restoring) {
+        this.pendingSubscriptions.add(type);
+        this.node.warn(`Could not resubscribe to ${type} yet: ${(error as Error).message}`);
+      } else {
+        this.node.error(`Failed to subscribe to ${type}: ${error as Error}`);
+      }
+    }
+  }
+
+  private restoreSubscriptions() {
+    this.restoring = true;
+    this.subscriptionCounts.forEach((_, type) => this.registerSubscription(type));
+    this.restoring = false;
+    this.schedulePendingRetry();
+  }
+
+  /**
+   * A socket only reports itself ready a moment after the connect event, and topics that
+   * need a user token are refused until then, so the leftovers get another try shortly after.
+   */
+  private schedulePendingRetry() {
+    if (!this.pendingSubscriptions.size || this.retries >= MAX_RESTORE_RETRIES) return;
+
+    this.retries += 1;
+    this.retryTimer = setTimeout(() => {
+      const pending = this.pendingSubscriptions.size;
+      this.node.log(`Retrying ${pending} EventSub subscription(s)`);
+      this.restoreSubscriptions();
+    }, RESTORE_RETRY_DELAY);
   }
 
   async start(): Promise<void> {
+    // Twitch closes and reopens EventSub WebSocket connections on its own
+    // schedule, and the subscriptions do not survive that. Twurple reports the
+    // connection change but does not resubscribe, so we have to do it here or
+    // the nodes stay connected while silently receiving nothing.
+    this.retries = 0;
+    this.listener.onUserSocketConnect((userId: string) => {
+      if (!this.reconnectingUsers.delete(userId)) return;
+
+      this.node.log('WebSocket reconnected, restoring EventSub subscriptions');
+      this.restoreSubscriptions();
+    });
+
+    this.listener.onUserSocketDisconnect((userId: string) => {
+      this.reconnectingUsers.add(userId);
+    });
+
     this.subscriptionCounts.forEach((_, type) => this.registerSubscription(type));
     this.node.log('EventSub WebSocket listener started');
     this.listener.start();
@@ -172,12 +230,19 @@ class TwitchEventsubService {
   }
 
   async stop(): Promise<void> {
+    if (this.retryTimer) {
+      clearTimeout(this.retryTimer);
+      this.retryTimer = undefined;
+    }
     if (this.listener) {
       await this.listener.stop();
       this.node.log('EventSub WebSocket listener stopped');
     }
     this.started = false;
     this.subscriptionCounts.clear();
+    this.reconnectingUsers.clear();
+    this.pendingSubscriptions.clear();
+    this.retries = 0;
   }
 }
 
