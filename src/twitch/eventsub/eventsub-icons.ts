@@ -1,7 +1,7 @@
 /**
  * The glyph each EventSub node uses. `scripts/generate-eventsub-icons.js` renders
- * the glyph white and full-size, producing one `twitch-eventsub-<name>.svg` per
- * node under `dist/twitch/icons/`.
+ * the glyph white on Node-RED's standard icon canvas, producing one
+ * `twitch-eventsub-<name>.svg` per node under `dist/twitch/icons/`.
  *
  * Glyph names refer to Bootstrap Icons (MIT); their paths are vendored in
  * `src/icons/glyphs.json` so the build does not need the package installed.

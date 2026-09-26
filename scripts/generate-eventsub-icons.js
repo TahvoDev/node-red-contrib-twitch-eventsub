@@ -2,9 +2,10 @@
 'use strict'
 
 /**
- * Emits one editor icon per EventSub node: the event glyph in white, scaled to
- * fill the whole 24x24 canvas. They are written to `dist/twitch/icons` (next to
- * the Twitch icon) because Node-RED only discovers icons from an `icons`
+ * Emits one editor icon per EventSub node: the event glyph in white, centred on
+ * the same 40x60 canvas Node-RED's own node icons use so it has the same padding
+ * and does not touch the node edges. They are written to `dist/twitch/icons`
+ * (next to the Twitch icon) because Node-RED only discovers icons from an `icons`
  * directory beside a registered node file.
  *
  * The glyph paths are vendored from Bootstrap Icons (MIT) in `src/icons/glyphs.json`
@@ -22,11 +23,13 @@ const { EVENTS } = require(path.join(distDir, 'eventsub-registry.js'))
 const { glyphFor } = require(path.join(distDir, 'eventsub-icons.js'))
 const { glyphs } = require(path.join(root, 'src', 'icons', 'glyphs.json'))
 
-// The glyph is white; the node body supplies the colour. The icon fills the full
-// 24x24 viewBox so Node-RED's `background-size: contain` renders it edge to edge.
+// The glyph is white; the node body supplies the colour. The canvas matches the
+// 40x60 viewBox of Node-RED's stock icons, with the glyph inset so it keeps the
+// same breathing room on the workspace node.
 const ICON_COLOR = '#ffffff'
-const GLYPH_SIZE = 24
-const GLYPH_ORIGIN = 0
+const CANVAS_WIDTH = 40
+const CANVAS_HEIGHT = 60
+const GLYPH_SIZE = 26
 
 function renderIcon(glyphName) {
   const glyph = glyphs[glyphName]
@@ -34,10 +37,12 @@ function renderIcon(glyphName) {
 
   const [gx, gy, gw, gh] = glyph.viewBox.split(/\s+/).map(Number)
   const scale = GLYPH_SIZE / Math.max(gw, gh)
+  const x = (CANVAS_WIDTH - gw * scale) / 2 - gx * scale
+  const y = (CANVAS_HEIGHT - gh * scale) / 2 - gy * scale
 
   return (
-    '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
-    `<g transform="translate(${GLYPH_ORIGIN} ${GLYPH_ORIGIN}) scale(${scale}) translate(${-gx} ${-gy})" fill="${ICON_COLOR}">${glyph.body}</g>` +
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}">` +
+    `<g transform="translate(${x} ${y}) scale(${scale})" fill="${ICON_COLOR}">${glyph.body}</g>` +
     '</svg>\n'
   )
 }
