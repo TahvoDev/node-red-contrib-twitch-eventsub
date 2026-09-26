@@ -5,6 +5,17 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Added
+- 52 new event nodes covering goals, moderation, VIPs, warnings, unban requests, suspicious users, chat clearing/holds/settings, AutoMod, shared chat, subscription end, channel rewards, redemption update, automatic reward redemption, Hype Train v2, charity, bits use, ad breaks, whispers and user updates
+- Every event is now its own node, so a flow wires a switch on the event you actually want
+
+### Changed
+- **Breaking:** the combined `poll events`, `prediction events` and `hype train events` nodes are replaced by one node per event (`poll begin`/`poll progress`/`poll end`, `prediction begin`/`progress`/`lock`/`end`, `hype train begin`/`progress`/`end`). The `eventType` dropdown is gone, re-add the nodes to existing flows.
+
+### Fixed
+- The combined event nodes only ever emitted their last registered event, and their `eventType` field was always `unknown`
+- The hype train node never appeared in the palette: its editor file was a copy of the poll node's and registered the wrong type
+
 ## [0.1.1] - 2024-10-21
 ### Added
 - Added example in NPM repository, no change in the code
