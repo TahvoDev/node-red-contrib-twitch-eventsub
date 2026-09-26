@@ -7,8 +7,8 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
 - One node per EventSub event: follows, subscriptions and gift subs, channel point
   redeems, bits, cheers, raids, polls, predictions, hype trains, goals, charity,
   moderation, AutoMod, chat, warnings, whispers, stream online/offline and more.
-- The palette groups them into `Twitch EventSub: ...` categories that follow Twitch's
-  own EventSub areas: automod, bits & ads, channel, channel points, charity, chat,
+- The palette groups them into `twitch ...` categories that follow Twitch's own
+  EventSub areas: automod, bits & ads, channel, channel points, charity, chat events,
   goals, hype train, moderation, polls, predictions, raids, stream, subscriptions and user.
 - Every event node has its own icon, drawn from the event at build time.
 - The Helix API nodes live under `twitch api`.
@@ -134,7 +134,7 @@ has drifted from the registry. The field mapping supports a plain property name,
 renamed property, a default value and a `map` function for anything more complex.
 
 The palette category and icon are derived as well. `categoryFor` in the registry maps the
-event area to a `Twitch EventSub: ...` category, and `eventsub-icons.ts` maps the event to a glyph
+event area to a `twitch ...` category (the chat events area is `twitch chat events`), and `eventsub-icons.ts` maps the event to a glyph
 that the build renders white on Node-RED's standard 40x60 icon canvas, so it keeps the
 same padding as the stock icons. To use a new glyph, `npm i --no-save bootstrap-icons`,
 add the name in `eventsub-icons.ts`, then run `npx tsc && npm run collect-glyphs` to

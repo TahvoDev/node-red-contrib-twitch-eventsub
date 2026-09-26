@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `scripts/mock/fire-all-events.js`, which fires every event the Twitch CLI can generate and reports what the mock delivered and what the client rejected
 - `npm run test:e2e`, which runs the built module in a real Node-RED container against the Twitch CLI mock and fails if any generated event was rejected or never delivered. It needs podman or docker; the regular build and install do not
 - Each EventSub node now has its own palette icon: the event's glyph from Bootstrap Icons (MIT), rendered white on Node-RED's standard icon canvas at build time
-- The EventSub palette is grouped into `Twitch EventSub: ...` categories that follow Twitch's EventSub areas (automod, chat, channel points, subscriptions, moderation, polls, predictions, hype train, goals, charity, raids, bits & ads, stream, user)
+- The EventSub palette is grouped into `twitch ...` categories that follow Twitch's EventSub areas (automod, chat events, channel points, subscriptions, moderation, polls, predictions, hype train, goals, charity, raids, bits & ads, stream, user)
 - Twitch Chat (IRC) nodes under a `Twitch Chat (IRC)` palette category: `twitch-chat-connection` (a shared connection that borrows the token from a `twitch-api-config`), `chat in`, `chat send`, `chat reply`, `chat command`, `chat ban`, `chat timeout`, `chat unban`, `chat delete message`, `chat announce`, `chat clear`, `chat join` and `chat part`
 - Each Twitch Chat node has its own icon and uses the same palette colour as the EventSub nodes; the glyphs live in `src/twitch/chat/twitch-chat-icons.ts` and are rendered by `scripts/generate-chat-icons.js`
 
