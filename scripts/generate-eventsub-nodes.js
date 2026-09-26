@@ -18,6 +18,15 @@ const outDir = path.join(distDir, 'generated')
 const { EVENTS } = require(path.join(distDir, 'eventsub-registry.js'))
 const { renderEditorHtml } = require(path.join(distDir, 'eventsub-editor.js'))
 
+const seenTypes = new Set()
+for (const definition of EVENTS) {
+  if (seenTypes.has(definition.type)) {
+    console.error(`duplicate EventSub node type in the registry: ${definition.type}`)
+    process.exit(1)
+  }
+  seenTypes.add(definition.type)
+}
+
 fs.rmSync(outDir, { recursive: true, force: true })
 fs.mkdirSync(outDir, { recursive: true })
 

@@ -15,7 +15,31 @@ const path = require('path')
 
 const root = path.resolve(__dirname, '..')
 const pkgPath = path.join(root, 'package.json')
-const { EVENTS } = require(path.join(root, 'dist', 'twitch', 'eventsub', 'eventsub-registry.js'))
+const registryPath = path.join(root, 'dist', 'twitch', 'eventsub', 'eventsub-registry.js')
+
+let EVENTS
+try {
+  ({ EVENTS } = require(registryPath))
+} catch (error) {
+  console.error('could not load the compiled EventSub registry from dist/. run `npm run build` first.')
+  if (error.code === 'MODULE_NOT_FOUND') console.error(`  ${error.message}`)
+  process.exit(1)
+}
+
+assertUniqueTypes(EVENTS)
+
+function assertUniqueTypes(definitions) {
+  const counts = new Map()
+  for (const definition of definitions) {
+    counts.set(definition.type, (counts.get(definition.type) ?? 0) + 1)
+  }
+  const duplicates = [...counts].filter(([, count]) => count > 1).map(([type]) => type)
+  if (duplicates.length) {
+    console.error('the EventSub registry contains duplicate node types:')
+    for (const type of duplicates) console.error(`  ${type}`)
+    process.exit(1)
+  }
+}
 
 const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 const current = pkg['node-red'].nodes

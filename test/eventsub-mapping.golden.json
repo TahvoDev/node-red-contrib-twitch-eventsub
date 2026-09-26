@@ -1,0 +1,1923 @@
+{
+  "twitch-eventsub-automod-message-hold-v2": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "reason": "value:reason",
+      "autoMod": "value:autoMod",
+      "blockedTerms": [
+        {}
+      ],
+      "holdDate": "value:holdDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "blockedTerms": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-automod-message-hold": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "category": "value:category",
+      "level": "value:level",
+      "holdDate": "value:holdDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-automod-message-update-v2": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "reason": "value:reason",
+      "autoMod": "value:autoMod",
+      "blockedTerms": [
+        {}
+      ],
+      "status": "value:status",
+      "holdDate": "value:holdDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "blockedTerms": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-automod-message-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "category": "value:category",
+      "level": "value:level",
+      "status": "value:status",
+      "holdDate": "value:holdDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-automod-settings-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "overallLevel": "value:overallLevel",
+      "aggression": "value:aggression",
+      "bullying": "value:bullying",
+      "disability": "value:disability",
+      "misogyny": "value:misogyny",
+      "raceEthnicityOrReligion": "value:raceEthnicityOrReligion",
+      "sexBasedTerms": "value:sexBasedTerms",
+      "sexualitySexOrGender": "value:sexualitySexOrGender",
+      "swearing": "value:swearing",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-automod-terms-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "action": "value:action",
+      "fromAutoMod": "value:fromAutoMod",
+      "terms": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "terms": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-ad-break-begin": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "requesterId": "value:requesterId",
+      "requesterName": "value:requesterName",
+      "requesterDisplayName": "value:requesterDisplayName",
+      "durationSeconds": "value:durationSeconds",
+      "startDate": "value:startDate",
+      "isAutomatic": "value:isAutomatic",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-automatic-reward-redemption-add-v2": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "reward": "value:reward",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "redemptionDate": "value:redemptionDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-automatic-reward-redemption-add": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rewardType": "value:rewardType",
+      "rewardCost": "value:rewardCost",
+      "unlockedEmote": "value:unlockedEmote",
+      "input": "value:input",
+      "messageText": "value:messageText",
+      "emoteOffsets": "value:emoteOffsets",
+      "redemptionDate": "value:redemptionDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-ban": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "reason": "value:reason",
+      "isPermanent": "value:isPermanent",
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-bits-use": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "type": "value:type",
+      "bits": "value:bits",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "powerUp": "value:powerUp",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-charity-campaign-progress": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "charityName": "value:charityName",
+      "charityDescription": "value:charityDescription",
+      "charityLogo": "value:charityLogo",
+      "charityWebsite": "value:charityWebsite",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-charity-campaign-start": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "charityName": "value:charityName",
+      "charityDescription": "value:charityDescription",
+      "charityLogo": "value:charityLogo",
+      "charityWebsite": "value:charityWebsite",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-charity-campaign-stop": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "charityName": "value:charityName",
+      "charityDescription": "value:charityDescription",
+      "charityLogo": "value:charityLogo",
+      "charityWebsite": "value:charityWebsite",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-charity-donation": {
+    "full": {
+      "campaignId": "value:campaignId",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "donorId": "value:donorId",
+      "donorName": "value:donorName",
+      "donorDisplayName": "value:donorDisplayName",
+      "charityName": "value:charityName",
+      "charityDescription": "value:charityDescription",
+      "charityLogo": "value:charityLogo",
+      "charityWebsite": "value:charityWebsite",
+      "amount": "value:amount",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-clear-user-messages": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-clear": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-message-delete": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "messageId": "value:messageId",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-message": {
+    "full": {
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "messageType": "value:messageType",
+      "chatterId": "value:chatterId",
+      "chatterName": "value:chatterName",
+      "chatterDisplayName": "value:chatterDisplayName",
+      "color": "value:color",
+      "badges": [
+        {}
+      ],
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "isCheer": "value:isCheer",
+      "bits": "value:bits",
+      "isRedemption": "value:isRedemption",
+      "isSourceOnly": "value:isSourceOnly",
+      "parentMessageId": "value:parentMessageId",
+      "parentMessageText": "value:parentMessageText",
+      "parentMessageUserId": "value:parentMessageUserId",
+      "parentMessageUserName": "value:parentMessageUserName",
+      "parentMessageUserDisplayName": "value:parentMessageUserDisplayName",
+      "rewardId": "value:rewardId",
+      "sourceBadges": [
+        {}
+      ],
+      "sourceBroadcasterId": "value:sourceBroadcasterId",
+      "sourceBroadcasterName": "value:sourceBroadcasterName",
+      "sourceBroadcasterDisplayName": "value:sourceBroadcasterDisplayName",
+      "sourceMessageId": "value:sourceMessageId",
+      "threadMessageId": "value:threadMessageId",
+      "threadMessageUserId": "value:threadMessageUserId",
+      "threadMessageUserName": "value:threadMessageUserName",
+      "threadMessageUserDisplayName": "value:threadMessageUserDisplayName"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "badges": [
+        {}
+      ],
+      "isRedemption": false,
+      "isSourceOnly": false,
+      "parentMessageId": null,
+      "parentMessageText": null,
+      "parentMessageUserId": null,
+      "parentMessageUserName": null,
+      "parentMessageUserDisplayName": null,
+      "rewardId": null,
+      "sourceBadges": [
+        {}
+      ],
+      "sourceBroadcasterId": null,
+      "sourceBroadcasterName": null,
+      "sourceBroadcasterDisplayName": null,
+      "sourceMessageId": null,
+      "threadMessageId": null,
+      "threadMessageUserId": null,
+      "threadMessageUserName": null,
+      "threadMessageUserDisplayName": null
+    }
+  },
+  "twitch-eventsub-channel-chat-notification": {
+    "full": {
+      "type": "value:type",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "chatterId": "value:chatterId",
+      "chatterName": "value:chatterName",
+      "chatterDisplayName": "value:chatterDisplayName",
+      "chatterIsAnonymous": "value:chatterIsAnonymous",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "color": "value:color",
+      "badges": [
+        {}
+      ],
+      "sourceBroadcasterId": "value:sourceBroadcasterId",
+      "sourceBroadcasterName": "value:sourceBroadcasterName",
+      "sourceBroadcasterDisplayName": "value:sourceBroadcasterDisplayName",
+      "sourceMessageId": "value:sourceMessageId",
+      "sourceBadges": [
+        {}
+      ],
+      "tier": "value:tier",
+      "isPrime": "value:isPrime",
+      "durationMonths": "value:durationMonths",
+      "cumulativeMonths": "value:cumulativeMonths",
+      "streakMonths": "value:streakMonths",
+      "isGift": "value:isGift",
+      "isGifterAnonymous": "value:isGifterAnonymous",
+      "gifterId": "value:gifterId",
+      "gifterName": "value:gifterName",
+      "gifterDisplayName": "value:gifterDisplayName",
+      "recipientId": "value:recipientId",
+      "recipientName": "value:recipientName",
+      "recipientDisplayName": "value:recipientDisplayName",
+      "communityGiftId": "value:communityGiftId",
+      "cumulativeAmount": "value:cumulativeAmount",
+      "raiderId": "value:raiderId",
+      "raiderName": "value:raiderName",
+      "raiderDisplayName": "value:raiderDisplayName",
+      "viewerCount": "value:viewerCount",
+      "raiderProfileImageUrl": "value:raiderProfileImageUrl",
+      "charityName": "value:charityName",
+      "amount": "value:amount",
+      "newTier": "value:newTier",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "badges": [
+        {}
+      ],
+      "sourceBroadcasterId": null,
+      "sourceBroadcasterName": null,
+      "sourceBroadcasterDisplayName": null,
+      "sourceMessageId": null,
+      "sourceBadges": [
+        {}
+      ],
+      "tier": null,
+      "isPrime": null,
+      "durationMonths": null,
+      "cumulativeMonths": null,
+      "streakMonths": null,
+      "isGift": null,
+      "isGifterAnonymous": null,
+      "gifterId": null,
+      "gifterName": null,
+      "gifterDisplayName": null,
+      "recipientId": null,
+      "recipientName": null,
+      "recipientDisplayName": null,
+      "communityGiftId": null,
+      "cumulativeAmount": null,
+      "raiderId": null,
+      "raiderName": null,
+      "raiderDisplayName": null,
+      "viewerCount": null,
+      "raiderProfileImageUrl": null,
+      "charityName": null,
+      "amount": null,
+      "newTier": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-settings-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "emoteOnlyModeEnabled": "value:emoteOnlyModeEnabled",
+      "followerOnlyModeEnabled": "value:followerOnlyModeEnabled",
+      "followerOnlyModeDelay": "value:followerOnlyModeDelay",
+      "slowModeEnabled": "value:slowModeEnabled",
+      "slowModeDelay": "value:slowModeDelay",
+      "subscriberOnlyModeEnabled": "value:subscriberOnlyModeEnabled",
+      "uniqueChatModeEnabled": "value:uniqueChatModeEnabled",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-user-message-hold": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-chat-user-message-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "status": "value:status",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-cheer": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "id": "value:id",
+      "input": "value:input",
+      "redemptionDate": "value:redemptionDate",
+      "rewardCost": "value:rewardCost",
+      "rewardId": "value:rewardId",
+      "rewardPrompt": "value:rewardPrompt",
+      "rewardTitle": "value:rewardTitle",
+      "status": "value:status",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-follow": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "followDate": "value:followDate"
+    },
+    "sparse": {}
+  },
+  "twitch-eventsub-channel-goal-begin": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "description": "value:description",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-goal-end": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "description": "value:description",
+      "isAchieved": "value:isAchieved",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-goal-progress": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "description": "value:description",
+      "currentAmount": "value:currentAmount",
+      "targetAmount": "value:targetAmount",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-begin-v2": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "level": "value:level",
+      "total": "value:total",
+      "progress": "value:progress",
+      "goal": "value:goal",
+      "topContributors": [
+        {}
+      ],
+      "isSharedTrain": "value:isSharedTrain",
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "allTimeHighLevel": "value:allTimeHighLevel",
+      "allTimeHighTotal": "value:allTimeHighTotal",
+      "startDate": "value:startDate",
+      "expiryDate": "value:expiryDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributors": [
+        {}
+      ],
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-begin": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "level": "value:level",
+      "total": "value:total",
+      "progress": "value:progress",
+      "goal": "value:goal",
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "cooldownEndDate": "value:cooldownEndDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": null,
+      "endDate": null,
+      "cooldownEndDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-end-v2": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "level": "value:level",
+      "total": "value:total",
+      "topContributors": [
+        {}
+      ],
+      "isSharedTrain": "value:isSharedTrain",
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "cooldownEndDate": "value:cooldownEndDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributors": [
+        {}
+      ],
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-end": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "level": "value:level",
+      "total": "value:total",
+      "progress": "value:progress",
+      "goal": "value:goal",
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "cooldownEndDate": "value:cooldownEndDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": null,
+      "endDate": null,
+      "cooldownEndDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-progress-v2": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "type": "value:type",
+      "level": "value:level",
+      "total": "value:total",
+      "progress": "value:progress",
+      "goal": "value:goal",
+      "topContributors": [
+        {}
+      ],
+      "isSharedTrain": "value:isSharedTrain",
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "startDate": "value:startDate",
+      "expiryDate": "value:expiryDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributors": [
+        {}
+      ],
+      "sharedTrainParticipants": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-hype-train-progress": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "level": "value:level",
+      "total": "value:total",
+      "progress": "value:progress",
+      "goal": "value:goal",
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "cooldownEndDate": "value:cooldownEndDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "topContributions": [
+        {
+          "userId": "value:userId",
+          "userName": "value:userName",
+          "userDisplayName": "value:userDisplayName",
+          "type": "value:type",
+          "total": "value:total"
+        }
+      ],
+      "lastContribution": {
+        "userId": "value:userId",
+        "userName": "value:userName",
+        "userDisplayName": "value:userDisplayName",
+        "type": "value:type",
+        "total": "value:total"
+      },
+      "startDate": null,
+      "endDate": null,
+      "cooldownEndDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-moderation": {
+    "full": {
+      "moderationAction": "value:moderationAction",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "reason": "value:reason",
+      "expiryDate": "value:expiryDate",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "viewerCount": "value:viewerCount",
+      "followDurationMinutes": "value:followDurationMinutes",
+      "waitTimeSeconds": "value:waitTimeSeconds",
+      "moderatorMessage": "value:moderatorMessage",
+      "isApproved": "value:isApproved",
+      "chatRulesCited": [
+        {}
+      ],
+      "terms": [
+        {}
+      ],
+      "fromAutoMod": "value:fromAutoMod",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "userId": null,
+      "userName": null,
+      "userDisplayName": null,
+      "reason": null,
+      "expiryDate": null,
+      "messageId": null,
+      "messageText": null,
+      "viewerCount": null,
+      "followDurationMinutes": null,
+      "waitTimeSeconds": null,
+      "moderatorMessage": null,
+      "isApproved": null,
+      "chatRulesCited": [
+        {}
+      ],
+      "terms": [
+        {}
+      ],
+      "fromAutoMod": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-moderator-add": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-moderator-remove": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-poll-begin": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": "value:status",
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": null,
+      "startDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-poll-end": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": "value:status",
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": null,
+      "startDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-poll-progress": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": "value:status",
+      "startDate": "value:startDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "choices": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "votes": "value:votes",
+          "channelPointsVotes": "value:channelPointsVotes",
+          "bitsVotes": "value:bitsVotes"
+        }
+      ],
+      "bitsVoting": {},
+      "channelPointsVoting": {},
+      "status": null,
+      "startDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-prediction-begin": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "status": "value:status",
+      "winningOutcomeId": "value:winningOutcomeId",
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": "value:startDate",
+      "lockDate": "value:lockDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "status": null,
+      "winningOutcomeId": null,
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": null,
+      "lockDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-prediction-end": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "status": "value:status",
+      "winningOutcomeId": "value:winningOutcomeId",
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": "value:startDate",
+      "lockDate": "value:lockDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "status": null,
+      "winningOutcomeId": null,
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": null,
+      "lockDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-prediction-lock": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "status": "value:status",
+      "winningOutcomeId": "value:winningOutcomeId",
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": "value:startDate",
+      "lockDate": "value:lockDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "status": null,
+      "winningOutcomeId": null,
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": null,
+      "lockDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-prediction-progress": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:title",
+      "status": "value:status",
+      "winningOutcomeId": "value:winningOutcomeId",
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": "value:startDate",
+      "lockDate": "value:lockDate",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "status": null,
+      "winningOutcomeId": null,
+      "outcomes": [
+        {
+          "id": "value:id",
+          "title": "value:title",
+          "color": "value:color",
+          "users": "value:users",
+          "channelPoints": "value:channelPoints"
+        }
+      ],
+      "startDate": null,
+      "lockDate": null,
+      "endDate": null,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-raid-from": {
+    "full": {
+      "fromBroadcasterId": "value:raidingBroadcasterId",
+      "fromBroadcasterName": "value:raidingBroadcasterName",
+      "fromBroadcasterDisplayName": "value:raidingBroadcasterDisplayName",
+      "toBroadcasterId": "value:toBroadcasterId",
+      "toBroadcasterName": "value:toBroadcasterName",
+      "toBroadcasterDisplayName": "value:toBroadcasterDisplayName",
+      "viewers": "value:viewers",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-raid-to": {
+    "full": {
+      "fromBroadcasterId": "value:fromBroadcasterId",
+      "fromBroadcasterName": "value:fromBroadcasterName",
+      "fromBroadcasterDisplayName": "value:fromBroadcasterDisplayName",
+      "toBroadcasterId": "value:raidedBroadcasterId",
+      "toBroadcasterName": "value:raidedBroadcasterName",
+      "toBroadcasterDisplayName": "value:raidedBroadcasterDisplayName",
+      "viewers": "value:viewers",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-redemption-add": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "id": "value:id",
+      "input": "value:input",
+      "redemptionDate": "value:redemptionDate",
+      "rewardCost": "value:rewardCost",
+      "rewardId": "value:rewardId",
+      "rewardPrompt": "value:rewardPrompt",
+      "rewardTitle": "value:rewardTitle",
+      "status": "value:status",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-redemption-update": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "input": "value:input",
+      "status": "value:status",
+      "rewardId": "value:rewardId",
+      "rewardTitle": "value:rewardTitle",
+      "rewardCost": "value:rewardCost",
+      "rewardPrompt": "value:rewardPrompt",
+      "redemptionDate": "value:redemptionDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-reward-add": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "isEnabled": "value:isEnabled",
+      "isPaused": "value:isPaused",
+      "isInStock": "value:isInStock",
+      "title": "value:title",
+      "cost": "value:cost",
+      "prompt": "value:prompt",
+      "userInputRequired": "value:userInputRequired",
+      "autoApproved": "value:autoApproved",
+      "cooldownExpiryDate": "value:cooldownExpiryDate",
+      "redemptionsThisStream": "value:redemptionsThisStream",
+      "maxRedemptionsPerStream": "value:maxRedemptionsPerStream",
+      "maxRedemptionsPerUserPerStream": "value:maxRedemptionsPerUserPerStream",
+      "globalCooldown": "value:globalCooldown",
+      "backgroundColor": "value:backgroundColor",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-reward-remove": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "isEnabled": "value:isEnabled",
+      "isPaused": "value:isPaused",
+      "isInStock": "value:isInStock",
+      "title": "value:title",
+      "cost": "value:cost",
+      "prompt": "value:prompt",
+      "userInputRequired": "value:userInputRequired",
+      "autoApproved": "value:autoApproved",
+      "cooldownExpiryDate": "value:cooldownExpiryDate",
+      "redemptionsThisStream": "value:redemptionsThisStream",
+      "maxRedemptionsPerStream": "value:maxRedemptionsPerStream",
+      "maxRedemptionsPerUserPerStream": "value:maxRedemptionsPerUserPerStream",
+      "globalCooldown": "value:globalCooldown",
+      "backgroundColor": "value:backgroundColor",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-reward-update": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "isEnabled": "value:isEnabled",
+      "isPaused": "value:isPaused",
+      "isInStock": "value:isInStock",
+      "title": "value:title",
+      "cost": "value:cost",
+      "prompt": "value:prompt",
+      "userInputRequired": "value:userInputRequired",
+      "autoApproved": "value:autoApproved",
+      "cooldownExpiryDate": "value:cooldownExpiryDate",
+      "redemptionsThisStream": "value:redemptionsThisStream",
+      "maxRedemptionsPerStream": "value:maxRedemptionsPerStream",
+      "maxRedemptionsPerUserPerStream": "value:maxRedemptionsPerUserPerStream",
+      "globalCooldown": "value:globalCooldown",
+      "backgroundColor": "value:backgroundColor",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shared-chat-session-begin": {
+    "full": {
+      "sessionId": "value:sessionId",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "hostBroadcasterId": "value:hostBroadcasterId",
+      "hostBroadcasterName": "value:hostBroadcasterName",
+      "hostBroadcasterDisplayName": "value:hostBroadcasterDisplayName",
+      "participants": "value:participants",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shared-chat-session-end": {
+    "full": {
+      "sessionId": "value:sessionId",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "hostBroadcasterId": "value:hostBroadcasterId",
+      "hostBroadcasterName": "value:hostBroadcasterName",
+      "hostBroadcasterDisplayName": "value:hostBroadcasterDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shared-chat-session-update": {
+    "full": {
+      "sessionId": "value:sessionId",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "hostBroadcasterId": "value:hostBroadcasterId",
+      "hostBroadcasterName": "value:hostBroadcasterName",
+      "hostBroadcasterDisplayName": "value:hostBroadcasterDisplayName",
+      "participants": "value:participants",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shield-mode-begin": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shield-mode-end": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "endDate": "value:endDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shoutout-create": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "shoutedOutBroadcasterId": "value:shoutedOutBroadcasterId",
+      "shoutedOutBroadcasterName": "value:shoutedOutBroadcasterName",
+      "shoutedOutBroadcasterDisplayName": "value:shoutedOutBroadcasterDisplayName",
+      "viewerCount": "value:viewerCount",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-shoutout-receive": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "sendingBroadcasterId": "value:sendingBroadcasterId",
+      "sendingBroadcasterName": "value:sendingBroadcasterName",
+      "sendingBroadcasterDisplayName": "value:sendingBroadcasterDisplayName",
+      "viewerCount": "value:viewerCount",
+      "startDate": "value:startDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-stream-offline": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "startDate": "value:startDate",
+      "type": "value:type",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-stream-online": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "startDate": "value:startDate",
+      "type": "value:type"
+    },
+    "sparse": {}
+  },
+  "twitch-eventsub-channel-subscription-end": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "tier": "value:tier",
+      "isGift": "value:isGift",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-subscription-gift": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "gifterId": "value:gifterId",
+      "gifterName": "value:gifterName",
+      "gifterDisplayName": "value:gifterDisplayName",
+      "tier": "value:tier",
+      "amount": "value:amount",
+      "cumulativeAmount": "value:cumulativeAmount",
+      "isAnonymous": "value:isAnonymous",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-subscription-message": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "tier": "value:tier",
+      "messageText": "value:messageText",
+      "cumulativeMonths": "value:cumulativeMonths",
+      "streakMonths": "value:streakMonths",
+      "durationMonths": "value:durationMonths",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageText": "",
+      "cumulativeMonths": 1,
+      "streakMonths": null,
+      "durationMonths": 1,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-subscription": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "tier": "value:tier",
+      "isGift": "value:isGift",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "isGift": false,
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-suspicious-user-message": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "lowTrustStatus": "value:lowTrustStatus",
+      "sharedBanChannelIds": "value:sharedBanChannelIds",
+      "types": "value:types",
+      "banEvasionEvaluation": "value:banEvasionEvaluation",
+      "messageId": "value:messageId",
+      "messageText": "value:messageText",
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "messageParts": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-suspicious-user-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "lowTrustStatus": "value:lowTrustStatus",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-unban-request-create": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "message": "value:message",
+      "creationDate": "value:creationDate",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-unban-request-resolve": {
+    "full": {
+      "id": "value:id",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "resolutionMessage": "value:resolutionMessage",
+      "status": "value:status",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-unban": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-update": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "title": "value:streamTitle",
+      "categoryId": "value:categoryId",
+      "categoryName": "value:categoryName",
+      "isMature": "value:isMature",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-vip-add": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-vip-remove": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-warning-acknowledge": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-channel-warning-send": {
+    "full": {
+      "broadcasterId": "value:broadcasterId",
+      "broadcasterName": "value:broadcasterName",
+      "broadcasterDisplayName": "value:broadcasterDisplayName",
+      "moderatorId": "value:moderatorId",
+      "moderatorName": "value:moderatorName",
+      "moderatorDisplayName": "value:moderatorDisplayName",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "reason": "value:reason",
+      "chatRulesCited": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "chatRulesCited": [
+        {}
+      ],
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-user-authorization-grant": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "clientId": "value:clientId",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-user-authorization-revoke": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "clientId": "value:clientId",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-user-update": {
+    "full": {
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "userDescription": "value:userDescription",
+      "userEmail": "value:userEmail",
+      "userEmailIsVerified": "value:userEmailIsVerified",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  },
+  "twitch-eventsub-user-whisper-message": {
+    "full": {
+      "id": "value:id",
+      "userId": "value:userId",
+      "userName": "value:userName",
+      "userDisplayName": "value:userDisplayName",
+      "senderUserId": "value:senderUserId",
+      "senderUserName": "value:senderUserName",
+      "senderUserDisplayName": "value:senderUserDisplayName",
+      "messageText": "value:messageText",
+      "rawEvent": "<rawEvent>"
+    },
+    "sparse": {
+      "rawEvent": "<rawEvent>"
+    }
+  }
+}

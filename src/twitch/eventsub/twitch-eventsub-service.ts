@@ -88,6 +88,9 @@ class TwitchEventsubService {
     this.restoring = true;
     this.subscriptionCounts.forEach((_, type) => this.registerSubscription(type));
     this.restoring = false;
+    // A clean restore means the previous outage is over, so give the next one a
+    // full retry budget instead of carrying the old attempt count forever.
+    if (!this.pendingSubscriptions.size) this.retries = 0;
     this.schedulePendingRetry();
   }
 
