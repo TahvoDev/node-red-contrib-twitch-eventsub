@@ -1,7 +1,7 @@
 src/icons/glyphs.json vendors glyph path data from Bootstrap Icons v1.13.1.
 
-The per-node EventSub editor icons in dist/twitch/icons are composed from these
-glyphs (white) plus the Twitch mark (bottom-right corner).
+The per-node EventSub editor icons in dist/twitch/icons are rendered from these
+glyphs (white and full-size).
 
 Bootstrap Icons is licensed under the MIT License:
 

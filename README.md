@@ -49,7 +49,7 @@ renamed property, a default value and a `map` function for anything more complex
 
 The palette category and icon are derived too: the registry groups each event into a
 `twitch ...` category following Twitch's EventSub areas, and `eventsub-icons.ts` maps it
-to a glyph that the build composes (white) with the Twitch mark in the corner. To use a
+to a glyph that the build renders white and full-size. To use a
 new glyph, `npm i --no-save bootstrap-icons`, add the name in `eventsub-icons.ts`, then
 run `npx tsc && npm run collect-glyphs` to vendor its path into `src/icons/glyphs.json`.
 

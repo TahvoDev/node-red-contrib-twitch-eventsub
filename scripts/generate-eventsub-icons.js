@@ -2,9 +2,9 @@
 'use strict'
 
 /**
- * Emits one editor icon per EventSub node: the event glyph in white with a small
- * Twitch mark in the bottom-right corner. They are written to `dist/twitch/icons`
- * (next to the Twitch icon) because Node-RED only discovers icons from an `icons`
+ * Emits one editor icon per EventSub node: the event glyph in white, scaled to
+ * fill the whole 24x24 canvas. They are written to `dist/twitch/icons` (next to
+ * the Twitch icon) because Node-RED only discovers icons from an `icons`
  * directory beside a registered node file.
  *
  * The glyph paths are vendored from Bootstrap Icons (MIT) in `src/icons/glyphs.json`
@@ -22,11 +22,11 @@ const { EVENTS } = require(path.join(distDir, 'eventsub-registry.js'))
 const { glyphFor } = require(path.join(distDir, 'eventsub-icons.js'))
 const { glyphs } = require(path.join(root, 'src', 'icons', 'glyphs.json'))
 
-// Both the glyph and the corner mark are white; the node body supplies the colour.
+// The glyph is white; the node body supplies the colour. The icon fills the full
+// 24x24 viewBox so Node-RED's `background-size: contain` renders it edge to edge.
 const ICON_COLOR = '#ffffff'
-const GLYPH_SIZE = 14.5
-const GLYPH_ORIGIN = 1.5
-const MARK = 'M1.7 6.058.015 10.362v17.594h5.99v3.181h3.368l3.182-3.181h4.866l6.551-6.551V6.058Zm20.026 14.224-3.743 3.743h-5.99l-3.181 3.182v-3.182H3.758V8.304h17.968Zm-3.743-7.673v6.544h-2.246v-6.544zm-5.99 0v6.544H9.749v-6.544z'
+const GLYPH_SIZE = 24
+const GLYPH_ORIGIN = 0
 
 function renderIcon(glyphName) {
   const glyph = glyphs[glyphName]
@@ -38,7 +38,6 @@ function renderIcon(glyphName) {
   return (
     '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
     `<g transform="translate(${GLYPH_ORIGIN} ${GLYPH_ORIGIN}) scale(${scale}) translate(${-gx} ${-gy})" fill="${ICON_COLOR}">${glyph.body}</g>` +
-    `<path transform="translate(16.9 15.4) scale(0.205)" fill="${ICON_COLOR}" d="${MARK}"/>` +
     '</svg>\n'
   )
 }

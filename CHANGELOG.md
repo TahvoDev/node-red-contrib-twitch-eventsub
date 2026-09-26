@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `examples/mock-all-nodes.json`, a flow with every event node wired to a debug node
 - `scripts/mock/fire-all-events.js`, which fires every event the Twitch CLI can generate and reports what the mock delivered and what the client rejected
 - `npm run test:e2e`, which runs the built module in a real Node-RED container against the Twitch CLI mock and fails if any generated event was rejected or never delivered. It needs podman or docker; the regular build and install do not
-- Each EventSub node now has its own palette icon: the event's glyph composited with the Twitch mark, generated at build time from Bootstrap Icons (MIT)
+- Each EventSub node now has its own palette icon: the event's glyph from Bootstrap Icons (MIT), rendered white and full-size at build time
 - The EventSub palette is grouped into `twitch ...` categories that follow Twitch's EventSub areas (automod, chat, channel points, subscriptions, moderation, polls, predictions, hype train, goals, charity, raids, bits & ads, stream, user)
 
 ### Changed
