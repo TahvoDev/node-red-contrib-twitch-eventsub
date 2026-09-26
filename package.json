@@ -6,7 +6,8 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "scripts": {
-    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write",
+    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write",
+    "collect-glyphs": "node scripts/collect-glyphs.js",
     "check": "node scripts/sync-nodes-manifest.js",
     "sync": "node scripts/sync-nodes-manifest.js --write",
     "test": "npm run test:e2e",

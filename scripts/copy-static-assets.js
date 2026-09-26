@@ -25,3 +25,6 @@ copyHtml("src", "dist");
 // Copy icons
 shell.cp("-R", "src/icons/*.svg", "dist/twitch/icons/");
 
+// The composed icons derive from Bootstrap Icons (MIT); ship its notice alongside.
+shell.cp("src/icons/glyphs.LICENSE", "dist/twitch/icons/GLYPHS-LICENSE.txt");
+

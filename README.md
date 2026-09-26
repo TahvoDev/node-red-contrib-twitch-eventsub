@@ -47,6 +47,12 @@ regenerate only the manifest, run `npm run sync`; `npm run check` fails if the m
 has drifted from the registry. The field mapping supports a plain property name, a
 renamed property, a default value and a `map` function for anything more complex.
 
+The palette category and icon are derived too: the registry groups each event into a
+`twitch ...` category following Twitch's EventSub areas, and `eventsub-icons.ts` maps it
+to a glyph that the build composes (white) with the Twitch mark in the corner. To use a
+new glyph, `npm i --no-save bootstrap-icons`, add the name in `eventsub-icons.ts`, then
+run `npx tsc && npm run collect-glyphs` to vendor its path into `src/icons/glyphs.json`.
+
 ### Credits
 Twitch EventSub for Node-RED [xurei/node-red-contrib-twitch-eventsub](https://github.com/xurei/node-red-contrib-twitch-eventsub/tree/master)
 [Twurple](https://www.npmjs.com/package/@twurple/api).

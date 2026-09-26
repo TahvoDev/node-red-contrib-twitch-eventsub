@@ -57,14 +57,14 @@ export function renderEditorHtml(definition: EventSubEventDefinition): string {
   return `<script type="text/javascript">
   RED.nodes.registerType(${jsString(definition.type)}, {
     category: ${jsString(definition.category)},
-    color: '#b9a3e3',
+    color: '#9146FF',
     defaults: {
       name: { value: '' },
       config: { type: 'twitch-api-config', required: true }
     },
     inputs: 0,
     outputs: 1,
-    icon: 'twitch-icon.svg',
+    icon: ${jsString(definition.icon)},
     paletteLabel: ${label},
     label: function () {
       if (this.name) return this.name;
