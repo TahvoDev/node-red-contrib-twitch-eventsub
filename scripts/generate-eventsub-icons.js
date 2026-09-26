@@ -20,8 +20,18 @@ const distDir = path.join(root, 'dist', 'twitch', 'eventsub')
 const outDir = path.join(root, 'dist', 'twitch', 'icons')
 
 const { EVENTS } = require(path.join(distDir, 'eventsub-registry.js'))
-const { glyphFor } = require(path.join(distDir, 'eventsub-icons.js'))
+const { EVENT_ICONS, glyphFor } = require(path.join(distDir, 'eventsub-icons.js'))
 const { glyphs } = require(path.join(root, 'src', 'icons', 'glyphs.json'))
+
+// Fail loudly instead of silently falling back, so a new registry entry without
+// an icon mapping is caught at build time.
+const unmapped = EVENTS.filter((definition) => !EVENT_ICONS[definition.type.replace(/^twitch-eventsub-/, '')])
+if (unmapped.length) {
+  console.error('no icon mapped for these EventSub events:')
+  for (const definition of unmapped) console.error(`  ${definition.type}`)
+  console.error('add a glyph name for each in src/twitch/eventsub/eventsub-icons.ts')
+  process.exit(1)
+}
 
 // The glyph is white; the node body supplies the colour. The canvas matches the
 // 40x60 viewBox of Node-RED's stock icons, with the glyph inset so it keeps the
@@ -35,7 +45,8 @@ function renderIcon(glyphName) {
   const glyph = glyphs[glyphName]
   if (!glyph) throw new Error(`missing glyph: ${glyphName} (run scripts/collect-glyphs.js)`)
 
-  const [gx, gy, gw, gh] = glyph.viewBox.split(/\s+/).map(Number)
+  // SVG allows commas as well as whitespace between viewBox values.
+  const [gx, gy, gw, gh] = glyph.viewBox.split(/[\s,]+/).map(Number)
   const scale = GLYPH_SIZE / Math.max(gw, gh)
   const x = (CANVAS_WIDTH - gw * scale) / 2 - gx * scale
   const y = (CANVAS_HEIGHT - gh * scale) / 2 - gy * scale
