@@ -16,7 +16,7 @@
         }
         else {
           var config = RED.nodes.node(this.config);
-          return 'incoming raid + (config ? ' (' + (config.name || '') + ')' : '');
+          return 'incoming raid' + (config ? ' (' + (config.name || '') + ')' : '');
         }
       },
     });
