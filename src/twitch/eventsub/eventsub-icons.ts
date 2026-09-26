@@ -7,16 +7,13 @@
  * `src/icons/glyphs.json` so the build does not need the package installed.
  */
 export const EVENT_ICONS: Record<string, string> = {
-  'automod-message-hold': 'shield-exclamation',
-  'automod-message-hold-v2': 'shield-fill-exclamation',
-  'automod-message-update': 'shield-check',
-  'automod-message-update-v2': 'shield-fill-check',
+  'automod-message-hold': 'shield-fill-exclamation',
+  'automod-message-update': 'shield-fill-check',
   'automod-settings-update': 'sliders',
   'automod-terms-update': 'card-checklist',
 
   'channel-ad-break-begin': 'badge-ad-fill',
   'channel-automatic-reward-redemption-add': 'box2-heart-fill',
-  'channel-automatic-reward-redemption-add-v2': 'box2-heart-fill',
   'channel-ban': 'slash-circle-fill',
   'channel-bits-use': 'gem',
   'channel-charity-campaign-progress': 'heart-half',
@@ -37,11 +34,8 @@ export const EVENT_ICONS: Record<string, string> = {
   'channel-goal-end': 'trophy-fill',
   'channel-goal-progress': 'bullseye',
   'channel-hype-train-begin': 'fire',
-  'channel-hype-train-begin-v2': 'fire',
   'channel-hype-train-end': 'trophy-fill',
-  'channel-hype-train-end-v2': 'trophy-fill',
   'channel-hype-train-progress': 'graph-up-arrow',
-  'channel-hype-train-progress-v2': 'graph-up-arrow',
   'channel-moderation': 'hammer',
   'channel-moderator-add': 'person-check-fill',
   'channel-moderator-remove': 'person-dash-fill',

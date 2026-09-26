@@ -4,7 +4,7 @@
     "type": "tab",
     "label": "twitch mock",
     "disabled": false,
-    "info": "All 78 EventSub nodes wired to the isolated Twitch CLI mock server.",
+    "info": "All 72 EventSub nodes wired to the isolated Twitch CLI mock server.",
     "env": []
   },
   {
@@ -18,55 +18,24 @@
     "twitch_mock_user_id": "3963854"
   },
   {
-    "id": "etwitch-eventsub-automod-message-hold771415562835",
+    "id": "etwitch-eventsub-automod-message-hold637343868432",
     "type": "twitch-eventsub-automod-message-hold",
     "z": "tab-mock-00000000000001",
     "name": "automod message hold",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-automod-message-hold159224231445"
-      ]
-    ],
-    "x": 180,
-    "y": 120
-  },
-  {
-    "id": "dtwitch-eventsub-automod-message-hold159224231445",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "automod message hold",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 390,
-    "y": 120,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-automod-message-hold-v2637343868432",
-    "type": "twitch-eventsub-automod-message-hold-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "automod message hold v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-automod-message-hold-v2197499158888"
+        "dtwitch-eventsub-automod-message-hold197499158888"
       ]
     ],
     "x": 640,
     "y": 120
   },
   {
-    "id": "dtwitch-eventsub-automod-message-hold-v2197499158888",
+    "id": "dtwitch-eventsub-automod-message-hold197499158888",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "automod message hold v2",
+    "name": "automod message hold",
     "active": true,
     "tosidebar": true,
     "console": false,
@@ -80,55 +49,24 @@
     "wires": []
   },
   {
-    "id": "etwitch-eventsub-automod-message-update811123091799",
+    "id": "etwitch-eventsub-automod-message-update288050040885",
     "type": "twitch-eventsub-automod-message-update",
     "z": "tab-mock-00000000000001",
     "name": "automod message update",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-automod-message-update137379895543"
-      ]
-    ],
-    "x": 1100,
-    "y": 120
-  },
-  {
-    "id": "dtwitch-eventsub-automod-message-update137379895543",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "automod message update",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 1310,
-    "y": 120,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-automod-message-update-v2288050040885",
-    "type": "twitch-eventsub-automod-message-update-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "automod message update v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-automod-message-update-v2626381023834"
+        "dtwitch-eventsub-automod-message-update626381023834"
       ]
     ],
     "x": 1560,
     "y": 120
   },
   {
-    "id": "dtwitch-eventsub-automod-message-update-v2626381023834",
+    "id": "dtwitch-eventsub-automod-message-update626381023834",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "automod message update v2",
+    "name": "automod message update",
     "active": true,
     "tosidebar": true,
     "console": false,
@@ -235,55 +173,24 @@
     "wires": []
   },
   {
-    "id": "etwitch-eventsub-channel-automatic-reward-redemption-add754039893693",
+    "id": "etwitch-eventsub-channel-automatic-reward-redemption-add890308373542",
     "type": "twitch-eventsub-channel-automatic-reward-redemption-add",
     "z": "tab-mock-00000000000001",
     "name": "automatic reward redemption add",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-channel-automatic-reward-redemption-add287000753500"
-      ]
-    ],
-    "x": 1560,
-    "y": 310
-  },
-  {
-    "id": "dtwitch-eventsub-channel-automatic-reward-redemption-add287000753500",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "automatic reward redemption add",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 1770,
-    "y": 310,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-channel-automatic-reward-redemption-add-v2890308373542",
-    "type": "twitch-eventsub-channel-automatic-reward-redemption-add-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "automatic reward redemption add v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-channel-automatic-reward-redemption-add-v2991303900968"
+        "dtwitch-eventsub-channel-automatic-reward-redemption-add991303900968"
       ]
     ],
     "x": 180,
     "y": 500
   },
   {
-    "id": "dtwitch-eventsub-channel-automatic-reward-redemption-add-v2991303900968",
+    "id": "dtwitch-eventsub-channel-automatic-reward-redemption-add991303900968",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "automatic reward redemption add v2",
+    "name": "automatic reward redemption add",
     "active": true,
     "tosidebar": true,
     "console": false,
@@ -886,55 +793,24 @@
     "wires": []
   },
   {
-    "id": "etwitch-eventsub-channel-hype-train-begin451729684078",
+    "id": "etwitch-eventsub-channel-hype-train-begin404818542850",
     "type": "twitch-eventsub-channel-hype-train-begin",
     "z": "tab-mock-00000000000001",
     "name": "hype train begin",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-channel-hype-train-begin578028239639"
-      ]
-    ],
-    "x": 180,
-    "y": 1450
-  },
-  {
-    "id": "dtwitch-eventsub-channel-hype-train-begin578028239639",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train begin",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 390,
-    "y": 1450,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-channel-hype-train-begin-v2404818542850",
-    "type": "twitch-eventsub-channel-hype-train-begin-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train begin v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-channel-hype-train-begin-v2268921025496"
+        "dtwitch-eventsub-channel-hype-train-begin268921025496"
       ]
     ],
     "x": 640,
     "y": 1450
   },
   {
-    "id": "dtwitch-eventsub-channel-hype-train-begin-v2268921025496",
+    "id": "dtwitch-eventsub-channel-hype-train-begin268921025496",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "hype train begin v2",
+    "name": "hype train begin",
     "active": true,
     "tosidebar": true,
     "console": false,
@@ -948,55 +824,24 @@
     "wires": []
   },
   {
-    "id": "etwitch-eventsub-channel-hype-train-end840362954273",
+    "id": "etwitch-eventsub-channel-hype-train-end308684756225",
     "type": "twitch-eventsub-channel-hype-train-end",
     "z": "tab-mock-00000000000001",
     "name": "hype train end",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-channel-hype-train-end749556142728"
-      ]
-    ],
-    "x": 1100,
-    "y": 1450
-  },
-  {
-    "id": "dtwitch-eventsub-channel-hype-train-end749556142728",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train end",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 1310,
-    "y": 1450,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-channel-hype-train-end-v2308684756225",
-    "type": "twitch-eventsub-channel-hype-train-end-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train end v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-channel-hype-train-end-v2306951693554"
+        "dtwitch-eventsub-channel-hype-train-end306951693554"
       ]
     ],
     "x": 1560,
     "y": 1450
   },
   {
-    "id": "dtwitch-eventsub-channel-hype-train-end-v2306951693554",
+    "id": "dtwitch-eventsub-channel-hype-train-end306951693554",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "hype train end v2",
+    "name": "hype train end",
     "active": true,
     "tosidebar": true,
     "console": false,
@@ -1010,55 +855,24 @@
     "wires": []
   },
   {
-    "id": "etwitch-eventsub-channel-hype-train-progress469570312582",
+    "id": "etwitch-eventsub-channel-hype-train-progress185345684592",
     "type": "twitch-eventsub-channel-hype-train-progress",
     "z": "tab-mock-00000000000001",
     "name": "hype train progress",
     "config": "twitchconfig0000000000000001",
     "wires": [
       [
-        "dtwitch-eventsub-channel-hype-train-progress633563134264"
-      ]
-    ],
-    "x": 180,
-    "y": 1640
-  },
-  {
-    "id": "dtwitch-eventsub-channel-hype-train-progress633563134264",
-    "type": "debug",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train progress",
-    "active": true,
-    "tosidebar": true,
-    "console": false,
-    "tostatus": false,
-    "complete": "payload",
-    "targetType": "msg",
-    "statusVal": "",
-    "statusType": "auto",
-    "x": 390,
-    "y": 1640,
-    "wires": []
-  },
-  {
-    "id": "etwitch-eventsub-channel-hype-train-progress-v2185345684592",
-    "type": "twitch-eventsub-channel-hype-train-progress-v2",
-    "z": "tab-mock-00000000000001",
-    "name": "hype train progress v2",
-    "config": "twitchconfig0000000000000001",
-    "wires": [
-      [
-        "dtwitch-eventsub-channel-hype-train-progress-v2444834293977"
+        "dtwitch-eventsub-channel-hype-train-progress444834293977"
       ]
     ],
     "x": 640,
     "y": 1640
   },
   {
-    "id": "dtwitch-eventsub-channel-hype-train-progress-v2444834293977",
+    "id": "dtwitch-eventsub-channel-hype-train-progress444834293977",
     "type": "debug",
     "z": "tab-mock-00000000000001",
-    "name": "hype train progress v2",
+    "name": "hype train progress",
     "active": true,
     "tosidebar": true,
     "console": false,
