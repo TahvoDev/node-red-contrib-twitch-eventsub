@@ -39,7 +39,7 @@
   },
   "node-red": {
     "version": ">=2.0.0",
-    "icons": "dist/icons",
+    "icons": "dist/twitch/icons",
     "nodes": {
       "twitch-api-config": "dist/twitch/twitch-api-config.js",
       "twitch-eventsub-automod-message-hold": "dist/twitch/eventsub/generated/twitch-eventsub-automod-message-hold.js",

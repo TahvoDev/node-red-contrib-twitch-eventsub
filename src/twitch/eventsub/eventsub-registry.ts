@@ -16,6 +16,8 @@ export type EventSubField =
 export interface EventSubEventDefinition {
   /** Node-RED node type, e.g. `twitch-eventsub-channel-follow`. */
   type: string;
+  /** Palette category, derived from the event's EventSub area by `categoryFor`. */
+  category: string;
   /** Short label shown in the palette. */
   label: string;
   /** One-line description used in the node help. */
@@ -31,7 +33,15 @@ export interface EventSubEventDefinition {
   fields: EventSubField[];
 }
 
-const EVENT_LIST: EventSubEventDefinition[] = [
+/**
+ * The entries are declared without a category and get one attached below, so the
+ * grouping lives in one place instead of being repeated on every entry. The
+ * layout follows Twitch's own grouping of EventSub subscription types; Node-RED
+ * has no nested palette categories, so each name starts with "twitch".
+ */
+type EventSubEventInput = Omit<EventSubEventDefinition, 'category'>;
+
+const EVENT_LIST: EventSubEventInput[] = [
   {
     type: "twitch-eventsub-automod-message-hold-v2",
     label: "automod hold v2",
@@ -1590,7 +1600,29 @@ const EVENT_LIST: EventSubEventDefinition[] = [
   },
 ];
 
-export const EVENTS: readonly EventSubEventDefinition[] = EVENT_LIST;
+function categoryFor(type: string): string {
+  const name = type.replace(/^twitch-eventsub-/, '');
+  if (/^automod-/.test(name)) return 'twitch automod';
+  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'twitch chat';
+  if (/^channel-subscription/.test(name)) return 'twitch subscriptions';
+  if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'twitch channel points';
+  if (/^channel-poll-/.test(name)) return 'twitch polls';
+  if (/^channel-prediction-/.test(name)) return 'twitch predictions';
+  if (/^channel-hype-train-/.test(name)) return 'twitch hype train';
+  if (/^channel-goal-/.test(name)) return 'twitch goals';
+  if (/^channel-charity-/.test(name)) return 'twitch charity';
+  if (/^channel-(ban|unban|moderator|vip|warning|shield-mode|moderation)/.test(name)) return 'twitch moderation';
+  if (/^channel-raid-/.test(name)) return 'twitch raids';
+  if (/^channel-(cheer|bits-use|ad-break)/.test(name)) return 'twitch bits & ads';
+  if (/^channel-stream-/.test(name)) return 'twitch stream';
+  if (/^user-/.test(name)) return 'twitch user';
+  return 'twitch channel';
+}
+
+export const EVENTS: readonly EventSubEventDefinition[] = EVENT_LIST.map((event) => ({
+  ...event,
+  category: categoryFor(event.type),
+}));
 
 export const EVENTS_BY_TYPE: Record<string, EventSubEventDefinition> =
-  Object.fromEntries(EVENT_LIST.map((event) => [event.type, event]));
+  Object.fromEntries(EVENTS.map((event) => [event.type, event]));

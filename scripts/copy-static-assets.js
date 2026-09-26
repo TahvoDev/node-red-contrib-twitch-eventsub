@@ -2,7 +2,10 @@ const shell = require('shelljs');
 const path = require('path');
 
 shell.mkdir("-p", "dist");
-shell.mkdir("-p", "dist/icons");
+// Node-RED only looks for icons in an "icons" directory next to a registered node
+// file. dist/twitch/twitch-api-config.js sits in dist/twitch, so this directory is
+// scanned for the whole package and any node can reference its icons by filename.
+shell.mkdir("-p", "dist/twitch/icons");
 
 // Copy all HTML files recursively
 function copyHtml(srcDir, destDir) {
@@ -20,5 +23,5 @@ function copyHtml(srcDir, destDir) {
 copyHtml("src", "dist");
 
 // Copy icons
-shell.cp("-R", "src/icons/*.svg", "dist/icons/");
+shell.cp("-R", "src/icons/*.svg", "dist/twitch/icons/");
 
