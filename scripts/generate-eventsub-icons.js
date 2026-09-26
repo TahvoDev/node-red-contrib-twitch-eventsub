@@ -24,8 +24,8 @@ const { glyphs } = require(path.join(root, 'src', 'icons', 'glyphs.json'))
 
 // Both the glyph and the corner mark are white; the node body supplies the colour.
 const ICON_COLOR = '#ffffff'
-const GLYPH_SIZE = 11.5
-const GLYPH_ORIGIN = 3.5
+const GLYPH_SIZE = 14.5
+const GLYPH_ORIGIN = 1.5
 const MARK = 'M1.7 6.058.015 10.362v17.594h5.99v3.181h3.368l3.182-3.181h4.866l6.551-6.551V6.058Zm20.026 14.224-3.743 3.743h-5.99l-3.181 3.182v-3.182H3.758V8.304h17.968Zm-3.743-7.673v6.544h-2.246v-6.544zm-5.99 0v6.544H9.749v-6.544z'
 
 function renderIcon(glyphName) {
