@@ -57,7 +57,7 @@ export function renderEditorHtml(definition: EventSubEventDefinition): string {
   return `<script type="text/javascript">
   RED.nodes.registerType(${jsString(definition.type)}, {
     category: ${jsString(definition.category)},
-    color: '#9146FF',
+    color: '#b9a3e3',
     defaults: {
       name: { value: '' },
       config: { type: 'twitch-api-config', required: true }
