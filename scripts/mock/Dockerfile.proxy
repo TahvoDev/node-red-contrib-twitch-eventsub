@@ -1,0 +1,13 @@
+# Single-port front for the Twitch CLI mock. Twurple is pointed at one
+# mockServerPort and sends Helix, EventSub management and the EventSub WebSocket
+# to it, so this routes them to the API and WebSocket mock upstreams.
+FROM docker.io/library/node:24-alpine
+
+LABEL purpose="dev-twitch-mock" org.opencontainers.image.title="Single-port front proxy for the Twitch CLI mock"
+
+WORKDIR /app
+COPY proxy.js /app/proxy.js
+
+ENV PROXY_PORT=8080 MOCK_API_PORT=8081 MOCK_WS_PORT=8082 UPSTREAM_HOST=127.0.0.1
+
+ENTRYPOINT ["node", "/app/proxy.js"]
