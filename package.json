@@ -8,6 +8,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write",
     "check": "node scripts/sync-nodes-manifest.js",
+    "sync": "node scripts/sync-nodes-manifest.js --write",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build && npm run check",
     "node-red-check": "node-red-dev validate"

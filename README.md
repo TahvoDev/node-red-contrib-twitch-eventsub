@@ -34,9 +34,10 @@ stay quiet; the script reports exactly which ones it could not trigger.
 All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry
 there (type, palette label, description, Twurple `subscribe` call and the payload field
 mapping), then run `npm run build`. The build generates the runtime module and editor
-file for the new node and updates the `node-red` node manifest in `package.json`. The
-field mapping supports a plain property name, a renamed property, a default value and a
-`map` function for anything more complex.
+file for the new node and updates the `node-red` node manifest in `package.json`. To
+regenerate only the manifest, run `npm run sync`; `npm run check` fails if the manifest
+has drifted from the registry. The field mapping supports a plain property name, a
+renamed property, a default value and a `map` function for anything more complex.
 
 ### Credits
 Twitch EventSub for Node-RED [xurei/node-red-contrib-twitch-eventsub](https://github.com/xurei/node-red-contrib-twitch-eventsub/tree/master)

@@ -42,12 +42,22 @@ export function mapEvent(definition: EventSubEventDefinition, event: any): Recor
 }
 
 /**
+ * The subset of the Twitch API config node this node depends on. Keeping it in a
+ * narrow interface means a change to the config node's registration API is a
+ * compile error here rather than a silent runtime break.
+ */
+interface TwitchApiConfig {
+  addNode(uuid: string, node: TwitchEventsubNode, type: string): void;
+  removeNode(uuid: string, type: string, done: () => void): void;
+}
+
+/**
  * The single runtime implementation shared by every EventSub node. A generated
  * stub per node type calls `registerEventsubNode` with its type, and the behaviour
  * is looked up from the registry, so no per-node class exists in source.
  */
 class TwitchEventsubNode extends AbstractNode {
-  twitchConfig: any;
+  twitchConfig?: TwitchApiConfig;
   definition: EventSubEventDefinition;
   private nodeUuid: string;
 
@@ -56,18 +66,14 @@ class TwitchEventsubNode extends AbstractNode {
     this.definition = definition;
     this.nodeUuid = config.id;
 
-    this.twitchConfig = RED.nodes.getNode(config.config);
+    this.twitchConfig = RED.nodes.getNode(config.config) as unknown as TwitchApiConfig | undefined;
     if (!this.twitchConfig) {
       this.error('No Twitch API Config node configured');
       return;
     }
 
     this.on('close', (removed: boolean, done: () => void) => {
-      if (this.twitchConfig) {
-        this.twitchConfig.removeNode(this.nodeUuid, this.definition.type, done);
-      } else {
-        done();
-      }
+      this.twitchConfig?.removeNode(this.nodeUuid, this.definition.type, done);
     });
 
     this.twitchConfig.addNode(this.nodeUuid, this, this.definition.type);

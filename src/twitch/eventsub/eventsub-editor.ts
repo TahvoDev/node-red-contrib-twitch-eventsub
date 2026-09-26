@@ -18,8 +18,17 @@ function escapeHtml(value: string): string {
     .replace(/'/g, '&#39;');
 }
 
-function escapeJs(value: string): string {
-  return value.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+/**
+ * A JS string literal (with its surrounding quotes) safe to embed in an inline
+ * `<script>`. JSON.stringify covers quotes, backslashes and control characters;
+ * the extra replacements stop a value from closing the script block or breaking
+ * the JS parser with a line/paragraph separator.
+ */
+function jsString(value: string): string {
+  return JSON.stringify(value)
+    .replace(/</g, '\\u003c')
+    .replace(/\u2028/g, '\\u2028')
+    .replace(/\u2029/g, '\\u2029');
 }
 
 function fieldKey(field: EventSubField): string {
@@ -41,12 +50,12 @@ function helpFieldList(definition: EventSubEventDefinition): string {
 }
 
 export function renderEditorHtml(definition: EventSubEventDefinition): string {
-  const type = escapeJs(definition.type);
-  const label = escapeJs(definition.label);
+  const type = escapeHtml(definition.type);
+  const label = jsString(definition.label);
   const description = escapeHtml(definition.description || definition.label);
 
   return `<script type="text/javascript">
-  RED.nodes.registerType('${type}', {
+  RED.nodes.registerType(${jsString(definition.type)}, {
     category: 'twitch events',
     color: '#b9a3e3',
     defaults: {
@@ -56,11 +65,11 @@ export function renderEditorHtml(definition: EventSubEventDefinition): string {
     inputs: 0,
     outputs: 1,
     icon: 'twitch-icon.svg',
-    paletteLabel: '${label}',
+    paletteLabel: ${label},
     label: function () {
       if (this.name) return this.name;
       var config = RED.nodes.node(this.config);
-      return '${label}' + (config ? ' (' + (config.name || '') + ')' : '');
+      return ${label} + (config ? ' (' + (config.name || '') + ')' : '');
     }
   });
 </script>
