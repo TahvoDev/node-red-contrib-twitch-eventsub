@@ -35,6 +35,7 @@
   "dependencies": {
     "@twurple/api": "^7.3.0",
     "@twurple/auth": "^7.3.0",
+    "@twurple/chat": "^7.3.0",
     "@twurple/common": "^7.3.0",
     "@twurple/eventsub-ws": "^7.3.0"
   },
@@ -43,6 +44,19 @@
     "icons": "dist/twitch/icons",
     "nodes": {
       "twitch-api-config": "dist/twitch/twitch-api-config.js",
+      "twitch-chat-announce": "dist/twitch/chat/twitch-chat-announce.js",
+      "twitch-chat-ban": "dist/twitch/chat/twitch-chat-ban.js",
+      "twitch-chat-clear": "dist/twitch/chat/twitch-chat-clear.js",
+      "twitch-chat-command": "dist/twitch/chat/twitch-chat-command.js",
+      "twitch-chat-connection": "dist/twitch/chat/twitch-chat-connection.js",
+      "twitch-chat-delete-message": "dist/twitch/chat/twitch-chat-delete-message.js",
+      "twitch-chat-in": "dist/twitch/chat/twitch-chat-in.js",
+      "twitch-chat-join": "dist/twitch/chat/twitch-chat-join.js",
+      "twitch-chat-part": "dist/twitch/chat/twitch-chat-part.js",
+      "twitch-chat-reply": "dist/twitch/chat/twitch-chat-reply.js",
+      "twitch-chat-send": "dist/twitch/chat/twitch-chat-send.js",
+      "twitch-chat-timeout": "dist/twitch/chat/twitch-chat-timeout.js",
+      "twitch-chat-unban": "dist/twitch/chat/twitch-chat-unban.js",
       "twitch-eventsub-automod-message-hold": "dist/twitch/eventsub/generated/twitch-eventsub-automod-message-hold.js",
       "twitch-eventsub-automod-message-update": "dist/twitch/eventsub/generated/twitch-eventsub-automod-message-update.js",
       "twitch-eventsub-automod-settings-update": "dist/twitch/eventsub/generated/twitch-eventsub-automod-settings-update.js",

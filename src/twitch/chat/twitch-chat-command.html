@@ -1,0 +1,98 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-command', {
+  category: 'Twitch Chat',
+  color: '#9146FF',
+  defaults: {
+    name: { value: '' },
+    command: { value: '' },
+    prefix: { value: '!' },
+    requireMod: { value: false },
+    requireSub: { value: false },
+    requireVip: { value: false },
+    requireBroadcaster: { value: false },
+  },
+  inputs: 1,
+  outputs: 1,
+  icon: 'twitch-icon.svg',
+  paletteLabel: 'chat command',
+  label: function () {
+    if (this.name) return this.name;
+    return this.command ? (this.prefix || '!') + this.command : 'chat command';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-command">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-command"><i class="fa fa-terminal"></i> Command</label>
+    <input type="text" id="node-input-command" placeholder="hello (matches !hello)" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-prefix"><i class="fa fa-asterisk"></i> Prefix</label>
+    <input type="text" id="node-input-prefix" placeholder="!" />
+  </div>
+
+  <hr>
+  <h4>Permission checks</h4>
+
+  <div class="form-row">
+    <label for="node-input-requireBroadcaster"><i class="fa fa-star"></i> Broadcaster only</label>
+    <input type="checkbox" id="node-input-requireBroadcaster" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-requireMod"><i class="fa fa-shield"></i> Mod only</label>
+    <input type="checkbox" id="node-input-requireMod" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-requireSub"><i class="fa fa-heart"></i> Subscriber only</label>
+    <input type="checkbox" id="node-input-requireSub" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-requireVip"><i class="fa fa-gem"></i> VIP only</label>
+    <input type="checkbox" id="node-input-requireVip" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-command">
+  <p>Filters the messages from <b>chat in</b> down to one command, and enriches the message for
+  the following nodes.</p>
+
+  <p>The trigger is the configured <b>prefix</b> followed by <b>command</b> and is matched
+  case-insensitively at the start of the message.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>command <span class="property-type">string</span></dt>
+    <dd>The command without the prefix. <code>hello</code> matches <code>!hello</code>.</dd>
+
+    <dt>prefix <span class="property-type">string</span></dt>
+    <dd>The trigger character. Defaults to <code>!</code>.</dd>
+
+    <dt>Permission checks</dt>
+    <dd>If any checked requirement is not met, the message is dropped silently.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>command <span class="property-type">string</span></dt>
+    <dd>The matched command name.</dd>
+
+    <dt>args <span class="property-type">string[]</span></dt>
+    <dd>The space-separated words that followed the command.</dd>
+  </dl>
+
+  <p>The full <b>chat in</b> message is passed through, so <code>msg.user</code>,
+  <code>msg.channel</code>, <code>msg.id</code> and the rest remain available.</p>
+</script>
