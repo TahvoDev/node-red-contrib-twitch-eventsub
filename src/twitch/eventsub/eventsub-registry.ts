@@ -1468,23 +1468,31 @@ const EVENT_LIST: EventSubEventInput[] = [
   },
 ];
 
+/**
+ * EventSub areas are prefixed so they cannot be mistaken for the IRC nodes in
+ * the `Twitch Chat (IRC)` category, which the old bare `twitch chat` name
+ * collided with.
+ */
 function categoryFor(type: string): string {
-  const name = type.replace(/^twitch-eventsub-/, '');
-  if (/^automod-/.test(name)) return 'twitch automod';
-  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'twitch chat';
-  if (/^channel-subscription/.test(name)) return 'twitch subscriptions';
-  if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'twitch channel points';
-  if (/^channel-poll-/.test(name)) return 'twitch polls';
-  if (/^channel-prediction-/.test(name)) return 'twitch predictions';
-  if (/^channel-hype-train-/.test(name)) return 'twitch hype train';
-  if (/^channel-goal-/.test(name)) return 'twitch goals';
-  if (/^channel-charity-/.test(name)) return 'twitch charity';
-  if (/^channel-(ban|unban|moderator|vip|warning|shield-mode|moderation)/.test(name)) return 'twitch moderation';
-  if (/^channel-raid-/.test(name)) return 'twitch raids';
-  if (/^channel-(cheer|bits-use|ad-break)/.test(name)) return 'twitch bits & ads';
-  if (/^channel-stream-/.test(name)) return 'twitch stream';
-  if (/^user-/.test(name)) return 'twitch user';
-  return 'twitch channel';
+  return `Twitch EventSub: ${eventArea(type.replace(/^twitch-eventsub-/, ''))}`;
+}
+
+function eventArea(name: string): string {
+  if (/^automod-/.test(name)) return 'automod';
+  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'chat';
+  if (/^channel-subscription/.test(name)) return 'subscriptions';
+  if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'channel points';
+  if (/^channel-poll-/.test(name)) return 'polls';
+  if (/^channel-prediction-/.test(name)) return 'predictions';
+  if (/^channel-hype-train-/.test(name)) return 'hype train';
+  if (/^channel-goal-/.test(name)) return 'goals';
+  if (/^channel-charity-/.test(name)) return 'charity';
+  if (/^channel-(ban|unban|moderator|vip|warning|shield-mode|moderation)/.test(name)) return 'moderation';
+  if (/^channel-raid-/.test(name)) return 'raids';
+  if (/^channel-(cheer|bits-use|ad-break)/.test(name)) return 'bits & ads';
+  if (/^channel-stream-/.test(name)) return 'stream';
+  if (/^user-/.test(name)) return 'user';
+  return 'channel';
 }
 
 export const EVENTS: readonly EventSubEventDefinition[] = EVENT_LIST.map((event) => ({
