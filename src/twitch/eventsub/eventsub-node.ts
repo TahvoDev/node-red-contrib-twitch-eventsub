@@ -58,7 +58,7 @@ interface TwitchApiConfig {
  */
 class TwitchEventsubNode extends AbstractNode {
   twitchConfig?: TwitchApiConfig;
-  definition: EventSubEventDefinition;
+  private readonly definition: EventSubEventDefinition;
   private nodeUuid: string;
 
   constructor(config: any, RED: NodeAPI, definition: EventSubEventDefinition) {
@@ -72,13 +72,19 @@ class TwitchEventsubNode extends AbstractNode {
       return;
     }
 
-    this.on('close', (removed: boolean, done: () => void) => {
+    this.on('close', (_removed: boolean, done: () => void) => {
       this.twitchConfig?.removeNode(this.nodeUuid, this.definition.type, done);
     });
 
     this.twitchConfig.addNode(this.nodeUuid, this, this.definition.type);
   }
 
+  /**
+   * The config node fans every event out to all of its listeners, so each node
+   * guards on its own type. If that ever changes to a type-indexed dispatch the
+   * comparison becomes redundant, but it is what keeps a node from emitting
+   * another event's payload today.
+   */
   triggerTwitchEvent(event: any, subscriptionType: string) {
     if (subscriptionType === this.definition.type) {
       this.send({ payload: mapEvent(this.definition, event) });
@@ -103,5 +109,7 @@ export function registerEventsubNode(RED: NodeAPI, type: string): void {
     }
   }
 
+  // Node-RED's runtime NodeConstructor type describes its internal wrapper, not a
+  // class taking the node config, so the cast is required by the published types.
   RED.nodes.registerType(type, GeneratedEventsubNode as any);
 }

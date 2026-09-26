@@ -45,14 +45,20 @@ const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'))
 const current = pkg['node-red'].nodes
 const write = process.argv.includes('--write')
 
+const GENERATED_DIR = 'dist/twitch/eventsub/generated/'
+// Generated EventSub nodes are recognised by where their module lives, not by a
+// name prefix, so a future hand-written node that happens to start with
+// "twitch-eventsub-" is preserved rather than silently dropped.
+const isGeneratedEntry = (file) => typeof file === 'string' && file.startsWith(GENERATED_DIR)
+
 const expectedEvents = {}
 for (const definition of EVENTS) {
-  expectedEvents[definition.type] = `dist/twitch/eventsub/generated/${definition.type}.js`
+  expectedEvents[definition.type] = `${GENERATED_DIR}${definition.type}.js`
 }
 
 const merged = {}
 for (const [type, file] of Object.entries(current)) {
-  if (type.startsWith('twitch-eventsub-')) continue
+  if (isGeneratedEntry(file)) continue
   merged[type] = file
 }
 Object.assign(merged, expectedEvents)
@@ -70,8 +76,8 @@ const problems = []
 for (const [type, file] of Object.entries(expectedEvents)) {
   if (current[type] !== file) problems.push(`missing or wrong entry: ${type} -> ${file}`)
 }
-for (const type of Object.keys(current)) {
-  if (type.startsWith('twitch-eventsub-') && !expectedEvents[type]) {
+for (const [type, file] of Object.entries(current)) {
+  if (isGeneratedEntry(file) && !expectedEvents[type]) {
     problems.push(`stale entry not in the registry: ${type}`)
   }
 }

@@ -45,6 +45,11 @@ const MOCK_USER_ID = process.env.E2E_MOCK_USER_ID || '3963854'
 // The flow leaves twitch_client_id empty in mock mode, so the runtime falls back
 // to this exact id.
 const MOCK_CLIENT_ID = process.env.E2E_MOCK_CLIENT_ID || 'mock-client-id'
+// The Twitch CLI checks GitHub for a newer release on every command and panics
+// when that unauthenticated request is rate-limited or offline. Pointing its HTTP
+// client at a dead loopback proxy makes the check fail fast; loopback (the mock
+// endpoints) is never proxied, so the CLI still reaches the mock.
+const CLI_UPDATE_CHECK_BLOCK = ['-e', 'HTTP_PROXY=http://127.0.0.1:9', '-e', 'HTTPS_PROXY=http://127.0.0.1:9']
 const DELAY = process.env.E2E_DELAY || '150'
 const KEEP = process.env.E2E_KEEP === '1'
 
@@ -147,6 +152,7 @@ function startContainers({ nrDir, mockDir }) {
         run(engine, [
             'run', '-d', '--name', name, ...userns,
             '--network', `container:${NR_CONTAINER}`,
+            ...CLI_UPDATE_CHECK_BLOCK,
             '-v', volume(mockDir, '/data'),
             image, ...args,
         ])
