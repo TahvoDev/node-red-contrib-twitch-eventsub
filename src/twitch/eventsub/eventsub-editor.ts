@@ -56,7 +56,7 @@ export function renderEditorHtml(definition: EventSubEventDefinition): string {
 
   return `<script type="text/javascript">
   RED.nodes.registerType(${jsString(definition.type)}, {
-    category: 'twitch events',
+    category: ${jsString(definition.category)},
     color: '#b9a3e3',
     defaults: {
       name: { value: '' },
@@ -64,7 +64,7 @@ export function renderEditorHtml(definition: EventSubEventDefinition): string {
     },
     inputs: 0,
     outputs: 1,
-    icon: 'twitch-icon.svg',
+    icon: ${jsString(definition.icon)},
     paletteLabel: ${label},
     label: function () {
       if (this.name) return this.name;
