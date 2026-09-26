@@ -1,0 +1,28 @@
+# Twitch CLI used as the isolated EventSub mock. Only the E2E test builds and
+# runs this; `npm install` / `npm run build` never touch it, so the package can
+# still be built on a machine without a container engine.
+FROM docker.io/library/debian:bookworm-slim
+
+ARG TWITCH_CLI_VERSION=1.1.24
+ARG TWITCH_CLI_ARCH=Linux_x86_64
+# From the release checksums.txt for the pinned version.
+ARG TWITCH_CLI_SHA256=9cae4e9cd52e66fb4dda6b633b3276a4450a28a83dea7a4651a42a67372eed8f
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN set -eux; \
+    url="https://github.com/twitchdev/twitch-cli/releases/download/v${TWITCH_CLI_VERSION}/twitch-cli_${TWITCH_CLI_VERSION}_${TWITCH_CLI_ARCH}.tar.gz"; \
+    curl -fsSL -o /tmp/twitch-cli.tar.gz "$url"; \
+    echo "${TWITCH_CLI_SHA256}  /tmp/twitch-cli.tar.gz" | sha256sum -c -; \
+    tar -xzf /tmp/twitch-cli.tar.gz -C /tmp; \
+    install -m 0755 "/tmp/twitch-cli_${TWITCH_CLI_VERSION}_${TWITCH_CLI_ARCH}/twitch" /usr/local/bin/twitch; \
+    rm -rf /tmp/twitch-cli.tar.gz "/tmp/twitch-cli_${TWITCH_CLI_VERSION}_${TWITCH_CLI_ARCH}"
+
+LABEL purpose="dev-twitch-mock" org.opencontainers.image.title="Twitch CLI (isolated mock server)"
+
+ENV HOME=/data
+WORKDIR /data
+ENTRYPOINT ["twitch"]
+CMD ["--help"]

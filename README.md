@@ -30,6 +30,14 @@ the CLI and reports how many the mock delivered and how many notifications the c
 rejected. The Twitch CLI can only generate the event types it supports, so a few nodes
 stay quiet; the script reports exactly which ones it could not trigger.
 
+### End-to-end test
+`npm run test:e2e` does the whole run above automatically: it builds the package, builds
+the mock images if they are missing, starts Node-RED against the Twitch CLI mock with
+`examples/mock-all-nodes.json`, installs nothing into your normal Node-RED data dir
+(everything is temporary) and fails if any generated event was rejected or never
+delivered. It needs podman (preferred) or docker. That requirement is isolated to the
+test: `npm install`, `npm run build` and `npm run check` work without a container engine.
+
 ### Adding a new event
 All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry
 there (type, palette label, description, Twurple `subscribe` call and the payload field

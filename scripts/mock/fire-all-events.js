@@ -272,7 +272,9 @@ async function main() {
         for (const sub of fired) console.log(`  PASS  ${sub.type}`)
     }
 
-    if (options.strict && options.verify && (rejected > 0 || refused.length)) process.exit(1)
+    // --strict fails if the CLI refused a trigger, if Node-RED rejected a
+    // notification, or if any fired event never reached the connected client.
+    if (options.strict && options.verify && (rejected > 0 || refused.length || delivered < fired.length)) process.exit(1)
 }
 
 main().catch((err) => {
