@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Fixed
 - The combined event nodes only ever emitted their last registered event, and their `eventType` field was always `unknown`
 - The hype train node never appeared in the palette: its editor file was a copy of the poll node's and registered the wrong type
+- `package.json` pointed `main` at an `index.js` that did not exist, so the module could not be loaded by name (for example by Node-RED's external modules) even though the palette loaded from the `node-red` field
 
 ## [0.1.1] - 2024-10-21
 ### Added

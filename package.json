@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "scripts": {
-    "prepare": "rm -rf dist && tsc && node scripts/copy-static-assets.js",
+    "prepare": "rm -rf dist && tsc && node scripts/copy-static-assets.js && node scripts/check-main-entry.js",
     "prepublishOnly": "npm run prepare",
     "node-red-check": "node-red-dev validate"
   },
