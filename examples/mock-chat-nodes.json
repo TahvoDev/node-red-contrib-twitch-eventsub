@@ -37,7 +37,8 @@
     "wires": [
       [
         "n-fmt-in",
-        "n-chat-command"
+        "n-chat-command",
+        "n-debug-in"
       ]
     ]
   },
@@ -293,5 +294,47 @@
     "x": 560,
     "y": 460,
     "wires": []
+  },
+  {
+    "id": "n-debug-in",
+    "type": "debug",
+    "z": "chat-e2e-tab",
+    "name": "chat message",
+    "active": true,
+    "tosidebar": true,
+    "console": false,
+    "tostatus": false,
+    "complete": "true",
+    "targetType": "msg",
+    "statusVal": "",
+    "statusType": "auto",
+    "x": 560,
+    "y": 60,
+    "wires": []
+  },
+  {
+    "id": "n-inject-hello",
+    "type": "inject",
+    "z": "chat-e2e-tab",
+    "name": "simulate !hello",
+    "props": [
+      {
+        "p": "payload"
+      }
+    ],
+    "repeat": "",
+    "crontab": "",
+    "once": false,
+    "onceDelay": 0.1,
+    "topic": "",
+    "payload": "bits --bitscount 42 --username demo-viewer !hello hi",
+    "payloadType": "str",
+    "x": 180,
+    "y": 540,
+    "wires": [
+      [
+        "n-chat-send2"
+      ]
+    ]
   }
 ]
