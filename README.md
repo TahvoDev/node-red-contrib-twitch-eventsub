@@ -12,12 +12,12 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
   goals, hype train, moderation, polls, predictions, raids, stream, subscriptions and user.
 - Every event node has its own icon, drawn from the event at build time.
 - The Helix API nodes live under `twitch api`.
-- Twitch Chat (IRC) nodes live under `Twitch Chat (IRC)`: receive and send chat messages,
+- Twitch Chat (IRC) nodes live under `twitch chat (irc)`: receive and send chat messages,
   run commands, moderate, announce, join and leave channels.
 
 ## Twitch Chat
 
-The `Twitch Chat (IRC)` nodes talk to chat over Twitch's IRC gateway using
+The `twitch chat (irc)` nodes talk to chat over Twitch's IRC gateway using
 [`@twurple/chat`](https://www.npmjs.com/package/@twurple/chat). They share one connection through the
 **twitch-chat-connection** config node.
 
