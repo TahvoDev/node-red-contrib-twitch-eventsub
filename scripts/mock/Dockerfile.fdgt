@@ -1,0 +1,30 @@
+# Self-hosted fdgt (https://fdgt.dev) used by the chat end-to-end test. Pinning a
+# commit keeps the test independent of the hosted irc.fdgt.dev service (and off
+# its servers). NODE_ENV=test is fdgt's own switch that skips the Firebase-backed
+# app/token store; the IRC mock itself needs none of that. Only test:e2e:chat
+# builds and runs this.
+FROM docker.io/library/node:24-bookworm-slim
+
+ARG FDGT_COMMIT=a74e56eecb000d2602457291b1880567594e5d7e
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates git \
+    && rm -rf /var/lib/apt/lists/*
+
+ENV COREPACK_ENABLE_DOWNLOAD_PROMPT=0
+
+RUN git clone https://github.com/fdgt-apis/api /fdgt \
+    && cd /fdgt \
+    && git checkout "${FDGT_COMMIT}" \
+    && corepack yarn install \
+    && corepack yarn build
+
+WORKDIR /fdgt
+
+# Test mode disables Firebase; fdgt then runs entirely in memory.
+ENV NODE_ENV=test IRC_PORT=6667 WEB_PORT=3005 WS_PORT=3006
+EXPOSE 6667
+
+LABEL purpose="dev-twitch-mock" org.opencontainers.image.title="fdgt chat mock (self-hosted)"
+
+CMD ["node", "dist/index.js"]
