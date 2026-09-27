@@ -26,8 +26,3 @@ export const CHAT_ICONS: Record<string, string> = {
 export function chatIconFor(type: string): string {
   return `${type}.svg`;
 }
-
-/** The Bootstrap Icons glyph name for a chat node type, with a safe fallback. */
-export function chatGlyphFor(type: string): string {
-  return CHAT_ICONS[type] ?? 'chat-fill';
-}

@@ -13,8 +13,10 @@ module.exports = function (RED: NodeAPI) {
     }
 
     node.on('input', (msg, _send, done) => {
-      if (!msg.replyTo) {
-        node.error('msg.replyTo is required for twitch-chat-reply', msg);
+      // twitch-chat-in emits the message id as msg.id, so a reply can be wired
+      // straight onto a chat message without a change node in between.
+      if (!msg.replyTo && !msg.id) {
+        node.error('No message to reply to — set msg.replyTo, or wire this to a message with msg.id', msg);
         done();
         return;
       }

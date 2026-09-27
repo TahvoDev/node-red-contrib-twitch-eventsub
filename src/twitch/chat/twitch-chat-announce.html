@@ -44,10 +44,15 @@ RED.nodes.registerType('twitch-chat-announce', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>payload <span class="property-type">string</span></dt>
-    <dd>The announcement text (Twitch truncates past 500 characters).</dd>
+    <dd>The announcement text (Twitch truncates past 500 characters). <b>chat in</b> sets it
+    from the chat message, so this node can be wired straight onto one.</dd>
 
-    <dt class="optional">color <span class="property-type">string</span></dt>
-    <dd>One of <code>primary</code> (default), <code>blue</code>, <code>green</code>, <code>orange</code> or <code>purple</code>.</dd>
+    <dt class="optional">announceColor <span class="property-type">string</span></dt>
+    <dd>One of <code>primary</code> (default), <code>blue</code>, <code>green</code>,
+    <code>orange</code> or <code>purple</code> — the only colours Twitch accepts for an
+    announcement. <code>msg.color</code> is also read, so wiring this straight onto a
+    <b>chat in</b> message works: the sender's hex chat colour is not one of these and
+    falls back to <code>primary</code>.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>

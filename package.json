@@ -8,7 +8,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write",
     "collect-glyphs": "node scripts/collect-glyphs.js",
-    "check": "node scripts/sync-nodes-manifest.js",
+    "check": "node scripts/sync-nodes-manifest.js && node scripts/check-chat-nodes.js",
     "sync": "node scripts/sync-nodes-manifest.js --write",
     "test": "npm run test:e2e",
     "test:e2e": "node scripts/mock/run-e2e.js",

@@ -44,7 +44,8 @@ RED.nodes.registerType('twitch-chat-delete-message', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>messageId <span class="property-type">string</span></dt>
-    <dd>The Twitch message ID to delete. <b>chat in</b> emits it as <code>msg.id</code>.</dd>
+    <dd>The Twitch message ID to delete. <b>chat in</b> emits it as <code>msg.id</code>,
+    which this node also accepts, so it can be wired straight onto a chat message.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>

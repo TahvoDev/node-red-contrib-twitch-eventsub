@@ -55,13 +55,16 @@ account in again so the new scope is granted.
 ### Nodes
 
 - **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …).
-- **chat send** — sends `msg.payload` to a channel.
-- **chat reply** — like **chat send**, but threads the message using `msg.replyTo`.
+- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
+- **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
+  `msg.id` that **chat in** emits.
 - **chat command** — placed after **chat in**, matches one `!command` and enriches the message with
   `msg.command` and `msg.args`, with optional mod / sub / VIP / broadcaster checks.
 - **chat ban**, **chat timeout**, **chat unban** — moderation actions.
-- **chat delete message** — deletes a single message by its ID.
-- **chat announce** — sends a highlighted announcement, optionally with a color.
+- **chat delete message** — deletes a single message by its ID (`msg.messageId` or `msg.id`).
+- **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
+  colours (`msg.announceColor`, `primary` by default). The sender's hex chat colour from
+  **chat in** is not an announcement colour, so it falls back to `primary` instead of failing.
 - **chat clear** — clears the chat.
 - **chat join**, **chat part** — join or leave a channel at runtime.
 

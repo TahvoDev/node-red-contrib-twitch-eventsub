@@ -1,6 +1,6 @@
 import type { Node, NodeAPI, NodeDef, NodeMessageInFlow } from 'node-red';
 import type { ChatClient } from '@twurple/chat';
-import type { ApiClient, BaseApiClient } from '@twurple/api';
+import type { ApiClient, BaseApiClient, HelixChatAnnouncementColor } from '@twurple/api';
 import type { AuthProvider } from '@twurple/auth';
 
 export type ChatStatus = {
@@ -46,7 +46,10 @@ export interface TwitchChatMessage extends NodeMessageInFlow {
   messageId?: string;
   reason?: string;
   duration?: number | string;
+  /** The sender's Twitch chat colour, e.g. "#FF0000". Not an announcement colour. */
   color?: string;
+  /** A Twitch announcement colour: primary, blue, green, orange or purple. */
+  announceColor?: string;
   command?: string;
   args?: string[];
   bits?: number;
@@ -124,7 +127,8 @@ export async function resolveUserId(ctx: BaseApiClient, user: unknown): Promise<
 
 /**
  * Sends a chat message over the shared ChatClient. The channel can be overridden
- * per message with msg.channel, and msg.replyTo threads the message.
+ * per message with msg.channel, and the reply parent with msg.replyTo or, since
+ * that is what twitch-chat-in emits, msg.id.
  */
 export async function sendChatMessage(
   node: Node,
@@ -157,8 +161,17 @@ export async function sendChatMessage(
       return;
     }
 
-    const text = String(msg.payload ?? '');
-    const replyTo = msg.replyTo ? String(msg.replyTo) : undefined;
+    // twitch-chat-in sets both text and payload; accept either so a message
+    // straight off the wire does not have to be reshaped first.
+    const text = String(msg.payload ?? msg.text ?? '');
+    if (!text.trim()) {
+      node.error('No message text — set msg.payload', msg);
+      finish();
+      return;
+    }
+
+    const parent = msg.replyTo ?? msg.id;
+    const replyTo = parent ? String(parent) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});
     finish();
@@ -168,6 +181,29 @@ export async function sendChatMessage(
     finish(err as Error);
   }
 }
+
+const ANNOUNCEMENT_COLORS: HelixChatAnnouncementColor[] = [
+  'primary',
+  'blue',
+  'green',
+  'orange',
+  'purple',
+];
+
+/**
+ * Twitch only accepts these five values for an announcement, so anything else —
+ * including the sender's hex chat colour that twitch-chat-in puts in msg.color —
+ * falls back to primary rather than failing the announcement.
+ */
+export function resolveAnnounceColor(msg: TwitchChatMessage): HelixChatAnnouncementColor {
+  const requested = String(msg.announceColor ?? msg.color ?? '').toLowerCase();
+  return ANNOUNCEMENT_COLORS.includes(requested as HelixChatAnnouncementColor)
+    ? (requested as HelixChatAnnouncementColor)
+    : 'primary';
+}
+
+/** Broadcaster user ids never change, so one lookup per channel is enough. */
+const broadcasterIds: { [channel: string]: string } = {};
 
 /**
  * Runs one Helix chat/moderation call against the channel and authenticated
@@ -193,8 +229,8 @@ export async function runChatAction(
     return;
   }
 
-  node.status({ fill: 'blue', shape: 'dot', text: 'working...' });
   try {
+    node.status({ fill: 'blue', shape: 'dot', text: 'working...' });
     await connection.initChat();
     const api = connection.getApiClient();
     const userId = connection.getUserId();
@@ -204,10 +240,14 @@ export async function runChatAction(
       return;
     }
 
-    const broadcaster = await api.users.getUserByName(channel);
-    if (!broadcaster) throw new Error(`Unknown Twitch channel: ${channel}`);
+    let broadcasterId: string | undefined = broadcasterIds[channel];
+    if (!broadcasterId) {
+      broadcasterId = (await api.users.getUserByName(channel))?.id;
+      if (!broadcasterId) throw new Error(`Unknown Twitch channel: ${channel}`);
+      broadcasterIds[channel] = broadcasterId;
+    }
 
-    await api.asUser(userId, (ctx) => handler(ctx, broadcaster.id));
+    await api.asUser(userId, (ctx) => handler(ctx, broadcasterId));
     node.status({});
   } catch (err) {
     node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });

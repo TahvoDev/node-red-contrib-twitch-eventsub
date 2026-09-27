@@ -14,10 +14,12 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        if (!msg.messageId) {
+        // twitch-chat-in emits the message id as msg.id.
+        const messageId = msg.messageId ?? msg.id;
+        if (!messageId) {
           throw new Error('msg.messageId is required for twitch-chat-delete-message');
         }
-        await ctx.moderation.deleteChatMessages(broadcasterId, String(msg.messageId));
+        await ctx.moderation.deleteChatMessages(broadcasterId, String(messageId));
       });
     });
   }

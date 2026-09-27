@@ -1,14 +1,10 @@
 import type { Node, NodeAPI } from 'node-red';
-import type { HelixChatAnnouncementColor } from '@twurple/api';
-import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
-
-const ANNOUNCEMENT_COLORS: HelixChatAnnouncementColor[] = [
-  'primary',
-  'blue',
-  'green',
-  'orange',
-  'purple',
-];
+import {
+  getChatConnection,
+  resolveAnnounceColor,
+  runChatAction,
+  type ChatNodeConfig,
+} from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatAnnounceNode(this: Node, config: ChatNodeConfig) {
@@ -23,16 +19,12 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const color = String(msg.color ?? 'primary').toLowerCase() as HelixChatAnnouncementColor;
-        if (!ANNOUNCEMENT_COLORS.includes(color)) {
-          throw new Error(
-            `Invalid announcement color "${msg.color}" — use one of ${ANNOUNCEMENT_COLORS.join(', ')}`
-          );
-        }
+        const message = String(msg.payload ?? msg.text ?? '');
+        if (!message.trim()) throw new Error('No announcement text — set msg.payload');
 
         await ctx.chat.sendAnnouncement(broadcasterId, {
-          message: String(msg.payload ?? ''),
-          color,
+          message,
+          color: resolveAnnounceColor(msg),
         });
       });
     });
