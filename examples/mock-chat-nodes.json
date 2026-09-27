@@ -1,0 +1,297 @@
+[
+  {
+    "id": "chat-e2e-tab",
+    "type": "tab",
+    "label": "Twitch Chat mock (fdgt)",
+    "disabled": false,
+    "info": "Twitch Chat nodes pointed at the fdgt mock (irc.fdgt.dev) so they can be exercised without a Twitch account. POST text like 'bits --username alca' to /e2e/send and fdgt turns it into a simulated event delivered back on the same connection."
+  },
+  {
+    "id": "cfg-chat-api",
+    "type": "twitch-api-config",
+    "name": "unused in fdgt mode",
+    "twitch_client_id": "",
+    "twitch_user_id": "",
+    "twitch_user_login": "",
+    "twitch_mock_server_port": "",
+    "twitch_mock_user_id": ""
+  },
+  {
+    "id": "cfg-chat-connection",
+    "type": "twitch-chat-connection",
+    "name": "fdgt connection",
+    "account": "cfg-chat-api",
+    "channels": "__CHANNEL__",
+    "isBot": false,
+    "host": "irc.fdgt.dev"
+  },
+  {
+    "id": "n-chat-in",
+    "type": "twitch-chat-in",
+    "z": "chat-e2e-tab",
+    "name": "chat in",
+    "connection": "cfg-chat-connection",
+    "channel": "__CHANNEL__",
+    "x": 160,
+    "y": 120,
+    "wires": [
+      [
+        "n-fmt-in",
+        "n-chat-command"
+      ]
+    ]
+  },
+  {
+    "id": "n-fmt-in",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "record message",
+    "func": "msg.payload = JSON.stringify({ user: msg.user, text: msg.text, bits: msg.bits, isCheer: msg.isCheer, channel: msg.channel }) + '\\n';\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 340,
+    "y": 100,
+    "wires": [
+      [
+        "n-file-in"
+      ]
+    ]
+  },
+  {
+    "id": "n-file-in",
+    "type": "file",
+    "z": "chat-e2e-tab",
+    "name": "chat-e2e.log",
+    "filename": "/data/chat-e2e.log",
+    "appendNewline": true,
+    "createDir": true,
+    "overwriteFile": "false",
+    "encoding": "utf8",
+    "x": 520,
+    "y": 100,
+    "wires": []
+  },
+  {
+    "id": "n-chat-command",
+    "type": "twitch-chat-command",
+    "z": "chat-e2e-tab",
+    "name": "!hello",
+    "command": "hello",
+    "prefix": "!",
+    "requireMod": false,
+    "requireSub": false,
+    "requireVip": false,
+    "requireBroadcaster": false,
+    "x": 350,
+    "y": 180,
+    "wires": [
+      [
+        "n-fmt-cmd",
+        "n-reply"
+      ]
+    ]
+  },
+  {
+    "id": "n-fmt-cmd",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "record command",
+    "func": "msg.payload = JSON.stringify({ command: msg.command, args: msg.args, user: msg.user, text: msg.text }) + '\\n';\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 560,
+    "y": 160,
+    "wires": [
+      [
+        "n-file-cmd"
+      ]
+    ]
+  },
+  {
+    "id": "n-file-cmd",
+    "type": "file",
+    "z": "chat-e2e-tab",
+    "name": "chat-command-e2e.log",
+    "filename": "/data/chat-command-e2e.log",
+    "appendNewline": true,
+    "createDir": true,
+    "overwriteFile": "false",
+    "encoding": "utf8",
+    "x": 750,
+    "y": 160,
+    "wires": []
+  },
+  {
+    "id": "n-reply",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "build reply",
+    "func": "msg.payload = 'Hello, ' + msg.user + '!';\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 550,
+    "y": 220,
+    "wires": [
+      [
+        "n-chat-send"
+      ]
+    ]
+  },
+  {
+    "id": "n-chat-send",
+    "type": "twitch-chat-send",
+    "z": "chat-e2e-tab",
+    "name": "chat send",
+    "connection": "cfg-chat-connection",
+    "channel": "__CHANNEL__",
+    "x": 740,
+    "y": 220,
+    "wires": []
+  },
+  {
+    "id": "n-http-send",
+    "type": "http in",
+    "z": "chat-e2e-tab",
+    "name": "POST /e2e/send",
+    "url": "/e2e/send",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 170,
+    "y": 300,
+    "wires": [
+      [
+        "n-http-send-fn",
+        "n-http-res"
+      ]
+    ]
+  },
+  {
+    "id": "n-http-send-fn",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "use body.text",
+    "func": "msg.payload = msg.payload.text;\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 360,
+    "y": 300,
+    "wires": [
+      [
+        "n-chat-send2"
+      ]
+    ]
+  },
+  {
+    "id": "n-chat-send2",
+    "type": "twitch-chat-send",
+    "z": "chat-e2e-tab",
+    "name": "chat send (http)",
+    "connection": "cfg-chat-connection",
+    "channel": "__CHANNEL__",
+    "x": 560,
+    "y": 300,
+    "wires": []
+  },
+  {
+    "id": "n-http-join",
+    "type": "http in",
+    "z": "chat-e2e-tab",
+    "name": "POST /e2e/join",
+    "url": "/e2e/join",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 170,
+    "y": 360,
+    "wires": [
+      [
+        "n-http-join-fn",
+        "n-http-res"
+      ]
+    ]
+  },
+  {
+    "id": "n-http-join-fn",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "use body.channel",
+    "func": "msg.channel = msg.payload.channel;\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 360,
+    "y": 360,
+    "wires": [
+      [
+        "n-chat-join"
+      ]
+    ]
+  },
+  {
+    "id": "n-chat-join",
+    "type": "twitch-chat-join",
+    "z": "chat-e2e-tab",
+    "name": "chat join",
+    "connection": "cfg-chat-connection",
+    "channel": "",
+    "x": 560,
+    "y": 360,
+    "wires": []
+  },
+  {
+    "id": "n-http-part",
+    "type": "http in",
+    "z": "chat-e2e-tab",
+    "name": "POST /e2e/part",
+    "url": "/e2e/part",
+    "method": "post",
+    "upload": false,
+    "swaggerDoc": "",
+    "x": 170,
+    "y": 410,
+    "wires": [
+      [
+        "n-http-part-fn",
+        "n-http-res"
+      ]
+    ]
+  },
+  {
+    "id": "n-http-part-fn",
+    "type": "function",
+    "z": "chat-e2e-tab",
+    "name": "use body.channel",
+    "func": "msg.channel = msg.payload.channel;\nreturn msg;",
+    "outputs": 1,
+    "noerr": 0,
+    "x": 360,
+    "y": 410,
+    "wires": [
+      [
+        "n-chat-part"
+      ]
+    ]
+  },
+  {
+    "id": "n-chat-part",
+    "type": "twitch-chat-part",
+    "z": "chat-e2e-tab",
+    "name": "chat part",
+    "connection": "cfg-chat-connection",
+    "channel": "",
+    "x": 560,
+    "y": 410,
+    "wires": []
+  },
+  {
+    "id": "n-http-res",
+    "type": "http response",
+    "z": "chat-e2e-tab",
+    "name": "",
+    "statusCode": "",
+    "headers": {},
+    "x": 560,
+    "y": 460,
+    "wires": []
+  }
+]

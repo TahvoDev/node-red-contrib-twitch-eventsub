@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The EventSub palette is grouped into `twitch ...` categories that follow Twitch's EventSub areas (automod, chat events, channel points, subscriptions, moderation, polls, predictions, hype train, goals, charity, raids, bits & ads, stream, user)
 - Twitch Chat (IRC) nodes under a `Twitch Chat (IRC)` palette category: `twitch-chat-connection` (a shared connection that borrows the token from a `twitch-api-config`), `chat in`, `chat send`, `chat reply`, `chat command`, `chat ban`, `chat timeout`, `chat unban`, `chat delete message`, `chat announce`, `chat clear`, `chat join` and `chat part`
 - Each Twitch Chat node has its own icon and uses the same palette colour as the EventSub nodes; the glyphs live in `src/twitch/chat/twitch-chat-icons.ts` and are rendered by `scripts/generate-chat-icons.js`
+- A **Chat server** option on `twitch-chat-connection` connects anonymously to a non-Twitch IRC server, so the chat nodes can be tested against the hosted [fdgt](https://fdgt.dev) mock without a Twitch account
+- `npm run test:e2e:chat` and `examples/mock-chat-nodes.json`: the chat nodes run in a real Node-RED container against fdgt, with a simulated event fed back through chat send, chat in and the command filter
 
 ### Changed
 - **Breaking:** the combined `poll events`, `prediction events` and `hype train events` nodes are replaced by one node per event (`poll begin`/`poll progress`/`poll end`, `prediction begin`/`progress`/`lock`/`end`, `hype train begin`/`progress`/`end`). The `eventType` dropdown is gone, re-add the nodes to existing flows.

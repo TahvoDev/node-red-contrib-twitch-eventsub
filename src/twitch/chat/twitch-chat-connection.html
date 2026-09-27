@@ -7,6 +7,7 @@ RED.nodes.registerType('twitch-chat-connection', {
     account: { type: 'twitch-api-config', required: true },
     channels: { value: '' },
     isBot: { value: false },
+    host: { value: '' },
   },
   inputs: 0,
   outputs: 0,
@@ -41,6 +42,20 @@ RED.nodes.registerType('twitch-chat-connection', {
     <input type="checkbox" id="node-config-input-isBot" style="display:inline-block; width:auto; vertical-align:top;">
     <span style="margin-left:8px;">Act as a bot account (applies Twitch bot rate limits)</span>
   </div>
+
+  <details style="margin-top:10px;">
+    <summary>Advanced / mock server</summary>
+    <p class="red-ui-help">
+      Point the chat connection at a non-Twitch IRC server for testing. The
+      <a href="https://fdgt.dev" target="_blank">fdgt</a> mock works here: it accepts
+      anonymous connections and turns a message like <code>bits --username alca</code>
+      into a simulated event.
+    </p>
+    <div class="form-row">
+      <label for="node-config-input-host"><i class="fa fa-server"></i> Chat server</label>
+      <input type="text" id="node-config-input-host" placeholder="irc.fdgt.dev (blank = Twitch)" />
+    </div>
+  </details>
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-connection">
@@ -59,6 +74,11 @@ RED.nodes.registerType('twitch-chat-connection', {
     <dt>Bot <span class="property-type">boolean</span></dt>
     <dd>Applies Twitch's known-bot rate limits. Only enable this if the account is registered as
     a known bot with Twitch, otherwise messages can be dropped.</dd>
+
+    <dt class="optional">Chat server <span class="property-type">string</span></dt>
+    <dd>Connect to this IRC server anonymously instead of Twitch. Intended for mocks such as
+    <a href="https://fdgt.dev" target="_blank">fdgt</a> (<code>irc.fdgt.dev</code>); leave blank
+    for real Twitch chat.</dd>
   </dl>
 
   <p>The OAuth token needs the <code>chat:read</code> and <code>chat:edit</code> scopes, and

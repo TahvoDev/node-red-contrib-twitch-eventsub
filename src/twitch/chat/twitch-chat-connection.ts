@@ -30,7 +30,7 @@ module.exports = function (RED: NodeAPI) {
       this.config = config;
       this.account = RED.nodes.getNode(config.account ?? '') as unknown as ChatAccount | undefined;
 
-      if (!this.account) {
+      if (!this.account && !this.hasHost()) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: 'No Twitch account configured' });
       } else {
         this.initChat().catch((e) => this.error(e));
@@ -56,32 +56,50 @@ module.exports = function (RED: NodeAPI) {
       return this.initPromise;
     }
 
+    private hasHost(): boolean {
+      return Boolean((this.config.host ?? '').trim());
+    }
+
     private async doInitChat(): Promise<ChatClient | undefined> {
-      if (!this.account) return undefined;
-
       this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Connecting...' });
-      await this.account.initAuth();
 
-      // The config node exposes its AuthProvider directly; reusing that instance
-      // avoids building a second refreshing provider that would fight over the
-      // rotating refresh token.
-      const authProvider = this.account.getAuthProvider();
-      if (!authProvider) {
-        this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch auth' });
-        return undefined;
+      // A mock/dev server (e.g. fdgt.dev) speaks plain IRC and expects no Twitch
+      // token, so connect anonymously instead of borrowing the account's.
+      let client: ChatClient;
+      if (this.hasHost()) {
+        client = new ChatClient({
+          hostName: (this.config.host ?? '').trim(),
+          webSocket: false,
+          ssl: false,
+          channels: parseChannels(this.config.channels),
+          rejoinChannelsOnReconnect: true,
+        });
+      } else {
+        if (!this.account) return undefined;
+
+        await this.account.initAuth();
+
+        // The config node exposes its AuthProvider directly; reusing that instance
+        // avoids building a second refreshing provider that would fight over the
+        // rotating refresh token.
+        const authProvider = this.account.getAuthProvider();
+        if (!authProvider) {
+          this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch auth' });
+          return undefined;
+        }
+
+        const userId = this.getUserId();
+        client = new ChatClient({
+          authProvider,
+          channels: parseChannels(this.config.channels),
+          rejoinChannelsOnReconnect: true,
+          // "known" is Twitch's rate-limit tier for a registered bot account.
+          botLevel: this.config.isBot ? 'known' : 'none',
+          // The config node registers its user token under an intent named after the
+          // user id, not "chat", so point the client at that intent explicitly.
+          authIntents: userId ? [userId] : undefined,
+        });
       }
-
-      const userId = this.getUserId();
-      const client = new ChatClient({
-        authProvider,
-        channels: parseChannels(this.config.channels),
-        rejoinChannelsOnReconnect: true,
-        // "known" is Twitch's rate-limit tier for a registered bot account.
-        botLevel: this.config.isBot ? 'known' : 'none',
-        // The config node registers its user token under an intent named after the
-        // user id, not "chat", so point the client at that intent explicitly.
-        authIntents: userId ? [userId] : undefined,
-      });
 
       client.onConnect(() => this.updateStatus({ fill: 'green', shape: 'dot', text: 'Connected' }));
       client.onDisconnect(() => this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Reconnecting' }));

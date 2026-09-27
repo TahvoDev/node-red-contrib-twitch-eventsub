@@ -19,6 +19,8 @@ export interface ChatConnectionConfig extends NodeDef {
   account?: string;
   channels?: string;
   isBot?: boolean;
+  /** Dev/mock chat server to connect to anonymously (e.g. irc.fdgt.dev). */
+  host?: string;
 }
 
 export interface ChatCommandConfig extends NodeDef {

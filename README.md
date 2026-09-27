@@ -31,6 +31,8 @@ Drop the config node once, then point the other chat nodes at it from their **Co
   (for example `channelname1, channelname2`).
 - **Bot** — applies Twitch's known-bot rate limits. Only enable it if the account is registered as
   a known bot, otherwise messages can be dropped.
+- **Chat server** (advanced) — connect to a non-Twitch IRC server anonymously. Leave blank for real
+  Twitch; set it to `irc.fdgt.dev` to use the [fdgt](https://fdgt.dev) mock while developing.
 
 The node shows **Connected**, **Reconnecting** or **Disconnected** and every node using it mirrors
 that status.
@@ -122,6 +124,15 @@ the mock images if they are missing, starts Node-RED against the Twitch CLI mock
 (everything is temporary) and fails if any generated event was rejected or never
 delivered. It needs podman (preferred) or docker. That requirement is isolated to the
 test: `npm install`, `npm run build` and `npm run check` work without a container engine.
+
+`npm run test:e2e:chat` does the same for the chat nodes. The Twitch CLI has no chat/IRC
+mock, so the chat nodes are pointed at [fdgt](https://fdgt.dev) instead: the package is
+installed into a Node-RED container, `examples/mock-chat-nodes.json` is deployed with the
+connection node's **Chat server** set to `irc.fdgt.dev`, and the flow drives the nodes over
+HTTP. fdgt turns a message like `bits --bitscount 7 --username e2e-user !hello` into a
+simulated event delivered back on the same connection, which exercises **chat send**,
+**chat in** and **chat command** together. Set `E2E_KEEP=1` to leave the container running
+as a local playground. The Helix-backed moderation nodes are not covered.
 
 ## Adding a new event
 
