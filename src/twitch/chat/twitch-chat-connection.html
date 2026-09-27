@@ -6,7 +6,6 @@ RED.nodes.registerType('twitch-chat-connection', {
     name: { value: '', required: true },
     account: { type: 'twitch-api-config', required: true },
     channels: { value: '' },
-    isBot: { value: false },
   },
   inputs: 0,
   outputs: 0,
@@ -35,12 +34,6 @@ RED.nodes.registerType('twitch-chat-connection', {
     <label for="node-config-input-channels"><i class="fa fa-comments"></i> Channels</label>
     <input type="text" id="node-config-input-channels" placeholder="channelname1, channelname2" />
   </div>
-
-  <div class="form-row">
-    <label for="node-config-input-isBot"><i class="fa fa-robot"></i> Bot</label>
-    <input type="checkbox" id="node-config-input-isBot" style="display:inline-block; width:auto; vertical-align:top;">
-    <span style="margin-left:8px;">Act as a bot account (applies Twitch bot rate limits)</span>
-  </div>
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-connection">
@@ -55,11 +48,11 @@ RED.nodes.registerType('twitch-chat-connection', {
     <dt>Channels <span class="property-type">string</span></dt>
     <dd>Comma-separated channel logins to join on startup, without a leading <code>#</code>
     (for example <code>channelname1, channelname2</code>).</dd>
-
-    <dt>Bot <span class="property-type">boolean</span></dt>
-    <dd>Applies Twitch's known-bot rate limits. Only enable this if the account is registered as
-    a known bot with Twitch, otherwise messages can be dropped.</dd>
   </dl>
+
+  <p>The connection always identifies as a bot, so Twitch applies its bot rate limits rather
+  than the tighter anonymous-user ones. Register the account as a known bot with Twitch to get
+  the full bot allowance.</p>
 
   <p>The OAuth token needs the <code>chat:read</code> and <code>chat:edit</code> scopes, and
   <code>user:read:chat</code> for the account that should receive chat.</p>

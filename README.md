@@ -29,8 +29,10 @@ Drop the config node once, then point the other chat nodes at it from their **Co
   it never stores credentials itself.
 - **Channels** — comma-separated channel logins to join on startup, without a leading `#`
   (for example `channelname1, channelname2`).
-- **Bot** — applies Twitch's known-bot rate limits. Only enable it if the account is registered as
-  a known bot, otherwise messages can be dropped.
+
+The connection always identifies as a bot, so Twitch applies its bot rate limits rather than the
+tighter anonymous-user ones. Register the account as a known bot with Twitch to get the full
+allowance.
 
 The node shows **Connected**, **Reconnecting** or **Disconnected** and every node using it mirrors
 that status.

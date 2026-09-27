@@ -18,7 +18,6 @@ export interface ChatNodeConfig extends NodeDef {
 export interface ChatConnectionConfig extends NodeDef {
   account?: string;
   channels?: string;
-  isBot?: boolean;
 }
 
 export interface ChatCommandConfig extends NodeDef {

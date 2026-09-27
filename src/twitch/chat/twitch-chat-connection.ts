@@ -76,8 +76,9 @@ module.exports = function (RED: NodeAPI) {
         authProvider,
         channels: parseChannels(this.config.channels),
         rejoinChannelsOnReconnect: true,
-        // "known" is Twitch's rate-limit tier for a registered bot account.
-        botLevel: this.config.isBot ? 'known' : 'none',
+        // Always identify as a bot so Twitch applies its bot rate limits rather
+        // than the tighter anonymous-user ones.
+        botLevel: 'known',
         // The config node registers its user token under an intent named after the
         // user id, not "chat", so point the client at that intent explicitly.
         authIntents: userId ? [userId] : undefined,
