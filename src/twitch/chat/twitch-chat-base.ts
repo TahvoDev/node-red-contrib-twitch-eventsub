@@ -1,7 +1,8 @@
 import type { Node, NodeAPI, NodeDef, NodeMessageInFlow } from 'node-red';
 import type { ChatClient } from '@twurple/chat';
-import type { ApiClient, BaseApiClient, HelixChatAnnouncementColor } from '@twurple/api';
+import type { ApiClient, BaseApiClient } from '@twurple/api';
 import type { AuthProvider } from '@twurple/auth';
+import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
 
 export type ChatStatus = {
   fill: 'red' | 'green' | 'yellow' | 'blue' | 'grey';
@@ -129,8 +130,7 @@ const TWITCH_LOGIN_RE = /^[a-z0-9_]{1,25}$/;
 /** Twitch chat messages are capped at 500 characters. */
 export const MAX_CHAT_MESSAGE_LENGTH = 500;
 
-/** Twitch caps a timeout at two weeks, in seconds. */
-export const MAX_TIMEOUT_SECONDS = 1_209_600;
+export { MAX_TIMEOUT_SECONDS, resolveAnnounceColor };
 
 /**
  * Resolves the moderation target to a numeric user ID. The target must be
@@ -280,26 +280,6 @@ export async function sendChatMessage(
     node.error(err, msg);
     finish();
   }
-}
-
-const ANNOUNCEMENT_COLORS: HelixChatAnnouncementColor[] = [
-  'primary',
-  'blue',
-  'green',
-  'orange',
-  'purple',
-];
-
-/**
- * Twitch only accepts these five values for an announcement, so anything else —
- * including the sender's hex chat colour that twitch-chat-in puts in msg.color —
- * falls back to primary rather than failing the announcement.
- */
-export function resolveAnnounceColor(msg: TwitchChatMessage): HelixChatAnnouncementColor {
-  const requested = String(msg.announceColor ?? msg.color ?? '').toLowerCase();
-  return ANNOUNCEMENT_COLORS.includes(requested as HelixChatAnnouncementColor)
-    ? (requested as HelixChatAnnouncementColor)
-    : 'primary';
 }
 
 /**

@@ -4,6 +4,64 @@ import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
 import { MockAuthProvider } from './mock-auth-provider';
+import { HELIX_SPECS } from './helix/specs';
+import {
+  effectiveFields,
+  specScopes,
+  specTier,
+  defaultActionName,
+  type HelixAction,
+  type HelixField,
+  type HelixSpec,
+} from './helix/define';
+import { enabledTiers } from './helix/helix-core';
+
+/** A field reduced to the metadata the twitch-api editor needs. */
+function serializeField(field: HelixField) {
+  return {
+    name: field.name,
+    label: field.label,
+    kind: field.kind,
+    default: field.default,
+    hint: field.hint,
+    options: field.options,
+    required: field.required,
+    primary: field.primary,
+    aliases: field.aliases,
+    faIcon: field.faIcon,
+  };
+}
+
+function serializeAction(spec: HelixSpec, action: HelixAction) {
+  // Shared fields are on the endpoint, so an action only carries its own.
+  return {
+    label: action.label,
+    help: action.help,
+    fields: effectiveFields({ ...spec, fields: [] } as HelixSpec, action)
+      .filter((field) => !field.hidden)
+      .map(serializeField),
+  };
+}
+
+function serializeEndpoint(spec: HelixSpec) {
+  const actions = spec.actions
+    ? Object.fromEntries(
+        Object.entries(spec.actions).map(([name, action]) => [name, serializeAction(spec, action)])
+      )
+    : undefined;
+
+  return {
+    type: spec.type,
+    label: spec.label,
+    help: spec.help,
+    tier: specTier(spec),
+    fields: effectiveFields(spec)
+      .filter((field) => !field.hidden)
+      .map(serializeField),
+    actions,
+    defaultAction: defaultActionName(spec),
+  };
+}
 
 type TwitchApiConfigProps = {
   id: string;
@@ -12,6 +70,7 @@ type TwitchApiConfigProps = {
   twitch_user_login?: string;
   twitch_mock_server_port?: string;
   twitch_mock_user_id?: string;
+  twitch_mock_token?: string;
 };
 
 type TwitchApiCredentials = {
@@ -25,27 +84,60 @@ type Status = {
   text: string;
 };
 
+// Scopes used by the EventSub and chat nodes plus the base Twitch login. The
+// Helix node scopes are appended from what the specs declare (generated at build
+// time), so authorising once covers the whole palette without a hand-kept list.
+const CORE_SCOPES = [
+  'bits:read', 'channel:edit:commercial', 'channel:manage:ads', 'channel:manage:broadcast',
+  'channel:manage:moderators', 'channel:manage:polls', 'channel:manage:predictions',
+  'channel:manage:raids', 'channel:manage:redemptions', 'channel:manage:schedule',
+  'channel:manage:videos', 'channel:manage:vips', 'channel:moderate',
+  'channel:read:ads', 'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
+  'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
+  'channel:read:predictions', 'channel:read:redemptions', 'channel:read:stream_key',
+  'channel:read:subscriptions', 'channel:read:vips',
+  'chat:read', 'chat:edit', 'clips:edit',
+  'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
+  'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
+  'moderator:manage:chat_settings', 'moderator:manage:shoutouts',
+  'moderator:manage:unban_requests', 'moderator:manage:warnings',
+  'moderator:read:automod_settings',
+  'moderator:read:blocked_terms', 'moderator:read:chat_settings',
+  'moderator:read:chatters', 'moderator:read:followers', 'moderator:read:guest_star',
+  'moderator:read:shield_mode', 'moderator:read:shoutouts',
+  'moderator:read:suspicious_users', 'moderator:read:unban_requests',
+  'moderator:read:whispers',
+  'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
+  'user:read:broadcast', 'user:read:chat', 'user:read:email', 'user:read:follows',
+  'user:read:subscriptions', 'user:write:chat', 'user:manage:blocked_users',
+  'user:manage:whispers',
+];
+
+// Every scope the Helix registry can need, plus the EventSub/chat ones above.
+// Fixed at startup so a tier change never forces a re-login.
+const HELIX_SPEC_SCOPES = [...new Set(HELIX_SPECS.flatMap((spec) => specScopes(spec)))].sort();
+
 // A mock server never validates tokens, but Twurple checks the scopes on the
 // token it is given and falls back to the real validate endpoint when the scope
 // list is unknown, so the mock provider has to claim a full set up front.
-const MOCK_SCOPES = [
-  'bits:read', 'channel:moderate', 'channel:read:ads', 'channel:read:charity',
-  'channel:read:goals', 'channel:read:guest_star', 'channel:read:hype_train',
-  'channel:read:polls', 'channel:read:predictions', 'channel:read:redemptions',
-  'channel:read:subscriptions', 'channel:read:vips', 'chat:read', 'chat:edit',
-  'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
-  'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
-  'moderator:manage:unban_requests', 'moderator:read:automod_settings',
-  'moderator:read:blocked_terms', 'moderator:read:chat_settings',
-  'moderator:read:followers', 'moderator:read:guest_star', 'moderator:read:shield_mode',
-  'moderator:read:shoutouts', 'moderator:read:suspicious_users',
-  'moderator:read:unban_requests', 'moderator:read:whispers',
-  'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
-  'user:read:broadcast', 'user:read:chat', 'user:read:email',
-  'user:manage:blocked_users',
-];
+const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...HELIX_SPEC_SCOPES])].sort();
 
 module.exports = function (RED: NodeAPI) {
+
+  // Every scope a user could need, for the editor's Login with Twitch button.
+  RED.httpAdmin.get('/twitch-eventsub/helix/scopes', (_req: any, res: any) => {
+    res.json({ scopes: MOCK_SCOPES });
+  });
+
+  // The endpoint picker for the twitch-api node: every registry entry in an
+  // enabled tier.
+  RED.httpAdmin.get('/twitch-eventsub/helix/endpoints', (_req: any, res: any) => {
+    const tiers = enabledTiers((RED as any).settings);
+    const endpoints = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(
+      serializeEndpoint
+    );
+    res.json({ tiers, endpoints });
+  });
 
   // --- Auth endpoints for Device Code Flow ---
 
@@ -221,7 +313,8 @@ module.exports = function (RED: NodeAPI) {
         const authProvider = new MockAuthProvider(
           this.config.twitch_client_id || 'mock-client-id',
           userId,
-          MOCK_SCOPES
+          MOCK_SCOPES,
+          this.config.twitch_mock_token || undefined
         );
 
         this.userId = userId;

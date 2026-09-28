@@ -6,16 +6,17 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "scripts": {
-    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write && node test/unit/chat-nodes.test.js",
+    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
     "collect-glyphs": "node scripts/collect-glyphs.js",
-    "check": "node scripts/sync-nodes-manifest.js && node test/unit/chat-nodes.test.js",
+    "check": "node scripts/sync-nodes-manifest.js && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
     "sync": "node scripts/sync-nodes-manifest.js --write",
     "test": "npm run test:unit && npm run test:e2e",
     "test:e2e": "node test/e2e/run-e2e.js",
-    "test:unit": "node test/unit/chat-nodes.test.js",
+    "test:unit": "node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build && npm run check",
-    "node-red-check": "node-red-dev validate"
+    "node-red-check": "node-red-dev validate",
+    "test:e2e:helix": "node test/e2e/run-helix-e2e.js"
   },
   "keywords": [
     "node-red",
@@ -44,6 +45,7 @@
     "version": ">=2.0.0",
     "icons": "dist/twitch/icons",
     "nodes": {
+      "twitch-api": "dist/twitch/helix/twitch-api.js",
       "twitch-api-config": "dist/twitch/twitch-api-config.js",
       "twitch-chat-announce": "dist/twitch/chat/twitch-chat-announce.js",
       "twitch-chat-ban": "dist/twitch/chat/twitch-chat-ban.js",
@@ -129,13 +131,7 @@
       "twitch-eventsub-user-authorization-grant": "dist/twitch/eventsub/generated/twitch-eventsub-user-authorization-grant.js",
       "twitch-eventsub-user-authorization-revoke": "dist/twitch/eventsub/generated/twitch-eventsub-user-authorization-revoke.js",
       "twitch-eventsub-user-update": "dist/twitch/eventsub/generated/twitch-eventsub-user-update.js",
-      "twitch-eventsub-user-whisper-message": "dist/twitch/eventsub/generated/twitch-eventsub-user-whisper-message.js",
-      "twitch-helix-get-authenticated-user": "dist/twitch/helix/twitch-helix-get-authenticated-user.js",
-      "twitch-helix-get-blocks": "dist/twitch/helix/twitch-helix-get-blocks.js",
-      "twitch-helix-get-streams": "dist/twitch/helix/twitch-helix-get-streams.js",
-      "twitch-helix-get-users": "dist/twitch/helix/twitch-helix-get-users.js",
-      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js",
-      "twitch-helix-user-block": "dist/twitch/helix/twitch-helix-user-block.js"
+      "twitch-eventsub-user-whisper-message": "dist/twitch/eventsub/generated/twitch-eventsub-user-whisper-message.js"
     }
   },
   "engines": {

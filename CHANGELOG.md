@@ -5,7 +5,107 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
+  spec-to-node factory/build-generation are gone. Endpoints are registry entries under
+  `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (endpoint → action
+  picker, dynamic fields) calls them through one shared path (`helix-core.ts`). Fewer nodes means no
+  bulk generation: no generated `.js`/`.html` per endpoint, no `scopes.json`.
+- Consolidated the Helix palette: endpoints that share a resource now sit behind an Action dropdown
+  (`bans`, `moderators`, `vips`, `blocked terms`, `chat settings`, `channel points`, `redemptions`,
+  `polls`, `predictions`, `schedule`, `raids`, `ads`, `stream markers`, `clips`, `videos`, `bits`,
+  `subscriptions`, `teams`); the editor shows only the selected action's fields and scopes are
+  checked per action. Palette clutter is handled by tiers.
+- Every spec now declares a `tier` (`core` | `extended` | `advanced`). Only enabled tiers register;
+  configure `twitchApi.tiers` in `settings.js` (default `['core']`). OAuth scopes stay the fixed
+  build-time union, so changing tiers never forces users to re-authenticate.
+- Helix calls always run as the authenticated account. Removed the actor overrides that could never
+  work with a second account: the broadcaster context on *update channel info*, *ads* and *raids*,
+  and the `From` / `User` overrides on *send shoutout* and *get followed channels* (those fields name
+  the channel/target, not the actor). Public endpoints (emotes, chat badges, content classification
+  labels, drops, extensions) still use an app token, deliberately without a user.
+- The editor renders boolean fields with their label (e.g. **Get all**, **Include Email**) instead of
+  an unlabelled checkbox.
+- **Paging:** **Get all** now follows every page by default instead of stopping at a 1000-row cap, so
+  flows no longer need a manual pagination loop. **Max** is a blank-by-default safety ceiling (hard
+  limit 50000); when it is reached the node sets `msg.truncated: true` and leaves the cursor so a flow
+  can continue if it really needs to.
+- **Breaking (unreleased branch, no aliases kept):** the one-endpoint Helix types are renamed or
+  removed. `ban-user`/`unban-user`/`get-banned-users` → `bans`; `create-clip`/`get-clips` → `clips`;
+  `get-videos`/`delete-videos` → `videos`; `get-custom-rewards`/`create|update|delete-custom-reward`
+  → `channel-points`; `get-redemptions`/`update-redemption-status` → `redemptions`;
+  `get-polls`/`create-poll`/`end-poll` → `polls`; `get-predictions`/`create|end-prediction` →
+  `predictions`; `get-schedule`/`create|update|delete-segment` → `schedule`;
+  `start-raid`/`cancel-raid` → `raids`; `get-ad-schedule`/`snooze-next-ad`/`start-commercial` → `ads`;
+  `create-stream-marker`/`get-stream-markers` → `stream-markers`;
+  `get-moderators`/`add|remove-moderator` → `moderators`; `get-vips`/`add|remove-vip` → `vips`;
+  `get-blocked-terms`/`add|remove-blocked-term` → `blocked-terms`;
+  `get-chat-settings`/`update-chat-settings` → `chat-settings`;
+  `get-bits-leaderboard`/`get-cheermotes` → `bits`;
+  `get-subscriptions`/`check-user-subscription` → `subscriptions`;
+  `get-teams`/`get-channel-teams` → `teams`. The remaining long-tail endpoints are ordinary registry
+  entries too; the single `twitch-api` node runs them all.
+- Helix endpoints are registry entries under `src/twitch/helix/specs/`: an entry declares its tier,
+  scopes, fields and the twurple call, and the single `twitch-api` node runs it. Adding an
+  endpoint is one entry, no other file.
+- The config node's "Login with Twitch" button requests the union of the scopes declared by the
+  registry, so it cannot drift from what the picker can call.
+- Behaviour changes introduced by the migration, flagged here: `get-blocks` and `update-user-description`
+  now check their required scopes (`user:read:blocked_users` / `user:edit`) before calling Twitch instead
+  of relying on the API error, and an unrecognised `select` value falls back to the field default rather
+  than failing
+
 ### Added
+- More Helix coverage, all as the same declarative specs run by the one `twitch-api` node: AutoMod
+  settings and held messages, Shield Mode, unban requests, moderated channels, ban/moderator checks,
+  chat colour, user emotes, shared chat, followed streams, channel editors, charity donations,
+  schedule iCal/vacation/single-segment, content classification labels, drops entitlements,
+  extensions (released/live/bits/transactions) and user extensions. `modify channel information`
+  also covers content classification labels, delay and branded content now
+- A **Mock Token** field on the Twitch API config node's mock section. The Twitch CLI mock API
+  generates a random client id, access token and user id at startup and 401s anything else, so the
+  mock now accepts the token it prints (the Helix e2e reads all three from the mock log)
+- Action support in the spec format (`actions`, `defaultAction`) with an Action dropdown, per-action
+  fields and per-action scope checks; `msg.action` → node config → `defaultAction` resolution
+- `test/e2e/run-helix-e2e.js`: runs the built module in a Node-RED container against the Twitch CLI
+  mock, deploys the `twitch-api` node at several endpoints and checks each reaches the mock API
+- `test/unit/helix-nodes.test.js` covers the dispatcher, paging, actions, aliases and tier gating
+- Helix endpoints in the `twitch-api` endpoint picker for engagement and monetisation:
+  channel points (`get/create/update/delete custom reward`, `get redemptions`,
+  `update redemption status`), polls (`get/create/end poll`), predictions
+  (`get/create/end prediction`), `get bits leaderboard`, `get cheermotes`,
+  `get subscriptions`, `check user subscription`, schedule (`get schedule`,
+  `create/update/delete segment`), `get teams`, `get channel teams`, `get goals`,
+  `get charity campaign`, `get hype train` and `send whisper`
+- Helix endpoints in the `twitch-api` endpoint picker for streams, clips and content:
+  `create stream marker`, `get stream markers`, `get stream key`, `create clip`, `get clips`,
+  `get videos`, `delete videos`, `get games`, `get top games`, `search categories`,
+  `search channels`, `start raid`, `cancel raid`, `start commercial`, `get ad schedule` and
+  `snooze next ad`
+- Helix endpoints in the `twitch-api` endpoint picker for moderation: `ban user` (with an
+  optional timeout duration), `unban user`, `get banned users`, `get moderators`, `add moderator`,
+  `remove moderator`, `get vips`, `add vip`, `remove vip`, `warn user`, `get blocked terms`,
+  `add blocked term`, `remove blocked term` and `check automod status`
+- Helix endpoints in the `twitch-api` endpoint picker for channel & chat: `get channel info`,
+  `update channel info`, `send chat message`, `send announcement`, `send shoutout`, `get chatters`,
+  `get chat settings`, `update chat settings`, `clear chat`, `delete chat message`, `get emotes`,
+  `get chat badges`, `get followers` and `get followed channels`.
+  They accept a username or an ID (resolved automatically), default the broadcaster to the
+  authenticated account, coerce string/number/boolean/Buffer/array/null input, document every
+  `msg` override and set `msg.pagination`/`msg.total` on paged results
+- `twitch-helix-utils.ts`: shared coercion, id/game resolution, scope checks, paging, error mapping
+  and plain-object mappers, so every Helix node behaves and outputs the same way
+- `twitch-helix-base.ts` now passes the resolved config node to handlers and merges a handler's
+  `{ payload, extra }` result onto the message; existing nodes are unchanged
+- The config node requests the scopes the new nodes need (including
+  `channel:manage:broadcast`, `channel:manage:polls`, `channel:manage:predictions`,
+  `channel:manage:redemptions`, `channel:manage:schedule`, `channel:manage:videos`,
+  `channel:manage:raids`, `channel:manage:moderators`, `channel:manage:vips`,
+  `channel:edit:commercial`, `channel:manage:ads`, `channel:read:stream_key`, `clips:edit`,
+  `moderator:read:chatters`, `moderator:manage:chat_settings`, `moderator:manage:shoutouts`,
+  `moderator:manage:warnings`, `user:write:chat`, `user:read:follows`,
+  `user:read:subscriptions`, `user:manage:whispers`) in one login
+- `examples/helix-channel-chat.json` and a `test/unit/helix-nodes.test.js` unit test
 - 52 new event nodes covering goals, moderation, VIPs, warnings, unban requests, suspicious users, chat clearing/holds/settings, AutoMod, shared chat, subscription end, channel rewards, redemption update, automatic reward redemption, Hype Train v2, charity, bits use, ad breaks, whispers and user updates
 - Every event is now its own node, so a flow wires a switch on the event you actually want
 - Optional mock mode on the Twitch API config node: point `mock server port` at a local [Twitch CLI](https://dev.twitch.tv/docs/cli/) mock and the nodes subscribe and receive events without a real Twitch account or app

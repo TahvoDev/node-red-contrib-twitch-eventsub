@@ -98,6 +98,117 @@ return msg;
 Leave **chat send**'s channel blank so it uses the channel from `msg.channel`, and set **chat in**'s
 channel to the same channel (or leave it blank to listen to every joined channel).
 
+## Helix API nodes
+
+The `twitch api` nodes call Twitch's Helix REST API. Every node has one input and one output, so it
+fits at the start, middle or end of a flow, and every node needs a `twitch-api-config` in its
+**Config** dropdown. Results land on `msg.payload` as plain objects — no Twurple class instances — so
+they can be fed straight into a debug node, a template or a function node.
+
+Wherever the API needs a user, channel or game ID, the node also accepts a username or category name
+and resolves it, so `broadcaster` can be `shroud` or `44322889`. Most channel and moderation nodes
+accept a blank **Broadcaster** and default to the authenticated account.
+
+Twitch's user, channel and broadcaster IDs are the same number, and a login resolves to the same id
+however it is named. So every broadcaster field also reads `msg.channel`/`msg.channelId`, and every
+user field also reads `msg.userId` — a `chat in` message, which carries `msg.channel` and `msg.user`,
+maps straight into the Helix nodes without a function node.
+
+Every node is forgiving about its input: a string, a number, a boolean, a Buffer, an array or null
+is coerced or ignored, and anything missing falls back to the node's config field. `msg.payload` can
+override a node's primary field, and each node also accepts the named overrides documented in its
+help panel.
+
+### Paging
+
+List nodes have **Limit**, **Get all** and **Max** fields:
+
+- **Limit** — rows fetched per Twitch request (Twitch caps a page at 100; the node clamps to 1–100).
+- **Get all** — off: one request, one page. On: the node follows every page for you and returns one
+  `msg.payload` array, so a flow never has to loop pagination by hand.
+- **Max** — a safety ceiling on the total when **Get all** is on. Leave it blank for every row (up to
+  the built-in ceiling of 50,000); set it lower to stop early.
+
+Every list node sets `msg.pagination` (`{ cursor }`), `msg.total` when Twitch reports it, and
+`msg.truncated: true` when **Get all** stopped at the ceiling with pages still remaining — the cursor
+is there if you want to continue. Without **Get all**, feed `msg.pagination.cursor` back as
+`msg.after` to fetch the next page yourself.
+
+### Tiers
+
+Helix nodes are grouped into three tiers so the palette stays small:
+
+- **core** (default): the everyday read/write nodes — users, streams, channel info, chat, bans, clips.
+- **extended**: moderators, VIPs, blocked terms, chat settings, Channel Points, polls, predictions,
+  schedule, raids, ads, videos, stream markers.
+- **advanced**: bits, subscriptions, schedule extras, teams, charity, hype train, goals, whispers,
+  stream key, channel editors, games, search, drops, extensions and content classification labels.
+
+Only endpoints in an enabled tier appear in the **Endpoint** picker. Enable more in your Node-RED `settings.js`:
+
+```js
+module.exports = {
+    // ...
+    twitchApi: {
+        tiers: ['core', 'extended'],
+    },
+};
+```
+
+The default is `['core']`. The `twitch-api` node itself is always registered; a flow that selects an
+endpoint from a disabled tier fails that message with `Endpoint "…" is in the … tier, which is not
+enabled` rather than disappearing from the palette. OAuth scopes are always requested for every tier
+in a single login, so enabling a tier never forces you to re-authenticate.
+
+### The twitch-api node
+
+There is one Helix node, **twitch api** (`twitch-api`), plus the **twitch-api-config** account node.
+Pick an endpoint; the node renders that endpoint's fields, and when the endpoint groups several verbs,
+its action dropdown. List endpoints add Limit / Get all / Max. `msg.endpoint` and `msg.action` override
+the selection at runtime.
+
+Every endpoint is an entry in one registry file, `src/twitch/helix/specs/index.ts` (with `fields.ts`
+for shared field builders and `mappers.ts` for result shaping).
+
+### Adding an endpoint
+
+Add a `defineHelix({...})` entry to `src/twitch/helix/specs/index.ts`, then run `npm run build`; it
+appears in the **twitch api** node's picker. No node, editor html or manifest entry is generated — the
+one `twitch-api` node drives every registry entry.
+
+A spec declares its `tier` (`core` | `extended` | `advanced`), `scopes`, `fields` and the twurple
+call. Give a spec `actions` + `defaultAction` to group several verbs behind one endpoint's Action
+dropdown; field names and message shapes stay constant across actions. Only enabled tiers appear in
+the picker, which is what keeps the default list short.
+
+```ts
+defineHelix({
+  type: 'twitch-helix-get-something',
+  tier: 'core',
+  label: 'get something',
+  help: 'One line shown in the picker and help.',
+  scopes: ['channel:read:something'],
+  fields: [
+    { name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true, hint: 'blank = authenticated user' },
+  ],
+  // run only makes the twurple call; fields are already resolved and coerced
+  run: ({ api, broadcasterId }) => api.channels.getSomething(broadcasterId),
+  // map returns a plain serialisable object, never a twurple class instance
+  map: (result) => ({ id: result.id, name: result.name }),
+})
+```
+
+For a list endpoint add `paged: { limit: 20 }` instead of declaring `limit`/`all`/`allMax`: the core
+adds those fields, walks the pages for **Get all** and sets `msg.pagination`/`msg.total`.
+
+The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
+covers the whole `twitch api` palette. If you created your token before a node existed, log in again
+to grant the new scope; the node reports `Missing scope … — re-authenticate the config node` rather
+than failing with an opaque error.
+
+See `examples/helix-channel-chat.json` for a starting flow that updates the channel title, reads the
+followers and posts a chat message.
+
 ## Testing without a Twitch account
 
 The Twitch API config node has an optional mock mode, so a flow can be developed and
@@ -111,9 +222,10 @@ real broadcaster account:
    twitch event websocket start-server --port 8082 --require-subscription
    node test/mock/proxy.js
    ```
-2. In the Twitch API config node, open the mock section, set **Mock Port** to the proxy
-   port (8080) and **Mock User ID** to the broadcaster the mock should report. Leave the
-   client id empty to use a mock-only client.
+2. In the Twitch API config node, open the mock section and set **Mock Port** to the proxy
+   port (8080). The Twitch CLI prints a Client ID, an access token and a user ID when it
+   starts: put the Client ID in the main **Client ID** field and the token and user ID in
+   the mock **Mock Token** and **Mock User ID** fields. Helix endpoints 401 anything else.
 3. Import `examples/mock-all-nodes.json` to get every event node wired to a debug node.
 4. Fire the events:
    ```sh
@@ -133,6 +245,10 @@ the mock images if they are missing, starts Node-RED against the Twitch CLI mock
 (everything is temporary) and fails if any generated event was rejected or never
 delivered. It needs podman (preferred) or docker. That requirement is isolated to the
 test: `npm install`, `npm run build` and `npm run check` work without a container engine.
+
+`npm run test:e2e:helix` is the Helix counterpart: it deploys a flow of `twitch-api` nodes (one
+per endpoint), reads the credentials the Twitch CLI mock generates, and asserts the mock received
+the request each one is supposed to make. Same container-engine requirement.
 
 ## Adding a new event
 

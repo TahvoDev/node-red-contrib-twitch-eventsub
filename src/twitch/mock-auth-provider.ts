@@ -14,10 +14,11 @@ export class MockAuthProvider implements AuthProvider {
   constructor(
     private readonly mockClientId: string,
     private readonly mockUserId: string,
-    scopes: string[]
+    scopes: string[],
+    accessToken = 'mock-access-token'
   ) {
     this.token = {
-      accessToken: 'mock-access-token',
+      accessToken,
       refreshToken: null,
       scope: scopes,
       expiresIn: null,

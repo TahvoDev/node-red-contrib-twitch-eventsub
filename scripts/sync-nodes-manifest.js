@@ -2,12 +2,17 @@
 'use strict'
 
 /**
- * Keeps the "node-red"."nodes" map in package.json in sync with the registry.
+ * Keeps the "node-red"."nodes" map in package.json in sync with the EventSub
+ * registry.
  *
- * Every EventSub event must have exactly one entry pointing at its generated module,
- * and no entry may point at a file that no longer exists. Running without --write
- * validates and exits non-zero on drift, which is what the build uses. Running with
- * --write regenerates the map after adding or removing an event.
+ * Every EventSub event must have exactly one entry pointing at its generated
+ * module, and no entry may point at a file that no longer exists. Running
+ * without --write validates and exits non-zero on drift, which is what the build
+ * uses. Running with --write regenerates the map after adding or removing an
+ * event.
+ *
+ * The Helix nodes are hand-written (one `twitch-api` node), so they are left
+ * alone; only the generated EventSub entries are managed here.
  */
 
 const fs = require('fs')
@@ -47,13 +52,13 @@ const write = process.argv.includes('--write')
 
 const GENERATED_DIR = 'dist/twitch/eventsub/generated/'
 // Generated EventSub nodes are recognised by where their module lives, not by a
-// name prefix, so a future hand-written node that happens to start with
+// name prefix, so a hand-written node that happens to start with
 // "twitch-eventsub-" is preserved rather than silently dropped.
 const isGeneratedEntry = (file) => typeof file === 'string' && file.startsWith(GENERATED_DIR)
 
-const expectedEvents = {}
+const expected = {}
 for (const definition of EVENTS) {
-  expectedEvents[definition.type] = `${GENERATED_DIR}${definition.type}.js`
+  expected[definition.type] = `${GENERATED_DIR}${definition.type}.js`
 }
 
 const merged = {}
@@ -61,7 +66,7 @@ for (const [type, file] of Object.entries(current)) {
   if (isGeneratedEntry(file)) continue
   merged[type] = file
 }
-Object.assign(merged, expectedEvents)
+Object.assign(merged, expected)
 
 const sorted = Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b)))
 
@@ -73,17 +78,15 @@ if (write) {
 }
 
 const problems = []
-for (const [type, file] of Object.entries(expectedEvents)) {
+for (const [type, file] of Object.entries(expected)) {
   if (current[type] !== file) problems.push(`missing or wrong entry: ${type} -> ${file}`)
 }
 for (const [type, file] of Object.entries(current)) {
-  if (isGeneratedEntry(file) && !expectedEvents[type]) {
-    problems.push(`stale entry not in the registry: ${type}`)
-  }
+  if (isGeneratedEntry(file) && !expected[type]) problems.push(`stale entry not in the registry: ${type}`)
 }
 
 if (problems.length) {
-  console.error('package.json node-red.nodes is out of sync with the EventSub registry:')
+  console.error('package.json node-red.nodes is out of sync with the registry:')
   for (const problem of problems) console.error(`  ${problem}`)
   console.error('\nrun `npm run sync` to regenerate it')
   process.exit(1)

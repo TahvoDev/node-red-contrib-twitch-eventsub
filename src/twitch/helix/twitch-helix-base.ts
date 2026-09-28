@@ -1,6 +1,37 @@
 import type { NodeAPI } from 'node-red';
+import { helixErrorMessage, shortStatus } from './twitch-helix-utils';
 
-type HelixHandler = (apiClient: any, msg: any, config: any) => Promise<any>;
+/**
+ * A handler runs inside the base's try/catch. It may return:
+ *  - a plain value: becomes msg.payload (existing nodes do this), or
+ *  - `{ payload, extra }`: payload becomes msg.payload and extra is merged onto
+ *    the message (new nodes use this to set msg.pagination / msg.total).
+ *
+ * The resolved config node is passed as the 4th argument so handlers do not
+ * have to call RED.nodes.getNode(config.config) again.
+ */
+type HelixHandler = (
+  apiClient: any,
+  msg: any,
+  config: any,
+  twitchConfig: any
+) => Promise<any>;
+
+function applyResult(msg: any, result: any): void {
+  if (
+    result !== null &&
+    typeof result === 'object' &&
+    !Array.isArray(result) &&
+    Object.prototype.hasOwnProperty.call(result, 'payload')
+  ) {
+    msg.payload = result.payload;
+    if (result.extra && typeof result.extra === 'object') {
+      Object.assign(msg, result.extra);
+    }
+    return;
+  }
+  msg.payload = result;
+}
 
 export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: HelixHandler) {
     RED.nodes.createNode(node, config);
@@ -23,12 +54,28 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
                 return;
             }
 
-            msg.payload = await handler(apiClient, msg, config);
+            // Mutate and forward the incoming message so no other property is dropped.
+            applyResult(msg, await handler(apiClient, msg, config, twitchConfig));
             node.status({});
             send(msg);
             done();
         } catch (err) {
-            node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+            // Only Twurple HTTP errors are rewritten; a handler's own Error keeps
+            // its identity so existing nodes report exactly what they always did.
+            if (typeof (err as any)?.statusCode === 'number') {
+                const message = helixErrorMessage(err);
+                node.status({ fill: 'red', shape: 'ring', text: shortStatus(message) });
+                const wrapped = new Error(message);
+                (wrapped as any).cause = err;
+                done(wrapped);
+                return;
+            }
+
+            node.status({
+                fill: 'red',
+                shape: 'ring',
+                text: shortStatus((err as Error)?.message || String(err)),
+            });
             done(err);
         }
     });
