@@ -6,7 +6,7 @@
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
   "scripts": {
-    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
+    "build": "rm -rf dist && tsc && node scripts/generate-eventsub-nodes.js && node scripts/generate-helix-nodes.js && node scripts/generate-eventsub-icons.js && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/sync-nodes-manifest.js --write && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
     "collect-glyphs": "node scripts/collect-glyphs.js",
     "check": "node scripts/sync-nodes-manifest.js && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js",
     "sync": "node scripts/sync-nodes-manifest.js --write",
@@ -151,7 +151,7 @@
       "twitch-helix-end-poll": "dist/twitch/helix/twitch-helix-end-poll.js",
       "twitch-helix-end-prediction": "dist/twitch/helix/twitch-helix-end-prediction.js",
       "twitch-helix-get-ad-schedule": "dist/twitch/helix/twitch-helix-get-ad-schedule.js",
-      "twitch-helix-get-authenticated-user": "dist/twitch/helix/twitch-helix-get-authenticated-user.js",
+      "twitch-helix-get-authenticated-user": "dist/twitch/helix/generated/twitch-helix-get-authenticated-user.js",
       "twitch-helix-get-banned-users": "dist/twitch/helix/twitch-helix-get-banned-users.js",
       "twitch-helix-get-bits-leaderboard": "dist/twitch/helix/twitch-helix-get-bits-leaderboard.js",
       "twitch-helix-get-blocked-terms": "dist/twitch/helix/twitch-helix-get-blocked-terms.js",
@@ -204,7 +204,7 @@
       "twitch-helix-update-redemption-status": "dist/twitch/helix/twitch-helix-update-redemption-status.js",
       "twitch-helix-update-segment": "dist/twitch/helix/twitch-helix-update-segment.js",
       "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js",
-      "twitch-helix-user-block": "dist/twitch/helix/twitch-helix-user-block.js",
+      "twitch-helix-user-block": "dist/twitch/helix/generated/twitch-helix-user-block.js",
       "twitch-helix-warn-user": "dist/twitch/helix/twitch-helix-warn-user.js"
     }
   },

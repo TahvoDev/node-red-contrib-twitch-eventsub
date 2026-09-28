@@ -26,6 +26,15 @@ try {
   process.exit(1)
 }
 
+let HELIX_SPECS
+try {
+  ({ HELIX_SPECS } = require(path.join(root, 'dist', 'twitch', 'helix', 'specs', 'index.js')))
+} catch (error) {
+  console.error('could not load the compiled Helix specs from dist/. run `npm run build` first.')
+  if (error.code === 'MODULE_NOT_FOUND') console.error(`  ${error.message}`)
+  process.exit(1)
+}
+
 assertUniqueTypes(EVENTS)
 
 function assertUniqueTypes(definitions) {
@@ -46,29 +55,39 @@ const current = pkg['node-red'].nodes
 const write = process.argv.includes('--write')
 
 const GENERATED_DIR = 'dist/twitch/eventsub/generated/'
+const GENERATED_HELIX_DIR = 'dist/twitch/helix/generated/'
 // Generated EventSub nodes are recognised by where their module lives, not by a
 // name prefix, so a future hand-written node that happens to start with
 // "twitch-eventsub-" is preserved rather than silently dropped.
 const isGeneratedEntry = (file) => typeof file === 'string' && file.startsWith(GENERATED_DIR)
+// The same rule for the declarative Helix specs: old hand-written Helix entries
+// stay until their spec migration lands, and only the generated ones are managed.
+const isGeneratedHelixEntry = (file) =>
+  typeof file === 'string' && file.startsWith(GENERATED_HELIX_DIR)
 
 const expectedEvents = {}
 for (const definition of EVENTS) {
   expectedEvents[definition.type] = `${GENERATED_DIR}${definition.type}.js`
 }
 
+const expectedHelix = {}
+for (const spec of HELIX_SPECS) {
+  expectedHelix[spec.type] = `${GENERATED_HELIX_DIR}${spec.type}.js`
+}
+
 const merged = {}
 for (const [type, file] of Object.entries(current)) {
-  if (isGeneratedEntry(file)) continue
+  if (isGeneratedEntry(file) || isGeneratedHelixEntry(file)) continue
   merged[type] = file
 }
-Object.assign(merged, expectedEvents)
+Object.assign(merged, expectedEvents, expectedHelix)
 
 const sorted = Object.fromEntries(Object.entries(merged).sort(([a], [b]) => a.localeCompare(b)))
 
 if (write) {
   pkg['node-red'].nodes = sorted
   fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`)
-  console.log(`package.json nodes manifest updated (${EVENTS.length} EventSub events)`)
+  console.log(`package.json nodes manifest updated (${EVENTS.length} EventSub events, ${HELIX_SPECS.length} Helix specs)`)
   process.exit(0)
 }
 
@@ -76,17 +95,23 @@ const problems = []
 for (const [type, file] of Object.entries(expectedEvents)) {
   if (current[type] !== file) problems.push(`missing or wrong entry: ${type} -> ${file}`)
 }
+for (const [type, file] of Object.entries(expectedHelix)) {
+  if (current[type] !== file) problems.push(`missing or wrong Helix entry: ${type} -> ${file}`)
+}
 for (const [type, file] of Object.entries(current)) {
   if (isGeneratedEntry(file) && !expectedEvents[type]) {
     problems.push(`stale entry not in the registry: ${type}`)
   }
+  if (isGeneratedHelixEntry(file) && !expectedHelix[type]) {
+    problems.push(`stale Helix entry not in the specs: ${type}`)
+  }
 }
 
 if (problems.length) {
-  console.error('package.json node-red.nodes is out of sync with the EventSub registry:')
+  console.error('package.json node-red.nodes is out of sync with the registry:')
   for (const problem of problems) console.error(`  ${problem}`)
   console.error('\nrun `npm run sync` to regenerate it')
   process.exit(1)
 }
 
-console.log(`nodes manifest matches registry: ${EVENTS.length} EventSub events`)
+console.log(`nodes manifest matches registry: ${EVENTS.length} EventSub events, ${HELIX_SPECS.length} Helix specs`)
