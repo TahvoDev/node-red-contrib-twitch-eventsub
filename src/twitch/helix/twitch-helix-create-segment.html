@@ -1,0 +1,113 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-create-segment', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      broadcaster: { value: '' },
+      startDate:   { value: '' },
+      timezone:    { value: '' },
+      duration:    { value: '' },
+      isRecurring: { value: '' },
+      categoryId:  { value: '' },
+      title:       { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'create segment',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'create segment' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      ['duration'].forEach(function (field) {
+        $('#node-input-' + field).on('change', function () {
+          const value = String($(this).val()).trim();
+          if (value && !/^\d+$/.test(value)) RED.notify(field + ' must be a whole number', 'warning');
+        });
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-create-segment">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-startDate"><i class="fa fa-calendar"></i> Start date (UTC)</label>
+    <input type="text" id="node-input-startDate" placeholder="required: 2026-01-01T18:00:00Z" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-timezone"><i class="fa fa-globe"></i> Timezone</label>
+    <input type="text" id="node-input-timezone" placeholder="required: America/New_York" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-duration"><i class="fa fa-hourglass-half"></i> Duration (min)</label>
+    <input type="text" id="node-input-duration" placeholder="optional: default 240" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-isRecurring"><i class="fa fa-repeat"></i> Recurring</label>
+    <select id="node-input-isRecurring">
+      <option value="">no</option>
+      <option value="true">weekly</option>
+      <option value="false">no</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-categoryId"><i class="fa fa-gamepad"></i> Category</label>
+    <input type="text" id="node-input-categoryId" placeholder="optional: category name or ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-title"><i class="fa fa-comment"></i> Title</label>
+    <input type="text" id="node-input-title" placeholder="optional: msg.payload overrides this" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-create-segment">
+  <p>Adds a segment to a channel's streaming schedule. Twitch requires <code>startDate</code>
+    (in UTC) and <code>timezone</code>; <code>duration</code> defaults to 240 minutes and
+    <code>isRecurring</code> to false.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID.</dd>
+    <dt>startDate | startTime <span class="property-type">string</span></dt>
+    <dd>Required. UTC start time, e.g. <code>2026-01-01T18:00:00Z</code>.</dd>
+    <dt>timezone <span class="property-type">string</span></dt>
+    <dd>Required. IANA timezone, e.g. <code>America/New_York</code>.</dd>
+    <dt>duration <span class="property-type">number | string</span></dt>
+    <dd>Optional. Planned length in minutes (Twitch default 240).</dd>
+    <dt>isRecurring <span class="property-type">boolean | string</span></dt>
+    <dd>Optional. Whether the segment repeats weekly (default false).</dd>
+    <dt>category | categoryId <span class="property-type">string</span></dt>
+    <dd>Optional. Category name or ID.</dd>
+    <dt>title | payload <span class="property-type">string</span></dt>
+    <dd>Optional. Segment title. A string <code>payload</code> takes priority.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The created segment: <code>id</code>, <code>startDate</code>, <code>endDate</code>,
+      <code>title</code>, <code>cancelEndDate</code>, <code>categoryId</code>,
+      <code>categoryName</code>, <code>isRecurring</code>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:manage:schedule</code></p>
+</script>

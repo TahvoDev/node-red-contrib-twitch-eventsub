@@ -1,0 +1,92 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-create-poll', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:                { value: '' },
+      config:              { type: 'twitch-api-config', required: true },
+      broadcaster:         { value: '' },
+      title:               { value: '' },
+      choices:             { value: '' },
+      duration:            { value: '' },
+      channelPointsPerVote: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'create poll',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'create poll' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      ['duration', 'channelPointsPerVote'].forEach(function (field) {
+        $('#node-input-' + field).on('change', function () {
+          const value = String($(this).val()).trim();
+          if (value && !/^\d+$/.test(value)) RED.notify(field + ' must be a whole number', 'warning');
+        });
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-create-poll">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-title"><i class="fa fa-bar-chart"></i> Title</label>
+    <input type="text" id="node-input-title" placeholder="msg.payload overrides this" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-choices"><i class="fa fa-list"></i> Choices</label>
+    <input type="text" id="node-input-choices" placeholder="comma separated, 2 to 5" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-duration"><i class="fa fa-clock-o"></i> Duration (s)</label>
+    <input type="text" id="node-input-duration" placeholder="15 to 1800, required" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-channelPointsPerVote"><i class="fa fa-star"></i> Points per vote</label>
+    <input type="text" id="node-input-channelPointsPerVote" placeholder="optional: 0 = disabled" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-create-poll">
+  <p>Creates a channel poll. <code>msg.payload</code> may hold the poll title. Choices are a comma
+    separated string or an array, and the duration is in seconds (15 to 1800).</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload | title <span class="property-type">string</span></dt>
+    <dd>The poll title. <code>payload</code> takes priority.</dd>
+    <dt>choices | options <span class="property-type">string | array</span></dt>
+    <dd>2 to 5 choices. Required.</dd>
+    <dt>duration <span class="property-type">number | string</span></dt>
+    <dd>Poll length in seconds, 15 to 1800. Required.</dd>
+    <dt>channelPointsPerVote <span class="property-type">number | string</span></dt>
+    <dd>Optional. Points a vote costs; 0 disables points voting.</dd>
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The created poll, in the same shape as <b>get polls</b>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:manage:polls</code></p>
+</script>

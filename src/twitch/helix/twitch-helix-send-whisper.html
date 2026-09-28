@@ -1,0 +1,63 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-send-whisper', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:    { value: '' },
+      config:  { type: 'twitch-api-config', required: true },
+      to:      { value: '' },
+      message: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'send whisper',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'send whisper' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-send-whisper">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-to"><i class="fa fa-user"></i> Recipient</label>
+    <input type="text" id="node-input-to" placeholder="username or user ID" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-message"><i class="fa fa-comment"></i> Message</label>
+    <input type="text" id="node-input-message" placeholder="msg.payload overrides this" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-send-whisper">
+  <p>Sends a whisper from the authenticated account to another user. Twitch may silently drop
+    whispers it considers abusive, so a success only means the request was accepted.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>to | recipient <span class="property-type">string</span></dt>
+    <dd>Recipient username or ID.</dd>
+    <dt>payload | message | text <span class="property-type">string</span></dt>
+    <dd>Whisper text. A string <code>payload</code> takes priority.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd><code>{ fromUserId, toUserId, sent: true }</code>. Twitch returns no body on success.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>user:manage:whispers</code></p>
+</script>

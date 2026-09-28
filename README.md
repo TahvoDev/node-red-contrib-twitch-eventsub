@@ -162,6 +162,32 @@ help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when
 | start commercial | Start a commercial break | `channel:edit:commercial` |
 | get ad schedule | The channel's ad schedule | `channel:read:ads` |
 | snooze next ad | Snooze the next ad | `channel:manage:ads` |
+| get custom rewards | A channel's custom rewards | `channel:read:redemptions` |
+| create custom reward | Create a custom reward | `channel:manage:redemptions` |
+| update custom reward | Update a custom reward | `channel:manage:redemptions` |
+| delete custom reward | Delete a custom reward | `channel:manage:redemptions` |
+| get redemptions | Reward redemptions, optionally by status | `channel:read:redemptions` |
+| update redemption status | Fulfil or cancel a redemption | `channel:manage:redemptions` |
+| get polls | A channel's polls | `channel:read:polls` |
+| create poll | Create a poll | `channel:manage:polls` |
+| end poll | End a poll | `channel:manage:polls` |
+| get predictions | A channel's predictions | `channel:read:predictions` |
+| create prediction | Create a prediction | `channel:manage:predictions` |
+| end prediction | Resolve or cancel a prediction | `channel:manage:predictions` |
+| get bits leaderboard | The bits leaderboard | `bits:read` |
+| get cheermotes | Global or channel cheermotes | — |
+| get subscriptions | A channel's subscribers | `channel:read:subscriptions` |
+| check user subscription | Whether a user is subscribed | `user:read:subscriptions` |
+| get schedule | The channel's stream schedule | — |
+| create segment | Add a schedule segment | `channel:manage:schedule` |
+| update segment | Update a schedule segment | `channel:manage:schedule` |
+| delete segment | Delete a schedule segment | `channel:manage:schedule` |
+| get teams | Look up a Twitch team by ID or name | — |
+| get channel teams | The teams a channel belongs to | — |
+| get goals | A channel's creator goals | `channel:read:goals` |
+| get charity campaign | The channel's active charity campaign | `channel:read:charity` |
+| get hype train | The channel's hype train events | `channel:read:hype_train` |
+| send whisper | Whisper another user | `user:manage:whispers` |
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again

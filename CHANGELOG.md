@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+- Helix API nodes under the `twitch api` palette category for engagement and monetisation:
+  channel points (`get/create/update/delete custom reward`, `get redemptions`,
+  `update redemption status`), polls (`get/create/end poll`), predictions
+  (`get/create/end prediction`), `get bits leaderboard`, `get cheermotes`,
+  `get subscriptions`, `check user subscription`, schedule (`get schedule`,
+  `create/update/delete segment`), `get teams`, `get channel teams`, `get goals`,
+  `get charity campaign`, `get hype train` and `send whisper`
 - Helix API nodes under the `twitch api` palette category for streams, clips and content:
   `create stream marker`, `get stream markers`, `get stream key`, `create clip`, `get clips`,
   `get videos`, `delete videos`, `get games`, `get top games`, `search categories`,
@@ -26,10 +33,14 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   and plain-object mappers, so every Helix node behaves and outputs the same way
 - `twitch-helix-base.ts` now passes the resolved config node to handlers and merges a handler's
   `{ payload, extra }` result onto the message; existing nodes are unchanged
-- The config node requests the scopes the new nodes need (`channel:manage:broadcast`,
-  `channel:manage:moderators`, `channel:manage:vips`, `moderator:read:chatters`,
-  `moderator:manage:chat_settings`, `moderator:manage:shoutouts`, `moderator:manage:warnings`,
-  `user:write:chat`, `user:read:follows`) in one login
+- The config node requests the scopes the new nodes need (including
+  `channel:manage:broadcast`, `channel:manage:polls`, `channel:manage:predictions`,
+  `channel:manage:redemptions`, `channel:manage:schedule`, `channel:manage:videos`,
+  `channel:manage:raids`, `channel:manage:moderators`, `channel:manage:vips`,
+  `channel:edit:commercial`, `channel:manage:ads`, `channel:read:stream_key`, `clips:edit`,
+  `moderator:read:chatters`, `moderator:manage:chat_settings`, `moderator:manage:shoutouts`,
+  `moderator:manage:warnings`, `user:write:chat`, `user:read:follows`,
+  `user:read:subscriptions`, `user:manage:whispers`) in one login
 - `examples/helix-channel-chat.json` and a `test/unit/helix-nodes.test.js` unit test
 - 52 new event nodes covering goals, moderation, VIPs, warnings, unban requests, suspicious users, chat clearing/holds/settings, AutoMod, shared chat, subscription end, channel rewards, redemption update, automatic reward redemption, Hype Train v2, charity, bits use, ad breaks, whispers and user updates
 - Every event is now its own node, so a flow wires a switch on the event you actually want

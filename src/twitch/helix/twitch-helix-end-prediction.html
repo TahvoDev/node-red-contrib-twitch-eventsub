@@ -1,0 +1,80 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-end-prediction', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:         { value: '' },
+      config:       { type: 'twitch-api-config', required: true },
+      broadcaster:  { value: '' },
+      predictionId: { value: '' },
+      result:       { value: 'resolve' },
+      outcome:      { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'end prediction',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'end prediction' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-end-prediction">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-predictionId"><i class="fa fa-trophy"></i> Prediction ID</label>
+    <input type="text" id="node-input-predictionId" placeholder="required" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-result"><i class="fa fa-flag-checkered"></i> Result</label>
+    <select id="node-input-result">
+      <option value="resolve">resolve with a winner</option>
+      <option value="cancel">cancel</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-outcome"><i class="fa fa-check"></i> Winning outcome</label>
+    <input type="text" id="node-input-outcome" placeholder="outcome ID or title, required to resolve" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-end-prediction">
+  <p>Ends a channel prediction, either by resolving it with a winning outcome or by cancelling it.
+    <b>Winning outcome</b> accepts an outcome ID or its title; a title is matched against the prediction.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>predictionId | id <span class="property-type">string</span></dt>
+    <dd>The prediction to end. Required.</dd>
+    <dt>result | action <span class="property-type">string</span></dt>
+    <dd>Optional. <code>resolve</code> (default) or <code>cancel</code>.</dd>
+    <dt>outcome | outcomeId <span class="property-type">string</span></dt>
+    <dd>The winning outcome ID or title. Required to resolve.</dd>
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The ended prediction, in the same shape as <b>get predictions</b>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:manage:predictions</code></p>
+</script>

@@ -30,8 +30,9 @@ type Status = {
 // list is unknown, so the mock provider has to claim a full set up front.
 const MOCK_SCOPES = [
   'bits:read', 'channel:edit:commercial', 'channel:manage:ads', 'channel:manage:broadcast',
-  'channel:manage:moderators', 'channel:manage:raids', 'channel:manage:videos',
-  'channel:manage:vips', 'channel:moderate',
+  'channel:manage:moderators', 'channel:manage:polls', 'channel:manage:predictions',
+  'channel:manage:raids', 'channel:manage:redemptions', 'channel:manage:schedule',
+  'channel:manage:videos', 'channel:manage:vips', 'channel:moderate',
   'channel:read:ads', 'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
   'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
   'channel:read:predictions', 'channel:read:redemptions', 'channel:read:stream_key',
@@ -49,7 +50,8 @@ const MOCK_SCOPES = [
   'moderator:read:whispers',
   'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
   'user:read:broadcast', 'user:read:chat', 'user:read:email', 'user:read:follows',
-  'user:write:chat', 'user:manage:blocked_users',
+  'user:read:subscriptions', 'user:write:chat', 'user:manage:blocked_users',
+  'user:manage:whispers',
 ];
 
 module.exports = function (RED: NodeAPI) {

@@ -1,0 +1,155 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-update-custom-reward', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:                        { value: '' },
+      config:                      { type: 'twitch-api-config', required: true },
+      broadcaster:                 { value: '' },
+      rewardId:                    { value: '' },
+      title:                       { value: '' },
+      cost:                        { value: '' },
+      prompt:                      { value: '' },
+      enabled:                     { value: '' },
+      backgroundColor:             { value: '' },
+      userInputRequired:           { value: '' },
+      maxRedemptionsPerStream:     { value: '' },
+      maxRedemptionsPerUserPerStream: { value: '' },
+      globalCooldown:              { value: '' },
+      autoFulfill:                 { value: '' },
+      paused:                      { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'update custom reward',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'update custom reward' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      ['cost', 'maxRedemptionsPerStream', 'maxRedemptionsPerUserPerStream', 'globalCooldown'].forEach(function (field) {
+        $('#node-input-' + field).on('change', function () {
+          const value = String($(this).val()).trim();
+          if (value && !/^\d+$/.test(value)) RED.notify(field + ' must be a whole number', 'warning');
+        });
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-update-custom-reward">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-rewardId"><i class="fa fa-gift"></i> Reward ID</label>
+    <input type="text" id="node-input-rewardId" placeholder="required" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-title"><i class="fa fa-font"></i> Title</label>
+    <input type="text" id="node-input-title" placeholder="leave blank to keep" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-cost"><i class="fa fa-star"></i> Cost</label>
+    <input type="text" id="node-input-cost" placeholder="leave blank to keep" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-prompt"><i class="fa fa-comment"></i> Prompt</label>
+    <input type="text" id="node-input-prompt" placeholder="leave blank to keep" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-enabled"><i class="fa fa-toggle-on"></i> Enabled</label>
+    <select id="node-input-enabled">
+      <option value="">leave unchanged</option>
+      <option value="true">on</option>
+      <option value="false">off</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-paused"><i class="fa fa-pause"></i> Paused</label>
+    <select id="node-input-paused">
+      <option value="">leave unchanged</option>
+      <option value="true">paused</option>
+      <option value="false">running</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-userInputRequired"><i class="fa fa-keyboard-o"></i> Needs input</label>
+    <select id="node-input-userInputRequired">
+      <option value="">leave unchanged</option>
+      <option value="true">yes</option>
+      <option value="false">no</option>
+    </select>
+  </div>
+  <details style="margin-top:10px;">
+    <summary>Advanced</summary>
+    <div class="form-row">
+      <label for="node-input-backgroundColor"><i class="fa fa-paint-brush"></i> Background</label>
+      <input type="text" id="node-input-backgroundColor" placeholder="leave blank to keep" />
+    </div>
+    <div class="form-row">
+      <label for="node-input-maxRedemptionsPerStream"><i class="fa fa-repeat"></i> Max per stream</label>
+      <input type="text" id="node-input-maxRedemptionsPerStream" placeholder="leave blank to keep" />
+    </div>
+    <div class="form-row">
+      <label for="node-input-maxRedemptionsPerUserPerStream"><i class="fa fa-user"></i> Max per user</label>
+      <input type="text" id="node-input-maxRedemptionsPerUserPerStream" placeholder="leave blank to keep" />
+    </div>
+    <div class="form-row">
+      <label for="node-input-globalCooldown"><i class="fa fa-clock-o"></i> Cooldown (s)</label>
+      <input type="text" id="node-input-globalCooldown" placeholder="leave blank to keep" />
+    </div>
+    <div class="form-row">
+      <label for="node-input-autoFulfill"><i class="fa fa-check"></i> Auto-fulfil</label>
+      <select id="node-input-autoFulfill">
+        <option value="">leave unchanged</option>
+        <option value="true">on</option>
+        <option value="false">off</option>
+      </select>
+    </div>
+  </details>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-update-custom-reward">
+  <p>Updates a custom Channel Points reward. Only the fields you set are sent — blank fields and
+    <b>leave unchanged</b> keep the current value. <code>msg.payload</code> may hold the new title.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>rewardId <span class="property-type">string</span></dt>
+    <dd>The reward to update. Required. Also accepts <code>msg.reward</code> or <code>msg.id</code>.</dd>
+    <dt>payload | title <span class="property-type">string</span></dt>
+    <dd>Optional. New title. <code>payload</code> takes priority over the node field.</dd>
+    <dt>cost <span class="property-type">number | string</span></dt>
+    <dd>Optional. New channel point cost.</dd>
+    <dt>prompt, backgroundColor <span class="property-type">string</span></dt>
+    <dd>Optional. New prompt or hex colour.</dd>
+    <dt>enabled, paused, userInputRequired, autoFulfill <span class="property-type">boolean | string</span></dt>
+    <dd>Optional. Toggle reward behaviour.</dd>
+    <dt>maxRedemptionsPerStream, maxRedemptionsPerUserPerStream, globalCooldown <span class="property-type">number | string</span></dt>
+    <dd>Optional. Redemption limits and cooldown; 0 means no limit.</dd>
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The updated reward, in the same shape as <b>get custom rewards</b>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:manage:redemptions</code></p>
+</script>
