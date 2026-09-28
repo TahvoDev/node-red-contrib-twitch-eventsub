@@ -166,8 +166,7 @@ export function requireScopes(twitchConfig: any, scopes: string[]): void {
 
 /* ----------------------------------------------------------------- paging */
 
-/** Twitch caps a timeout at two weeks, in seconds. */
-export const MAX_TIMEOUT_SECONDS = 1_209_600;
+export { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
 
 /**
  * The hard ceiling for "Get all": how many rows the node will collect before it
@@ -343,7 +342,7 @@ export function mapEmote(emote: any) {
   };
 }
 
-export function mapBadgeVersion(version: any) {
+function mapBadgeVersion(version: any) {
   return {
     id: version.id,
     title: version.title,
@@ -407,14 +406,6 @@ export function mapBan(ban: any) {
   };
 }
 
-export function mapModerator(moderator: any) {
-  return {
-    userId: moderator.userId,
-    userName: moderator.userName,
-    userDisplayName: moderator.userDisplayName,
-  };
-}
-
 /** A user relation (used by the VIP list): id, name, displayName. */
 export function mapUserRelation(relation: any) {
   return {
@@ -452,15 +443,4 @@ export function mapAutoModStatus(status: any) {
   };
 }
 
-const ANNOUNCEMENT_COLORS = ['primary', 'blue', 'green', 'orange', 'purple'];
 
-/**
- * Twitch accepts only its five announcement colours, so anything else (including
- * a sender's hex chat colour) falls back to `primary` rather than failing.
- */
-export function resolveAnnounceColor(msg: any, config: any): string {
-  const requested = (
-    toStr(firstDefined(msg.announceColor, config?.color, msg.color)) ?? 'primary'
-  ).toLowerCase();
-  return ANNOUNCEMENT_COLORS.indexOf(requested) !== -1 ? requested : 'primary';
-}

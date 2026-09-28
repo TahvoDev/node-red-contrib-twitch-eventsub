@@ -122,10 +122,6 @@ export interface HelixSpec {
    * authenticated user), which is right for almost every endpoint.
    */
   context?: 'moderator' | 'broadcaster' | 'app';
-  /** Icon filename; defaults to the shared Twitch icon. */
-  icon?: string;
-  /** Inline `oneditprepare` JS, appended to the generated action handler. */
-  oneditprepare?: string;
 }
 
 /** Identity helper: gives editors autocomplete and keeps the spec list typed. */
@@ -138,7 +134,7 @@ export function specTier(spec: HelixSpec): HelixTier {
 }
 
 /** The action names in dropdown order (declaration order). */
-export function actionNames(spec: HelixSpec): string[] {
+function actionNames(spec: HelixSpec): string[] {
   return spec.actions ? Object.keys(spec.actions) : [];
 }
 

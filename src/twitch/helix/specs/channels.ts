@@ -1,5 +1,5 @@
 import { defineHelix } from '../define';
-import { broadcaster } from './common';
+import { broadcaster, selfUser, triState } from './common';
 import {
   mapChannel,
   mapFollowedChannel,
@@ -101,11 +101,7 @@ export const channelSpecs = [
         kind: 'select',
         default: '',
         faIcon: 'fa-briefcase',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
+        options: triState(),
       },
     ],
     run: async ({ api, root, broadcasterId, input, raw }) => {
@@ -170,13 +166,7 @@ export const channelSpecs = [
     scopes: ['user:read:follows'],
     paged: { limit: 20 },
     fields: [
-      {
-        name: 'user',
-        label: 'User',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
+      selfUser,
       {
         name: 'broadcaster',
         label: 'Channel',

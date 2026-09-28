@@ -1,5 +1,5 @@
 import { defineHelix } from '../define';
-import { broadcaster } from './common';
+import { broadcaster, selfUser } from './common';
 import {
   clampLimit,
   fetchAllPages,
@@ -643,15 +643,7 @@ export const contentSpecs = [
     scopes: ['user:read:follows'],
     paged: { limit: 20 },
     fields: [
-      {
-        name: 'user',
-        label: 'User',
-        kind: 'user',
-        optional: true,
-        aliases: ['userId'],
-        hint: 'blank = authenticated user',
-        faIcon: 'fa-user',
-      },
+      selfUser,
     ],
     run: async ({ api, moderatorId, input }) =>
       api.streams.getFollowedStreams(input.user ?? moderatorId, {

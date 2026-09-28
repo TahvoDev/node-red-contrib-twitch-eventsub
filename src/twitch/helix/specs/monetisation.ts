@@ -1,6 +1,6 @@
 import { getRawData } from '@twurple/common';
 import { defineHelix, type HelixField } from '../define';
-import { broadcaster } from './common';
+import { broadcaster, selfUser, triState } from './common';
 import {
   clampLimit,
   firstDefined,
@@ -303,16 +303,7 @@ export const monetisationSpecs = [
         help: "Checks whether a user is subscribed to a channel, using the authenticated user's token. Blank User defaults to the authenticated account.",
         scopes: ['user:read:subscriptions'],
         fields: [
-          {
-            name: 'user',
-            label: 'User',
-            kind: 'user',
-            optional: true,
-            primary: true,
-            aliases: ['userId'],
-            faIcon: 'fa-search',
-            hint: 'blank = authenticated user',
-          },
+          { ...selfUser, primary: true, faIcon: 'fa-search' },
         ],
         run: async ({ api, broadcasterId, input, moderatorId }) => {
           const userId = input.user ?? moderatorId;
@@ -416,11 +407,7 @@ export const monetisationSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-repeat',
-            options: [
-              { value: '', label: 'no' },
-              { value: 'true', label: 'weekly' },
-              { value: 'false', label: 'no' },
-            ],
+            options: triState('no', 'weekly', 'no'),
           },
           {
             name: 'categoryId',
@@ -494,11 +481,7 @@ export const monetisationSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-ban',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'yes' },
-              { value: 'false', label: 'no' },
-            ],
+            options: triState('leave unchanged', 'yes', 'no'),
           },
           {
             name: 'categoryId',

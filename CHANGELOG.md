@@ -38,16 +38,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   `get-subscriptions`/`check-user-subscription` → `subscriptions`;
   `get-teams`/`get-channel-teams` → `teams`. The remaining long-tail endpoints keep their types and
   are ordinary (tier-gated) palette nodes.
-- Helix nodes are now declarative specs instead of one `.ts`/`.html` pair each. A spec declares the
-  type, palette label, help, scopes, fields and the single twurple call; the factory resolves and
-  coerces fields, resolves usernames to ids, checks scopes and handles paging, and the build generates
-  the runtime module, the editor html and the `package.json` manifest entry. Adding an endpoint is one
-  entry in `src/twitch/helix/specs/*.ts`, no other file. Config field names and message shapes are
-  preserved for the standalone nodes
-- The config node's "Login with Twitch" button now requests the union of the scopes declared by the
-  specs (served from `dist/twitch/helix/generated/scopes.json`), so it cannot drift from the palette
-- The README Helix node catalogue is generated from the specs by `scripts/generate-helix-readme.js`
-  and `npm run check` fails if it is stale
+- Helix endpoints are registry entries under `src/twitch/helix/specs/`: an entry declares its group,
+  tier, scopes, fields and the twurple call, and the single `twitch-api` node runs it. Adding an
+  endpoint is one entry, no other file.
+- The config node's "Login with Twitch" button requests the union of the scopes declared by the
+  registry, so it cannot drift from what the picker can call.
 - Behaviour changes introduced by the migration, flagged here: `get-blocks` and `update-user-description`
   now check their required scopes (`user:read:blocked_users` / `user:edit`) before calling Twitch instead
   of relying on the API error, and an unrecognised `select` value falls back to the field default rather
@@ -66,12 +61,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Action support in the spec format (`actions`, `defaultAction`) with an Action dropdown, per-action
   fields and per-action scope checks; `msg.action` → node config → `defaultAction` resolution
 - `test/e2e/run-helix-e2e.js`: runs the built module in a Node-RED container against the Twitch CLI
-  mock, deploys a Helix flow and drives the generated nodes through the mock API
-- `src/twitch/helix/define.ts`, `factory.ts` and `helix-editor.ts`: the spec format, the factory that
-  turns a spec into a Node-RED handler, and the editor-html generator
-- `scripts/generate-helix-nodes.js`: emits one Node-RED module (`.js` + `.html`) per spec and the
-  aggregated scope list
-- `test/unit/helix-nodes.test.js` is now data-driven over every spec and covers the factory directly
+  mock, deploys the `twitch-api` node at several endpoints and checks each reaches the mock API
+- `test/unit/helix-nodes.test.js` covers the dispatcher, paging, actions, aliases and tier gating
 - Helix API nodes under the `twitch api` palette category for engagement and monetisation:
   channel points (`get/create/update/delete custom reward`, `get redemptions`,
   `update redemption status`), polls (`get/create/end poll`), predictions

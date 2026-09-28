@@ -25,14 +25,14 @@ const helixDist = path.join(root, 'dist', 'twitch', 'helix')
 const utils = require(path.join(helixDist, 'twitch-helix-utils.js'))
 const { createHelixNode } = require(path.join(helixDist, 'twitch-helix-base.js'))
 const { callEndpoint, resolveActiveCall, enabledTiers, isTierEnabled } = require(path.join(helixDist, 'helix-core.js'))
-const { defineHelix, specTier, actionNames, fieldAliases } = require(path.join(helixDist, 'define.js'))
+const { defineHelix, specTier, fieldAliases } = require(path.join(helixDist, 'define.js'))
 const { HELIX_SPECS } = require(path.join(helixDist, 'specs', 'index.js'))
 
 const {
   toStr, toInt, toBool, toIdList, firstDefined, clampLimit, fetchAllPages,
   helixErrorMessage, shortStatus, resolveUserId, requireScopes, resolveAllMax,
   clearUserCache, MAX_TIMEOUT_SECONDS, mapUser, mapChannel, mapChatter, mapBan,
-  mapModerator, mapUserRelation, mapBlockedTerm, mapAutoModStatus, MAX_FETCH_ALL,
+  mapUserRelation, mapBlockedTerm, mapAutoModStatus, MAX_FETCH_ALL,
 } = utils
 
 /* ------------------------------------------------------------- coercion */
@@ -64,7 +64,6 @@ assert.deepStrictEqual(mapAutoModStatus({ messageId: 'm', isPermitted: false }),
 assert.strictEqual(mapUserRelation({ id: 'u', name: 'n', displayName: 'N' }).displayName, 'N')
 assert.strictEqual(mapBlockedTerm({ id: 't', text: 'x' }).expirationDate, null)
 assert.strictEqual(mapChannel(null), null)
-assert.strictEqual(mapModerator({ userId: 'u' }).userId, 'u')
 assert.strictEqual(mapUser({ id: '1' }).id, '1')
 assert.strictEqual(MAX_TIMEOUT_SECONDS, 1209600)
 
@@ -280,7 +279,7 @@ const baseConfig = { config: 'cfg' }
   assert.ok('err' in ran, 'twitch-api: done() never called')
 
   const bad = makeNode()
-  TwitchApi.call(bad, { config: 'cfg', endpoint: 'twitch-helix-bnas', fields: {} })
+  TwitchApi.call(bad, { config: 'cfg', endpoint: 'twitch-helix-ban', fields: {} })
   const badResult = await runInput(bad, {})
   assert.ok(badResult.err, 'twitch-api: unknown endpoint did not error')
   assert.match(String(badResult.err.message), /Unknown endpoint/)

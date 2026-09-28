@@ -225,7 +225,7 @@ export async function callEndpoint(
     return { data: res?.data ?? [], cursor: res?.cursor ?? null, total: res?.total };
   };
 
-  const getAll = input.all === true || toBool(input.all) === true;
+  const getAll = input.all === true;
   const result = getAll
     ? await fetchAllPages(fetchPage, resolveAllMax(input.allMax))
     : await fetchPage();

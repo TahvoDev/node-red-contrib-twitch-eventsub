@@ -6,7 +6,7 @@ import {
   mapAutoModStatus,
   mapBan,
   mapBlockedTerm,
-  mapModerator,
+  mapChatter,
   mapUserRelation,
   mapWarning,
   toBool,
@@ -179,7 +179,7 @@ export const moderationSpecs = [
             limit: input.limit,
             after: input.after,
           }),
-        map: (moderator) => mapModerator(moderator),
+        map: (moderator) => mapChatter(moderator),
       },
       add: {
         label: 'add',

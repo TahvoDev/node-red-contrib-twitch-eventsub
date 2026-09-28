@@ -1,6 +1,6 @@
 import { getRawData } from '@twurple/common';
 import { defineHelix } from '../define';
-import { broadcaster } from './common';
+import { broadcaster, selfUser, triState } from './common';
 import {
   firstDefined,
   mapBadgeSet,
@@ -238,11 +238,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-clock-o',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'slowModeDelay',
@@ -258,11 +254,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-users',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'followerOnlyModeDelay',
@@ -278,11 +270,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-star',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'emoteOnlyMode',
@@ -290,11 +278,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-smile-o',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'uniqueChatMode',
@@ -302,11 +286,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-commenting-o',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'nonModeratorChatDelay',
@@ -314,11 +294,7 @@ export const chatSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-clock-o',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState(),
           },
           {
             name: 'nonModeratorChatDelayDuration',
@@ -488,15 +464,7 @@ export const chatSpecs = [
     scopes: ['user:read:emotes'],
     paged: { limit: 20 },
     fields: [
-      {
-        name: 'user',
-        label: 'User',
-        kind: 'user',
-        optional: true,
-        aliases: ['userId'],
-        hint: 'blank = authenticated user',
-        faIcon: 'fa-user',
-      },
+      selfUser,
     ],
     run: async ({ api, moderatorId, input }) =>
       api.chat.getUserEmotes(input.user ?? moderatorId, {
@@ -513,17 +481,7 @@ export const chatSpecs = [
     label: 'shared chat',
     help: 'Gets the shared chat session a channel is currently part of, or null.',
     scopes: [],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-        faIcon: 'fa-user',
-      },
-    ],
+    fields: [broadcaster],
     run: async ({ api, broadcasterId }) => api.chat.getSharedChatSession(broadcasterId),
     map: (session) => mapSharedChat(session),
   }),

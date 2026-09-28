@@ -1,5 +1,5 @@
 import { defineHelix, type HelixField } from '../define';
-import { broadcaster } from './common';
+import { broadcaster, triState } from './common';
 import {
   clampLimit,
   fetchAllPages,
@@ -139,11 +139,7 @@ function toStringList(value: unknown): string[] {
     .filter(Boolean);
 }
 
-const enableOptions = [
-  { value: '', label: 'leave unchanged' },
-  { value: 'true', label: 'on' },
-  { value: 'false', label: 'off' },
-];
+const enableOptions = triState();
 
 const rewardIdField: HelixField = {
   name: 'rewardId',
@@ -211,11 +207,7 @@ export const engagementSpecs = [
             default: '',
             aliases: ['isEnabled'],
             faIcon: 'fa-toggle-on',
-            options: [
-              { value: '', label: 'default (on)' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState('default (on)', 'on', 'off'),
           },
           { name: 'backgroundColor', label: 'Background', kind: 'string', default: '', hint: 'optional: #9147ff', faIcon: 'fa-paint-brush' },
           {
@@ -224,11 +216,7 @@ export const engagementSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-keyboard-o',
-            options: [
-              { value: '', label: 'default' },
-              { value: 'true', label: 'yes' },
-              { value: 'false', label: 'no' },
-            ],
+            options: triState('default', 'yes', 'no'),
           },
           { name: 'maxRedemptionsPerStream', label: 'Max per stream', kind: 'int', default: '', hint: 'blank = no limit', faIcon: 'fa-repeat' },
           { name: 'maxRedemptionsPerUserPerStream', label: 'Max per user', kind: 'int', default: '', hint: 'blank = no limit', faIcon: 'fa-user' },
@@ -239,11 +227,7 @@ export const engagementSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-check',
-            options: [
-              { value: '', label: 'default (off)' },
-              { value: 'true', label: 'on' },
-              { value: 'false', label: 'off' },
-            ],
+            options: triState('default (off)', 'on', 'off'),
           },
         ],
         run: async ({ api, broadcasterId, input }) => {
@@ -288,11 +272,7 @@ export const engagementSpecs = [
             default: '',
             aliases: ['isPaused'],
             faIcon: 'fa-pause',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'paused' },
-              { value: 'false', label: 'running' },
-            ],
+            options: triState('leave unchanged', 'paused', 'running'),
           },
           {
             name: 'userInputRequired',
@@ -300,11 +280,7 @@ export const engagementSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-keyboard-o',
-            options: [
-              { value: '', label: 'leave unchanged' },
-              { value: 'true', label: 'yes' },
-              { value: 'false', label: 'no' },
-            ],
+            options: triState('leave unchanged', 'yes', 'no'),
           },
           { name: 'backgroundColor', label: 'Background', kind: 'string', default: '', hint: 'leave blank to keep', faIcon: 'fa-paint-brush' },
           { name: 'maxRedemptionsPerStream', label: 'Max per stream', kind: 'int', default: '', hint: 'leave blank to keep', faIcon: 'fa-repeat' },
@@ -545,11 +521,7 @@ export const engagementSpecs = [
             kind: 'select',
             default: '',
             faIcon: 'fa-eye',
-            options: [
-              { value: '', label: 'default (show)' },
-              { value: 'true', label: 'show' },
-              { value: 'false', label: 'hide' },
-            ],
+            options: triState('default (show)', 'show', 'hide'),
           },
         ],
         run: async ({ api, broadcasterId, msg, config }) => {
