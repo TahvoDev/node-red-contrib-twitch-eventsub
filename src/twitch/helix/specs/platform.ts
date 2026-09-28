@@ -56,6 +56,7 @@ function mapTransaction(transaction: any) {
 export const platformSpecs = [
   defineHelix({
     type: 'twitch-helix-content-classification-labels',
+    group: 'content classification labels',
     tier: 'advanced',
     label: 'content classification labels',
     help: "Lists Twitch's content classification labels.",
@@ -78,6 +79,7 @@ export const platformSpecs = [
 
   defineHelix({
     type: 'twitch-helix-drops',
+    group: 'drops',
     tier: 'advanced',
     label: 'drops',
     help: 'Lists or updates drops entitlements.',
@@ -200,6 +202,7 @@ export const platformSpecs = [
 
   defineHelix({
     type: 'twitch-helix-extensions',
+    group: 'extensions',
     tier: 'advanced',
     label: 'extensions',
     help: 'Reads released extensions, live channels, bits products and transactions.',
@@ -327,6 +330,7 @@ export const platformSpecs = [
 
   defineHelix({
     type: 'twitch-helix-user-extensions',
+    group: 'extensions',
     tier: 'advanced',
     label: 'user extensions',
     help: "Lists the extensions a user has installed or activated.",

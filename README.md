@@ -159,104 +159,50 @@ until that tier is enabled again; the type stays registered, so nothing else bre
 are always requested for every tier in a single login, so enabling a tier never forces you to
 re-authenticate.
 
-### Nodes
+### The twitch-api node
 
-The catalogue below is generated from the Helix specs at build time — do not edit it by hand.
+There is one Helix node, **twitch api** (`twitch-api`), plus the **twitch-api-config** account node.
+Pick a group and an endpoint; the node renders that endpoint's fields, and when the endpoint groups
+several verbs, its action dropdown. List endpoints add Limit / Get all / Max. `msg.endpoint` and
+`msg.action` override the selection at runtime.
 
-<!-- helix-nodes:start -->
-| Node | Actions | Tier | Scopes |
-| --- | --- | --- | --- |
-| get users | — | core | — |
-| blocks | `list`, `block`, `unblock` | core | `user:read:blocked_users`, `user:manage:blocked_users` |
-| get auth user | — | core | — |
-| update bio | — | core | `user:edit` |
-| get channel info | — | core | — |
-| update channel info | — | core | `channel:manage:broadcast` |
-| get followers | — | core | `moderator:read:followers` |
-| get followed channels | — | core | `user:read:follows` |
-| ads | `get`, `snooze`, `start` | extended | `channel:read:ads`, `channel:manage:ads`, `channel:edit:commercial` |
-| get stream key | — | advanced | `channel:read:stream_key` |
-| channel editors | — | advanced | `channel:read:editors` |
-| send chat message | — | core | `user:write:chat` |
-| send announcement | — | core | `moderator:manage:announcements` |
-| send shoutout | — | core | `moderator:manage:shoutouts` |
-| chat moderation | `chatters`, `clear`, `delete` | core | `moderator:read:chatters`, `moderator:manage:chat_messages` |
-| chat settings | `get`, `update` | extended | `moderator:manage:chat_settings` |
-| get emotes | — | core | — |
-| get chat badges | — | core | — |
-| chat colour | `get`, `set` | extended | `user:manage:chat_color` |
-| user emotes | — | extended | `user:read:emotes` |
-| shared chat | — | extended | — |
-| bans | `ban`, `unban`, `list` | core | `moderator:manage:banned_users`, `moderation:read` |
-| moderators | `list`, `add`, `remove` | extended | `moderation:read`, `channel:manage:moderators` |
-| vips | `list`, `add`, `remove` | extended | `channel:read:vips`, `channel:manage:vips` |
-| blocked terms | `list`, `add`, `remove` | extended | `moderator:read:blocked_terms`, `moderator:manage:blocked_terms` |
-| moderation tools | `warn`, `automod`, `moderated`, `checkBan`, `checkMod` | extended | `moderator:manage:warnings`, `moderation:read`, `user:read:moderated_channels` |
-| automod | `settings`, `update`, `held` | extended | `moderator:read:automod_settings`, `moderator:manage:automod_settings`, `moderator:manage:automod` |
-| shield mode | `get`, `update` | extended | `moderator:read:shield_mode`, `moderator:manage:shield_mode` |
-| unban requests | `list`, `resolve` | extended | `moderator:read:unban_requests`, `moderator:manage:unban_requests` |
-| stream markers | `create`, `list` | extended | `channel:manage:broadcast`, `user:read:broadcast` |
-| clips | `create`, `list` | core | `clips:edit` |
-| videos | `list`, `delete` | extended | `channel:manage:videos` |
-| games | `get`, `top`, `search` | advanced | — |
-| search channels | — | advanced | — |
-| raids | `start`, `cancel` | extended | `channel:manage:raids` |
-| get streams | — | core | — |
-| followed streams | — | extended | `user:read:follows` |
-| channel points | `list`, `create`, `update`, `delete` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
-| redemptions | `list`, `update` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
-| polls | `list`, `create`, `end` | extended | `channel:read:polls`, `channel:manage:polls` |
-| predictions | `list`, `create`, `end` | extended | `channel:read:predictions`, `channel:manage:predictions` |
-| bits | `leaderboard`, `cheermotes` | advanced | `bits:read` |
-| subscriptions | `list`, `check` | advanced | `channel:read:subscriptions`, `user:read:subscriptions` |
-| schedule | `get`, `create`, `update`, `delete`, `segment`, `ical`, `settings` | extended | `channel:manage:schedule` |
-| teams | `get`, `channel` | advanced | — |
-| charity | `campaign`, `donations` | advanced | `channel:read:charity` |
-| get hype train | — | advanced | `channel:read:hype_train` |
-| get goals | — | advanced | `channel:read:goals` |
-| send whisper | — | advanced | `user:manage:whispers` |
-| content classification labels | — | advanced | — |
-| drops | `list`, `byIds`, `update` | advanced | — |
-| extensions | `released`, `live`, `bits`, `putBits`, `transactions` | advanced | — |
-| user extensions | `installed`, `active` | advanced | `user:read:broadcast` |
-<!-- helix-nodes:end -->
+Endpoints live in the registry under `src/twitch/helix/specs/`, grouped as: users, channels, followers,
+ads, chat, bans, moderators, vips, blocked terms, moderation, automod, shield mode, unban requests,
+stream markers, clips, videos, games, search, raids, streams, channel points, redemptions, polls,
+predictions, bits, subscriptions, schedule, teams, charity, hype train, goals, whispers, content
+classification labels, drops and extensions.
 
-### Adding a Helix node
+### Adding an endpoint
 
-A Helix node is a spec, not a file pair. Add an entry to the matching group file under
-`src/twitch/helix/specs/` (for example `specs/chat.ts`), then run `npm run build`. The build generates
-the runtime module and editor html, updates `package.json` and refreshes the catalogue above.
+Add a spec to the matching file under `src/twitch/helix/specs/` (for example `specs/chat.ts`), then run
+`npm run build`; it appears in the **twitch api** node's picker. No node, editor html or manifest entry
+is generated — the one `twitch-api` node drives every registry entry.
 
-Pick the smallest shape that fits:
-
-- **Standalone spec** (`run`) for a resource with a single verb, or a daily-use verb that deserves
-  its own palette entry (e.g. `get streams`).
-- **Action node** (`actions`, `defaultAction`) when several verbs share one resource and mental
-  model. Field names and message shapes stay constant across actions; `msg.action` selects one at
-  runtime and the editor shows only the selected action's fields.
-
-Every spec also declares a `tier` (`core` | `extended` | `advanced`), which is what keeps the
-default palette small: only enabled tiers register.
+A spec declares its `group`, `tier` (`core` | `extended` | `advanced`), `scopes`, `fields` and the
+twurple call. Give a spec `actions` + `defaultAction` to group several verbs behind one endpoint's
+Action dropdown; field names and message shapes stay constant across actions. Every spec also needs a
+`tier`: only enabled tiers appear in the picker, which is what keeps the default list short.
 
 ```ts
 defineHelix({
   type: 'twitch-helix-get-something',
+  group: 'channels',
+  tier: 'core',
   label: 'get something',
-  help: 'One line shown in the node help.',
+  help: 'One line shown in the picker and help.',
   scopes: ['channel:read:something'],
   fields: [
     { name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true, hint: 'blank = authenticated user' },
-    { name: 'limit', label: 'Limit', kind: 'int', default: 20 },
   ],
   // run only makes the twurple call; fields are already resolved and coerced
-  run: ({ api, broadcasterId, input }) => api.channels.getSomething(broadcasterId, input.limit),
+  run: ({ api, broadcasterId }) => api.channels.getSomething(broadcasterId),
   // map returns a plain serialisable object, never a twurple class instance
   map: (result) => ({ id: result.id, name: result.name }),
 })
 ```
 
-For a list endpoint add `paged: { limit: 20 }` instead of declaring `limit`/`all`/`allMax`: the
-factory adds those fields, walks the pages for **Get all** and sets `msg.pagination`/`msg.total`.
+For a list endpoint add `paged: { limit: 20 }` instead of declaring `limit`/`all`/`allMax`: the core
+adds those fields, walks the pages for **Get all** and sets `msg.pagination`/`msg.total`.
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again

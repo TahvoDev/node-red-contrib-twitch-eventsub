@@ -1,11 +1,11 @@
 /**
  * The declarative spec format for Helix nodes.
  *
- * A node is data: its palette label, help text, tier, config fields and the API
- * call(s) it makes. A node with a single endpoint is a plain spec; a node that
- * groups a resource behind an action dropdown declares `actions`. The factory
- * turns a spec into a Node-RED handler and the build turns it into a palette
- * type, so adding or regrouping endpoints is a spec change, not a code change.
+ * An endpoint is data: its group, palette label, help text, tier, config fields
+ * and the API call(s) it makes. An endpoint with a single verb is a plain spec;
+ * one that groups a resource behind an action dropdown declares `actions`. The
+ * single `twitch-api` node runs them all, so adding or regrouping endpoints is a
+ * spec change, not a code change.
  */
 
 export type HelixFieldKind = 'user' | 'int' | 'bool' | 'string' | 'select' | 'idList';
@@ -96,6 +96,8 @@ export interface HelixSpec {
   help: string;
   /** Palette tier; defaults to `core`. Only enabled tiers register. */
   tier?: HelixTier;
+  /** Resource group shown in the twitch-api endpoint picker and docs. */
+  group?: string;
   /**
    * OAuth scopes the node needs. For an action node this is the union shown in
    * the docs; the per-action scopes are checked at runtime.
@@ -165,7 +167,7 @@ function actionPaged(spec: HelixSpec, action?: HelixAction): HelixPagedSpec | un
 }
 
 /**
- * The fields the factory and the editor generator actually use for one action:
+ * The fields the twitch-api runtime and editor actually use for one action:
  * shared + action fields, plus the generated paging fields. De-duplicated by
  * name so an action that reuses a shared field (e.g. `broadcaster`) renders once.
  */

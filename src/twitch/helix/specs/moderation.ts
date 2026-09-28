@@ -92,6 +92,7 @@ const automodLevel = (name: string, label: string): HelixField => ({
 export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-bans',
+    group: 'bans',
     tier: 'core',
     label: 'bans',
     help: 'Bans, times out, unbans or lists banned users in a channel. Leave Duration blank for a permanent ban.',
@@ -158,6 +159,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-moderators',
+    group: 'moderators',
     tier: 'extended',
     label: 'moderators',
     help: 'Lists, adds or removes a channel moderator.',
@@ -204,6 +206,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-vips',
+    group: 'vips',
     tier: 'extended',
     label: 'vips',
     help: 'Lists, adds or removes a channel VIP.',
@@ -246,6 +249,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-blocked-terms',
+    group: 'blocked terms',
     tier: 'extended',
     label: 'blocked terms',
     help: "Lists, adds or removes terms blocked in a channel's chat.",
@@ -295,6 +299,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-moderation',
+    group: 'moderation',
     tier: 'extended',
     label: 'moderation tools',
     help: 'Warns a user or checks messages against AutoMod.',
@@ -391,6 +396,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-automod',
+    group: 'automod',
     tier: 'extended',
     label: 'automod',
     help: 'Reads or updates AutoMod settings, or approves/denies a held message.',
@@ -486,6 +492,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-shield-mode',
+    group: 'shield mode',
     tier: 'extended',
     label: 'shield mode',
     help: 'Reads or toggles Shield Mode on a channel.',
@@ -526,6 +533,7 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-unban-requests',
+    group: 'unban requests',
     tier: 'extended',
     label: 'unban requests',
     help: 'Lists or resolves unban requests for a channel.',

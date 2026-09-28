@@ -114,6 +114,7 @@ type Page = (cursor?: string) => Promise<{ data: any[]; cursor: string | null; t
 export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-stream-markers',
+    group: 'stream markers',
     tier: 'extended',
     label: 'stream markers',
     help: 'Creates or lists stream markers. Creating needs a live stream and the broadcaster account.',
@@ -174,6 +175,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-clips',
+    group: 'clips',
     tier: 'core',
     label: 'clips',
     help: 'Creates a clip of a live stream or lists clips.',
@@ -267,6 +269,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-videos',
+    group: 'videos',
     tier: 'extended',
     label: 'videos',
     help: 'Lists videos or deletes one or more videos by ID.',
@@ -413,6 +416,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-games',
+    group: 'games',
     tier: 'advanced',
     label: 'games',
     help: 'Looks up a game/category, lists the top games or searches categories.',
@@ -486,6 +490,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-search',
+    group: 'search',
     tier: 'advanced',
     label: 'search channels',
     help: 'Searches channels by a partial or exact query, optionally limited to live channels.',
@@ -527,6 +532,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-raids',
+    group: 'raids',
     tier: 'extended',
     label: 'raids',
     help: 'Starts or cancels a raid.',
@@ -576,6 +582,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-get-streams',
+    group: 'streams',
     tier: 'core',
     label: 'get streams',
     help: 'Fetches a list of active Twitch streams based on your configuration parameters.',
@@ -629,6 +636,7 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-followed-streams',
+    group: 'streams',
     tier: 'extended',
     label: 'followed streams',
     help: 'Lists the live streams a user follows.',

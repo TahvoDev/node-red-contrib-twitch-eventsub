@@ -132,6 +132,7 @@ function mapCharityAmount(amount: any) {
 export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-bits',
+    group: 'bits',
     tier: 'advanced',
     label: 'bits',
     help: 'Gets the Bits leaderboard or the Bits cheermotes.',
@@ -262,6 +263,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-subscriptions',
+    group: 'subscriptions',
     tier: 'advanced',
     label: 'subscriptions',
     help: "Lists a channel's subscribers or checks one user's subscription.",
@@ -333,6 +335,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-schedule',
+    group: 'schedule',
     tier: 'extended',
     label: 'schedule',
     help: "Reads or changes a channel's streaming schedule segments.",
@@ -624,6 +627,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-teams',
+    group: 'teams',
     tier: 'advanced',
     label: 'teams',
     help: 'Looks up a Twitch team by ID or name, or lists the teams a channel belongs to.',
@@ -691,6 +695,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-charity',
+    group: 'charity',
     tier: 'advanced',
     label: 'charity',
     help: "Reads a channel's active charity campaign and its donations.",
@@ -745,6 +750,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-hype-train',
+    group: 'hype train',
     tier: 'advanced',
     label: 'get hype train',
     help: 'Gets Hype Train events for a channel. Twitch exposes no REST endpoint for the current Hype Train, so this returns the recorded events of the current or latest train (paginated), not a live snapshot.',
@@ -761,6 +767,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-goals',
+    group: 'goals',
     tier: 'advanced',
     label: 'get goals',
     help: "Gets a channel's active creator goals (follower and subscription targets).",
@@ -775,6 +782,7 @@ export const monetisationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-whispers',
+    group: 'whispers',
     tier: 'advanced',
     label: 'send whisper',
     help: 'Sends a whisper from the authenticated account to another user. Twitch may silently drop whispers it considers abusive, so a success only means the request was accepted.',

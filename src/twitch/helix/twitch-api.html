@@ -1,0 +1,164 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-api', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name: { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+      group: { value: '' },
+      endpoint: { value: '' },
+      action: { value: '' },
+      fields: { value: {} }
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'twitch api',
+    label: function () {
+      if (this.name) return this.name;
+      if (this.endpoint) return String(this.endpoint).replace('twitch-helix-', '');
+      var config = RED.nodes.node(this.config);
+      return 'twitch api' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      var node = this;
+      var registry = [];
+      var $group = $('#node-input-group');
+      var $endpoint = $('#node-input-endpoint');
+      var $action = $('#node-input-action');
+      var $fields = $('#twitch-api-fields');
+
+      function esc(value) { return $('<div>').text(String(value)).html(); }
+      function spec() { return registry.find(function (candidate) { return candidate.type === $endpoint.val(); }); }
+
+      function inputHtml(field, value) {
+        var id = 'helix-field-' + field.name;
+        var label = '<label for="' + id + '"><i class="fa ' + esc(field.faIcon || 'fa-font') + '"></i> ' + esc(field.label) + '</label>';
+        var hint = field.hint ? ' placeholder="' + esc(field.hint) + '"' : '';
+        if (field.kind === 'bool') {
+          return '<div class="form-row"><label>&nbsp;</label><input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (value ? ' checked' : '') + '/></div>';
+        }
+        if (field.kind === 'select') {
+          var options = (field.options || []).map(function (option) {
+            var v = typeof option === 'string' ? option : option.value;
+            var t = typeof option === 'string' ? option : (option.label || option.value);
+            var sel = String(value === undefined || value === null ? '' : value) === String(v) ? ' selected' : '';
+            return '<option value="' + esc(v) + '"' + sel + '>' + esc(t) + '</option>';
+          }).join('');
+          return '<div class="form-row">' + label + '<select id="' + id + '">' + options + '</select></div>';
+        }
+        var text = value === undefined || value === null ? '' : esc(value);
+        return '<div class="form-row">' + label + '<input type="text" id="' + id + '"' + hint + ' value="' + text + '"/></div>';
+      }
+
+      function renderEndpoints() {
+        var chosen = $group.val();
+        var current = node.endpoint || '';
+        $endpoint.empty().append('<option value=""></option>');
+        registry.forEach(function (entry) {
+          if (chosen && entry.group !== chosen) return;
+          $endpoint.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
+        });
+        $endpoint.val(current);
+      }
+
+      function renderAction() {
+        var entry = spec();
+        var $row = $('#twitch-api-action-row');
+        if (!entry || !entry.actions) { $row.hide(); return; }
+        $action.empty();
+        Object.keys(entry.actions).forEach(function (name) {
+          $action.append('<option value="' + esc(name) + '">' + esc(entry.actions[name].label) + '</option>');
+        });
+        var actionName = $action.val() || entry.defaultAction || Object.keys(entry.actions)[0];
+        $action.val(actionName);
+        $row.show();
+      }
+
+      function renderFields() {
+        var entry = spec();
+        $fields.empty();
+        if (!entry) return;
+        var fields = entry.fields.slice();
+        if (entry.actions) {
+          var actionName = $action.val() || entry.defaultAction || Object.keys(entry.actions)[0];
+          var chosen = entry.actions[actionName] || entry.actions[Object.keys(entry.actions)[0]];
+          fields = fields.concat(chosen.fields);
+        }
+        var saved = (node.fields && typeof node.fields === 'object') ? node.fields : {};
+        fields.forEach(function (field) { $fields.append(inputHtml(field, saved[field.name])); });
+      }
+
+      $group.on('change', function () { renderEndpoints(); renderAction(); renderFields(); });
+      $endpoint.on('change', function () { renderAction(); renderFields(); });
+      $action.on('change', renderFields);
+
+      $.getJSON('twitch-eventsub/helix/endpoints', function (data) {
+        registry = (data && data.endpoints) || [];
+        var groups = [];
+        registry.forEach(function (entry) {
+          if (entry.group && groups.indexOf(entry.group) === -1) groups.push(entry.group);
+        });
+        groups.sort();
+        $group.empty().append('<option value="">all</option>');
+        groups.forEach(function (group) { $group.append('<option value="' + esc(group) + '">' + esc(group) + '</option>'); });
+        $group.val(node.group || '');
+        renderEndpoints();
+        $action.val(node.action || '');
+        renderAction();
+        renderFields();
+      });
+    },
+    oneditsave: function () {
+      var out = {};
+      $('#twitch-api-fields [id^="helix-field-"]').each(function () {
+        var name = this.id.replace('helix-field-', '');
+        out[name] = this.type === 'checkbox' ? this.checked : $(this).val();
+      });
+      this.fields = out;
+      return true;
+    }
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-api">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-group"><i class="fa fa-folder"></i> Group</label>
+    <select id="node-input-group"></select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-endpoint"><i class="fa fa-plug"></i> Endpoint</label>
+    <select id="node-input-endpoint"></select>
+  </div>
+  <div class="form-row" id="twitch-api-action-row" style="display:none;">
+    <label for="node-input-action"><i class="fa fa-bolt"></i> Action</label>
+    <select id="node-input-action"></select>
+  </div>
+  <div id="twitch-api-fields"></div>
+</script>
+
+<script type="text/html" data-help-name="twitch-api">
+  <p>Calls any Twitch Helix endpoint this package knows. Pick a group and endpoint; the node renders that endpoint's fields (and action dropdown).</p>
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>endpoint <span class="property-type">string</span></dt>
+    <dd>Overrides the selected endpoint, e.g. <code>twitch-helix-get-videos</code>.</dd>
+    <dt>action <span class="property-type">string</span></dt>
+    <dd>Overrides the selected action on an action endpoint.</dd>
+  </dl>
+  <p>Any field the chosen endpoint declares can also be overridden with <code>msg.&lt;field&gt;</code>, and broadcaster/user fields accept the channel/user aliases.</p>
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object | array</span></dt>
+    <dd>The result as a plain object (or array for list endpoints), with <code>msg.pagination</code>/<code>msg.total</code>.</dd>
+  </dl>
+</script>

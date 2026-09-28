@@ -9,9 +9,9 @@ import { monetisationSpecs } from './monetisation';
 import { platformSpecs } from './platform';
 
 /**
- * Every declarative Helix node. Spec groups are spread in here; the factory
- * looks a spec up by type and the build generates one palette entry per spec.
- * Adding an endpoint is a new entry in a group file, nothing else.
+ * The Helix endpoint registry. Spec groups are spread in here; the single
+ * `twitch-api` node looks an entry up by type. Adding an endpoint is a new
+ * entry in a group file, nothing else.
  */
 export const HELIX_SPECS: HelixSpec[] = [
   ...userSpecs,

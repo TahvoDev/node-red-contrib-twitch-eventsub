@@ -4,6 +4,65 @@ import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
 import { MockAuthProvider } from './mock-auth-provider';
+import { HELIX_SPECS } from './helix/specs';
+import {
+  effectiveFields,
+  specScopes,
+  specTier,
+  defaultActionName,
+  type HelixAction,
+  type HelixField,
+  type HelixSpec,
+} from './helix/define';
+import { enabledTiers } from './helix/helix-core';
+
+/** A field reduced to the metadata the twitch-api editor needs. */
+function serializeField(field: HelixField) {
+  return {
+    name: field.name,
+    label: field.label,
+    kind: field.kind,
+    default: field.default,
+    hint: field.hint,
+    options: field.options,
+    required: field.required,
+    primary: field.primary,
+    aliases: field.aliases,
+    faIcon: field.faIcon,
+  };
+}
+
+function serializeAction(spec: HelixSpec, action: HelixAction) {
+  // Shared fields are on the endpoint, so an action only carries its own.
+  return {
+    label: action.label,
+    help: action.help,
+    fields: effectiveFields({ ...spec, fields: [] } as HelixSpec, action)
+      .filter((field) => !field.hidden)
+      .map(serializeField),
+  };
+}
+
+function serializeEndpoint(spec: HelixSpec) {
+  const actions = spec.actions
+    ? Object.fromEntries(
+        Object.entries(spec.actions).map(([name, action]) => [name, serializeAction(spec, action)])
+      )
+    : undefined;
+
+  return {
+    type: spec.type,
+    label: spec.label,
+    help: spec.help,
+    group: spec.group ?? 'other',
+    tier: specTier(spec),
+    fields: effectiveFields(spec)
+      .filter((field) => !field.hidden)
+      .map(serializeField),
+    actions,
+    defaultAction: defaultActionName(spec),
+  };
+}
 
 type TwitchApiConfigProps = {
   id: string;
@@ -55,27 +114,30 @@ const CORE_SCOPES = [
   'user:manage:whispers',
 ];
 
-/** Scopes declared by the declarative Helix specs, written by the build. */
-function loadHelixSpecScopes(): string[] {
-  try {
-    const scopes = require('./helix/generated/scopes.json');
-    return Array.isArray(scopes) ? scopes : [];
-  } catch {
-    return [];
-  }
-}
+// Every scope the Helix registry can need, plus the EventSub/chat ones above.
+// Fixed at startup so a tier change never forces a re-login.
+const HELIX_SPEC_SCOPES = [...new Set(HELIX_SPECS.flatMap((spec) => specScopes(spec)))].sort();
 
 // A mock server never validates tokens, but Twurple checks the scopes on the
 // token it is given and falls back to the real validate endpoint when the scope
 // list is unknown, so the mock provider has to claim a full set up front.
-const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...loadHelixSpecScopes()])].sort();
+const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...HELIX_SPEC_SCOPES])].sort();
 
 module.exports = function (RED: NodeAPI) {
 
   // Every scope a user could need, for the editor's Login with Twitch button.
-  // Scopes are fixed at build time so a tier change never forces a re-login.
   RED.httpAdmin.get('/twitch-eventsub/helix/scopes', (_req: any, res: any) => {
     res.json({ scopes: MOCK_SCOPES });
+  });
+
+  // The endpoint picker for the twitch-api node: every registry entry in an
+  // enabled tier.
+  RED.httpAdmin.get('/twitch-eventsub/helix/endpoints', (_req: any, res: any) => {
+    const tiers = enabledTiers((RED as any).settings);
+    const endpoints = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(
+      serializeEndpoint
+    );
+    res.json({ tiers, endpoints });
   });
 
   // --- Auth endpoints for Device Code Flow ---

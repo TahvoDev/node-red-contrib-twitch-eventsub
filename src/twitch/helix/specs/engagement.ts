@@ -157,6 +157,7 @@ const rewardIdField: HelixField = {
 export const engagementSpecs = [
   defineHelix({
     type: 'twitch-helix-channel-points',
+    group: 'channel points',
     tier: 'extended',
     label: 'channel points',
     help: 'Lists, creates, updates or deletes custom Channel Points rewards.',
@@ -364,6 +365,7 @@ export const engagementSpecs = [
 
   defineHelix({
     type: 'twitch-helix-redemptions',
+    group: 'redemptions',
     tier: 'extended',
     label: 'redemptions',
     help: 'Lists custom Channel Points redemptions or updates their status.',
@@ -459,6 +461,7 @@ export const engagementSpecs = [
 
   defineHelix({
     type: 'twitch-helix-polls',
+    group: 'polls',
     tier: 'extended',
     label: 'polls',
     help: 'Lists, creates or ends a channel poll.',
@@ -564,6 +567,7 @@ export const engagementSpecs = [
 
   defineHelix({
     type: 'twitch-helix-predictions',
+    group: 'predictions',
     tier: 'extended',
     label: 'predictions',
     help: 'Lists, creates or ends a channel prediction.',

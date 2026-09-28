@@ -46,20 +46,20 @@ const MOCK_PORT = 8080
 const TIMEOUT_MS = Number(process.env.E2E_TIMEOUT_MS || 120000)
 const KEEP = process.env.E2E_KEEP === '1'
 
-// Each case is one generated node and the request it must make. `fields` are
-// merged straight into the node config (including `action` for action nodes).
+// Each case is one twitch-api node (one endpoint) and the request it must make.
+// `fields` are merged into the node's dynamic fields (including `action`).
 const CASES = [
-    { type: 'twitch-helix-get-users', method: 'GET', path: '/mock/users' },
-    { type: 'twitch-helix-get-streams', method: 'GET', path: '/mock/streams' },
-    { type: 'twitch-helix-get-channel-info', method: 'GET', path: '/mock/channels' },
-    { type: 'twitch-helix-get-followers', method: 'GET', path: '/mock/channels/followers' },
-    { type: 'twitch-helix-bans', fields: { action: 'list' }, method: 'GET', path: '/mock/moderation/banned' },
-    { type: 'twitch-helix-moderators', fields: { action: 'list' }, method: 'GET', path: '/mock/moderation/moderators' },
-    { type: 'twitch-helix-videos', fields: { action: 'list' }, method: 'GET', path: '/mock/videos' },
-    { type: 'twitch-helix-clips', fields: { action: 'list' }, method: 'GET', path: '/mock/clips' },
-    { type: 'twitch-helix-bits', fields: { action: 'leaderboard' }, method: 'GET', path: '/mock/bits/leaderboard' },
-    { type: 'twitch-helix-send-chat-message', fields: { message: 'e2e hello' }, method: 'POST', path: '/mock/chat/messages' },
-    { type: 'twitch-helix-chat-badges', fields: {}, method: 'GET', path: '/mock/chat/badges' },
+    { endpoint: 'twitch-helix-get-users', method: 'GET', path: '/mock/users' },
+    { endpoint: 'twitch-helix-get-streams', method: 'GET', path: '/mock/streams' },
+    { endpoint: 'twitch-helix-get-channel-info', method: 'GET', path: '/mock/channels' },
+    { endpoint: 'twitch-helix-get-followers', method: 'GET', path: '/mock/channels/followers' },
+    { endpoint: 'twitch-helix-bans', action: 'list', method: 'GET', path: '/mock/moderation/banned' },
+    { endpoint: 'twitch-helix-moderators', action: 'list', method: 'GET', path: '/mock/moderation/moderators' },
+    { endpoint: 'twitch-helix-videos', action: 'list', method: 'GET', path: '/mock/videos' },
+    { endpoint: 'twitch-helix-clips', action: 'list', method: 'GET', path: '/mock/clips' },
+    { endpoint: 'twitch-helix-bits', action: 'leaderboard', method: 'GET', path: '/mock/bits/leaderboard' },
+    { endpoint: 'twitch-helix-send-chat-message', fields: { message: 'e2e hello' }, method: 'POST', path: '/mock/chat/messages' },
+    { endpoint: 'twitch-helix-chat-badges', method: 'GET', path: '/mock/chat/badges' },
 ]
 
 const engine = process.env.CONTAINER_ENGINE || ['podman', 'docker'].find(hasEngine)
@@ -163,16 +163,17 @@ function buildFlow(credentials) {
 
     CASES.forEach((testCase, index) => {
         const fields = { ...(testCase.fields || {}) }
-        if (testCase.type === 'twitch-helix-get-users') fields.userIds = credentials.userId
+        if (testCase.action) fields.action = testCase.action
+        if (testCase.endpoint === 'twitch-helix-get-users') fields.userIds = credentials.userId
 
         const id = `helix-e2e-node-${index}`
         const debugId = `helix-e2e-debug-${index}`
         nodes.push({
-            id, type: testCase.type, z: tab, name: testCase.type, config: configId,
-            ...fields, x: 380, y: 100 + index * 60, wires: [[debugId]],
+            id, type: 'twitch-api', z: tab, name: testCase.endpoint, config: configId,
+            endpoint: testCase.endpoint, fields, x: 380, y: 100 + index * 60, wires: [[debugId]],
         })
         nodes.push({
-            id: debugId, type: 'debug', z: tab, name: `${testCase.type} out`, active: true,
+            id: debugId, type: 'debug', z: tab, name: `${testCase.endpoint} out`, active: true,
             tosidebar: true, console: false, complete: 'payload', targetType: 'msg',
             statusVal: 'payload', x: 700, y: 100 + index * 60, wires: [],
         })

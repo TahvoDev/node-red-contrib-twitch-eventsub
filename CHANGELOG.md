@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Changed
+- **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
+  spec-to-node factory/build-generation are gone. Endpoints are registry entries under
+  `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (group → endpoint → action
+  picker, dynamic fields) calls them through one shared path (`helix-core.ts`). Fewer nodes means no
+  bulk generation: no generated `.js`/`.html` per endpoint, no `scopes.json`.
 - Consolidated the Helix palette: endpoints that share a resource now sit behind an Action dropdown
   (`bans`, `moderators`, `vips`, `blocked terms`, `chat settings`, `channel points`, `redemptions`,
   `polls`, `predictions`, `schedule`, `raids`, `ads`, `stream markers`, `clips`, `videos`, `bits`,
