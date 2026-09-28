@@ -1,5 +1,4 @@
-import type { NodeAPI } from 'node-red';
-import { AbstractNode } from '../../AbstractNode';
+import type { Node, NodeAPI } from 'node-red';
 import { EVENTS_BY_TYPE, type EventSubEventDefinition } from './eventsub-registry';
 import { mapEvent } from './eventsub-mapper';
 
@@ -19,13 +18,17 @@ interface TwitchApiConfig {
  * owns the one WebSocket listener and fans every event out to all of its nodes,
  * which is why `triggerTwitchEvent` filters on this node's own event.
  */
-class TwitchEventsubNode extends AbstractNode {
+// Merged with the class below to add the Node-RED runtime members that
+// createNode copies onto the instance.
+interface TwitchEventsubNode extends Node {}
+
+class TwitchEventsubNode {
   twitchConfig?: TwitchApiConfig;
   private definition?: EventSubEventDefinition;
   private nodeUuid: string;
 
   constructor(config: any, RED: NodeAPI) {
-    super(config, RED);
+    RED.nodes.createNode(this as any, config);
     this.nodeUuid = config.id;
 
     this.twitchConfig = RED.nodes.getNode(config.config) as unknown as TwitchApiConfig | undefined;

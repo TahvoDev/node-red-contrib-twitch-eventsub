@@ -14,10 +14,7 @@
     "ignoreDeprecations": "6.0",
     "types": [
       "node"
-    ],
-    "paths": {
-      "/@/*": ["./src/*"]
-    }
+    ]
   },
   "include": [
     "src/**/*.ts"

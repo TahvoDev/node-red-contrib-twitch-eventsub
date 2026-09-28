@@ -1,6 +1,6 @@
 import { EventSubWsListener } from '@twurple/eventsub-ws';
 import { ApiClient } from '@twurple/api';
-import { AbstractNode } from '/@/AbstractNode';
+import type { Node } from 'node-red';
 import { EVENTS_BY_TYPE } from './eventsub-registry';
 
 const RESTORE_RETRY_BASE_DELAY = 2000;
@@ -9,7 +9,7 @@ const MAX_RESTORE_RETRIES = 5;
 
 class TwitchEventsubService {
   listener: EventSubWsListener;
-  node: AbstractNode;
+  node: Node;
   userId: string;
   started = false;
 
@@ -28,7 +28,7 @@ class TwitchEventsubService {
   onEventCb?: (event: any, subscriptionType: string) => void;
   onUnsupportedCb?: (subscriptionType: string) => void;
 
-  constructor(node: AbstractNode, userId: string, apiClient: ApiClient) {
+  constructor(node: Node, userId: string, apiClient: ApiClient) {
     this.node = node;
     this.userId = userId;
     this.listener = new EventSubWsListener({ apiClient });
