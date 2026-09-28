@@ -5,7 +5,6 @@
     defaults: {
       name: { value: '' },
       config: { type: 'twitch-api-config', required: true },
-      group: { value: '' },
       endpoint: { value: '' },
       action: { value: '' },
       fields: { value: {} }
@@ -24,7 +23,6 @@
     oneditprepare: function () {
       var node = this;
       var registry = [];
-      var $group = $('#node-input-group');
       var $endpoint = $('#node-input-endpoint');
       var $action = $('#node-input-action');
       var $fields = $('#twitch-api-fields');
@@ -53,14 +51,22 @@
       }
 
       function renderEndpoints() {
-        var chosen = $group.val();
-        var current = node.endpoint || '';
-        $endpoint.empty().append('<option value=""></option>');
+        var order = [];
+        var byGroup = {};
         registry.forEach(function (entry) {
-          if (chosen && entry.group !== chosen) return;
-          $endpoint.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
+          var group = entry.group || 'other';
+          if (!byGroup[group]) { byGroup[group] = []; order.push(group); }
+          byGroup[group].push(entry);
         });
-        $endpoint.val(current);
+        $endpoint.empty().append('<option value=""></option>');
+        order.forEach(function (group) {
+          var $group = $('<optgroup label="' + esc(group) + '"></optgroup>');
+          byGroup[group].forEach(function (entry) {
+            $group.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
+          });
+          $endpoint.append($group);
+        });
+        $endpoint.val(node.endpoint || '');
       }
 
       function renderAction() {
@@ -90,20 +96,11 @@
         fields.forEach(function (field) { $fields.append(inputHtml(field, saved[field.name])); });
       }
 
-      $group.on('change', function () { renderEndpoints(); renderAction(); renderFields(); });
       $endpoint.on('change', function () { renderAction(); renderFields(); });
       $action.on('change', renderFields);
 
       $.getJSON('twitch-eventsub/helix/endpoints', function (data) {
         registry = (data && data.endpoints) || [];
-        var groups = [];
-        registry.forEach(function (entry) {
-          if (entry.group && groups.indexOf(entry.group) === -1) groups.push(entry.group);
-        });
-        groups.sort();
-        $group.empty().append('<option value="">all</option>');
-        groups.forEach(function (group) { $group.append('<option value="' + esc(group) + '">' + esc(group) + '</option>'); });
-        $group.val(node.group || '');
         renderEndpoints();
         $action.val(node.action || '');
         renderAction();
@@ -132,10 +129,6 @@
     <input type="text" id="node-input-config" />
   </div>
   <div class="form-row">
-    <label for="node-input-group"><i class="fa fa-folder"></i> Group</label>
-    <select id="node-input-group"></select>
-  </div>
-  <div class="form-row">
     <label for="node-input-endpoint"><i class="fa fa-plug"></i> Endpoint</label>
     <select id="node-input-endpoint"></select>
   </div>
@@ -147,7 +140,7 @@
 </script>
 
 <script type="text/html" data-help-name="twitch-api">
-  <p>Calls any Twitch Helix endpoint this package knows. Pick a group and endpoint; the node renders that endpoint's fields (and action dropdown).</p>
+  <p>Calls any Twitch Helix endpoint this package knows. Pick an endpoint; the node renders its fields and action dropdown.</p>
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>endpoint <span class="property-type">string</span></dt>
