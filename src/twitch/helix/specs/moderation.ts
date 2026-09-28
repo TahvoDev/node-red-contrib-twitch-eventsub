@@ -10,6 +10,7 @@ import {
   mapUserRelation,
   mapWarning,
   toBool,
+  toInt,
   toStr,
 } from '../twitch-helix-utils';
 
@@ -79,13 +80,22 @@ function mapModeratedChannel(channel: any) {
   return { id: channel.id, name: channel.name, displayName: channel.displayName };
 }
 
+const AUTOMOD_LEVELS = [
+  { value: '', label: 'leave unchanged' },
+  { value: '0', label: 'Level 0 — no filtering' },
+  { value: '1', label: 'Level 1 — discrimination, smart detection' },
+  { value: '2', label: 'Level 2 — + sexual content, more harassment' },
+  { value: '3', label: 'Level 3 — more filtering across the board' },
+  { value: '4', label: 'Level 4 — most filtering (profanity, harassment)' },
+];
+
 /** The AutoMod category levels; 0-4, or blank to leave a category unchanged. */
 const automodLevel = (name: string, label: string): HelixField => ({
   name,
   label,
-  kind: 'int',
+  kind: 'select',
   default: '',
-  hint: '0 to 4, blank = leave unchanged',
+  options: AUTOMOD_LEVELS,
   faIcon: 'fa-sliders',
 });
 
@@ -418,7 +428,7 @@ export const moderationSpecs = [
       },
       update: {
         label: 'update settings',
-        help: 'Changes the AutoMod category levels you set, leaving the rest unchanged.',
+        help: 'Changes the AutoMod category levels you set, leaving the rest unchanged. Levels run 0 (no filtering) to 4 (most filtering), with 1 to 3 rising in between.',
         scopes: ['moderator:manage:automod_settings'],
         fields: [
           automodLevel('overallLevel', 'Overall'),
@@ -444,7 +454,7 @@ export const moderationSpecs = [
             'raceEthnicityOrReligion',
             'sexBasedTerms',
           ]) {
-            if (input[key] !== undefined) data[key] = input[key];
+            if (input[key] !== undefined) data[key] = toInt(input[key]);
           }
           if (Object.keys(data).length === 0) {
             throw new Error('Nothing to update — set at least one AutoMod level');
