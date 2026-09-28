@@ -15,6 +15,11 @@ export interface ChatNodeConfig extends NodeDef {
   channel?: string;
 }
 
+/** twitch-chat-in can optionally drop the connection's own messages. */
+export interface ChatInConfig extends ChatNodeConfig {
+  ignoreOwnMessages?: boolean;
+}
+
 export interface ChatConnectionConfig extends NodeDef {
   account?: string;
   channels?: string;

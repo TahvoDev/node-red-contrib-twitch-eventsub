@@ -6,6 +6,7 @@ RED.nodes.registerType('twitch-chat-in', {
     name: { value: '' },
     connection: { type: 'twitch-chat-connection', required: true },
     channel: { value: '' },
+    ignoreOwnMessages: { value: false },
   },
   inputs: 0,
   outputs: 1,
@@ -38,6 +39,11 @@ RED.nodes.registerType('twitch-chat-in', {
     <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
     <input type="text" id="node-input-channel" placeholder="Leave blank for all joined channels" />
   </div>
+
+  <div class="form-row">
+    <label for="node-input-ignoreOwnMessages"><i class="fa fa-eye-slash"></i> Ignore own messages</label>
+    <input type="checkbox" id="node-input-ignoreOwnMessages" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-in">
@@ -50,6 +56,9 @@ RED.nodes.registerType('twitch-chat-in', {
 
     <dt>Channel <span class="property-type">string</span></dt>
     <dd>Optional channel login to filter on. Leave blank to pass messages from every joined channel.</dd>
+
+    <dt>Ignore own messages <span class="property-type">boolean</span></dt>
+    <dd>Do not emit messages sent by the connection's own account. Off by default.</dd>
   </dl>
 
   <h3>Outputs</h3>

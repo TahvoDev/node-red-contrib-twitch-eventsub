@@ -1,8 +1,8 @@
 import type { Node, NodeAPI } from 'node-red';
-import { getChatConnection, normalizeChannel, type ChatNodeConfig } from './twitch-chat-base';
+import { getChatConnection, normalizeChannel, type ChatInConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
-  function TwitchChatInNode(this: Node, config: ChatNodeConfig) {
+  function TwitchChatInNode(this: Node, config: ChatInConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
@@ -13,6 +13,7 @@ module.exports = function (RED: NodeAPI) {
     }
 
     const channelFilter = normalizeChannel(config.channel);
+    const ignoreOwnMessages = config.ignoreOwnMessages === true;
     let listener: { unbind(): void } | undefined;
 
     connection.addListener(node.id, node);
@@ -24,6 +25,8 @@ module.exports = function (RED: NodeAPI) {
           if (channelFilter && channelFilter !== channel.toLowerCase()) return;
 
           const userInfo = message.userInfo;
+          if (ignoreOwnMessages && userInfo.userId === connection.getUserId()) return;
+
           node.send({
             topic: `twitch/chat/${channel}/${userInfo.userName}`,
             channel,
