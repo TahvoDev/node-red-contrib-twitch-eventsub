@@ -1,5 +1,4 @@
 import type { Node, NodeAPI } from 'node-red';
-import { AbstractNode } from '../../AbstractNode';
 import { ChatClient } from '@twurple/chat';
 import type { ApiClient } from '@twurple/api';
 import {
@@ -16,7 +15,12 @@ module.exports = function (RED: NodeAPI) {
    * from the referenced twitch-api-config node, so the chat nodes never see the
    * credentials themselves.
    */
-  class TwitchChatConnection extends AbstractNode {
+  // Merged with the class below to add the Node-RED runtime members that
+  // createNode copies onto the instance. `addListener`/`removeListener`/
+  // `listeners` are dropped because this class shadows the EventEmitter ones.
+  interface TwitchChatConnection extends Omit<Node, 'addListener' | 'removeListener' | 'listeners'> {}
+
+  class TwitchChatConnection {
     config: ChatConnectionConfig;
     account?: ChatAccount;
     chatClient?: ChatClient;
@@ -26,7 +30,7 @@ module.exports = function (RED: NodeAPI) {
     private initPromise?: Promise<ChatClient | undefined>;
 
     constructor(config: ChatConnectionConfig) {
-      super(config, RED);
+      RED.nodes.createNode(this as any, config);
       this.config = config;
       this.account = RED.nodes.getNode(config.account ?? '') as unknown as ChatAccount | undefined;
 

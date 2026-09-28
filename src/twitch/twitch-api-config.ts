@@ -1,5 +1,4 @@
-import type { NodeAPI } from 'node-red';
-import { AbstractNode } from '../AbstractNode';
+import type { Node, NodeAPI } from 'node-red';
 import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
@@ -199,7 +198,11 @@ module.exports = function (RED: NodeAPI) {
 
   // --- Config node ---
 
-  class TwitchApiConfig extends AbstractNode {
+  // Merged with the class below to add the Node-RED runtime members (on/status/
+  // log/error/…) that createNode copies onto the instance.
+  interface TwitchApiConfig extends Node {}
+
+  class TwitchApiConfig {
     config: TwitchApiConfigProps;
     credentials: TwitchApiCredentials;
     apiClient?: ApiClient;
@@ -218,7 +221,7 @@ module.exports = function (RED: NodeAPI) {
     private authInitPromise?: Promise<void>;
 
     constructor(config: TwitchApiConfigProps) {
-      super(config, RED);
+      RED.nodes.createNode(this as any, config as any);
       this.config = config;
       this.credentials = RED.nodes.getCredentials(config.id) as TwitchApiCredentials;
 
