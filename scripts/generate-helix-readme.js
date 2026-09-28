@@ -12,19 +12,23 @@ const path = require('path')
 
 const root = path.resolve(__dirname, '..')
 const { HELIX_SPECS } = require(path.join(root, 'dist', 'twitch', 'helix', 'specs', 'index.js'))
+const { specScopes, specTier, actionNames } = require(path.join(root, 'dist', 'twitch', 'helix', 'define.js'))
 
 const START = '<!-- helix-nodes:start -->'
 const END = '<!-- helix-nodes:end -->'
 const check = process.argv.includes('--check')
 
 const rows = HELIX_SPECS.map((spec) => {
-  const scopes = spec.scopes.length
-    ? spec.scopes.map((scope) => `\`${scope}\``).join(', ')
+  const scopes = specScopes(spec)
+  const scopeText = scopes.length ? scopes.map((scope) => `\`${scope}\``).join(', ') : '—'
+  const actions = spec.actions
+    ? Object.keys(spec.actions).map((name) => `\`${name}\``).join(', ')
     : '—'
-  return `| ${spec.label} | ${spec.help} | ${scopes} |`
+  const label = spec.palette === false ? `${spec.label} *(hidden)*` : spec.label
+  return `| ${label} | ${actions} | ${specTier(spec)} | ${scopeText} |`
 })
 
-const table = ['| Node | Purpose | Scopes |', '| --- | --- | --- |', ...rows].join('\n')
+const table = ['| Node | Actions | Tier | Scopes |', '| --- | --- | --- | --- |', ...rows].join('\n')
 
 const readmePath = path.join(root, 'README.md')
 const readme = fs.readFileSync(readmePath, 'utf8')

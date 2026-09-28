@@ -18,6 +18,7 @@ const outDir = path.join(distDir, 'generated')
 
 const { HELIX_SPECS } = require(path.join(distDir, 'specs', 'index.js'))
 const { renderEditorHtml } = require(path.join(distDir, 'helix-editor.js'))
+const { specScopes } = require(path.join(distDir, 'define.js'))
 
 fs.rmSync(outDir, { recursive: true, force: true })
 fs.mkdirSync(outDir, { recursive: true })
@@ -38,7 +39,7 @@ for (const spec of HELIX_SPECS) {
 
 // The union of every spec's scopes, so the config node can request everything a
 // user might authorise in a single login instead of a hand-maintained list.
-const scopes = [...new Set(HELIX_SPECS.flatMap((spec) => spec.scopes))].sort()
+const scopes = [...new Set(HELIX_SPECS.flatMap((spec) => specScopes(spec)))].sort()
 fs.writeFileSync(path.join(outDir, 'scopes.json'), `${JSON.stringify(scopes, null, 2)}\n`)
 
 console.log(`generated ${HELIX_SPECS.length} Helix node modules (${scopes.length} scopes)`)

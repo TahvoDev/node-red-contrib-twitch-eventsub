@@ -1,13 +1,17 @@
 /**
  * The declarative spec format for Helix nodes.
  *
- * A node is data: its palette label, help text, required scopes, config fields
- * and the single API call it makes. The factory turns a spec into a Node-RED
- * handler and the build turns it into a palette type, so adding an endpoint is
- * a spec entry rather than a hand-written .ts/.html pair.
+ * A node is data: its palette label, help text, tier, config fields and the API
+ * call(s) it makes. A node with a single endpoint is a plain spec; a node that
+ * groups a resource behind an action dropdown declares `actions`. The factory
+ * turns a spec into a Node-RED handler and the build turns it into a palette
+ * type, so adding or regrouping endpoints is a spec change, not a code change.
  */
 
 export type HelixFieldKind = 'user' | 'int' | 'bool' | 'string' | 'select' | 'idList';
+
+/** Which palette tier a node belongs to. Only enabled tiers register. */
+export type HelixTier = 'core' | 'extended' | 'advanced';
 
 export interface HelixSelectOption {
   value: string;
@@ -53,6 +57,8 @@ export interface HelixRunContext {
   raw: Record<string, string | undefined>;
   msg: any;
   config: any;
+  /** The action name when the node is an action node, otherwise undefined. */
+  action?: string;
 }
 
 export interface HelixPagedSpec {
@@ -62,14 +68,13 @@ export interface HelixPagedSpec {
   max?: number;
 }
 
-export interface HelixSpec {
-  /** Node-RED type, e.g. `twitch-helix-get-authenticated-user`. */
-  type: string;
-  /** Plain-English label shown in the palette and as the node label. */
+/** One entry in an action node's dropdown. Carries the whole call for that verb. */
+export interface HelixAction {
+  /** Plain-English dropdown label, e.g. `add`. */
   label: string;
-  /** One-line description used in the node help. */
+  /** One-line description shown in this action's help block. */
   help: string;
-  /** OAuth scopes the node needs; the factory checks them before the call. */
+  /** OAuth scopes this action needs, checked just before the call. */
   scopes: string[];
   fields: HelixField[];
   /** Makes the twurple call. Nothing else. */
@@ -78,7 +83,43 @@ export interface HelixSpec {
   map?: (result: any, ctx: HelixRunContext) => any;
   /** Extra message properties to merge (pagination, total, ...) for non-paged specs. */
   extra?: (result: any, ctx: HelixRunContext) => Record<string, any> | undefined;
-  /** Set for list endpoints; adds limit/all/allMax fields and pagination handling. */
+  /** Set for list actions; adds limit/all/allMax fields and pagination handling. */
+  paged?: HelixPagedSpec;
+  /** Which token user `run` is called as; defaults to the node's context. */
+  context?: 'moderator' | 'broadcaster' | 'app';
+}
+
+export interface HelixSpec {
+  /** Node-RED type, e.g. `twitch-helix-bans`. */
+  type: string;
+  /** Plain-English label shown in the palette and as the node label. */
+  label: string;
+  /** One-line description used in the node help. */
+  help: string;
+  /** Palette tier; defaults to `core`. Only enabled tiers register. */
+  tier?: HelixTier;
+  /** Set false to register the type but keep it out of the palette. Defaults to true. */
+  palette?: boolean;
+  /** Resource grouping used by the generic node's endpoint picker. */
+  resource?: string;
+  /**
+   * OAuth scopes the node needs. For an action node this is the union shown in
+   * the docs; the per-action scopes are checked at runtime.
+   */
+  scopes: string[];
+  /** Shared fields shown for every action (or the whole field list when standalone). */
+  fields: HelixField[];
+  /** Makes the twurple call for a standalone node. Omit when `actions` is set. */
+  run?: (ctx: HelixRunContext) => Promise<any>;
+  /** Action dropdown for a resource node. Mutually exclusive with `run`. */
+  actions?: Record<string, HelixAction>;
+  /** Action selected when `msg.action` and the node config are both blank. */
+  defaultAction?: string;
+  /** Converts the twurple result to a plain serialisable object. */
+  map?: (result: any, ctx: HelixRunContext) => any;
+  /** Extra message properties to merge (pagination, total, ...) for non-paged specs. */
+  extra?: (result: any, ctx: HelixRunContext) => Record<string, any> | undefined;
+  /** Set for list nodes; adds limit/all/allMax fields and pagination handling. */
   paged?: HelixPagedSpec;
   /**
    * Which token user `run` is called as. Defaults to `moderator` (the
@@ -89,7 +130,7 @@ export interface HelixSpec {
   customHtml?: string;
   /** Icon filename; defaults to the shared Twitch icon. */
   icon?: string;
-  /** Inline `oneditprepare` JS, for the rare node that needs extra validation. */
+  /** Inline `oneditprepare` JS, appended to the generated action handler. */
   oneditprepare?: string;
 }
 
@@ -98,15 +139,65 @@ export function defineHelix(spec: HelixSpec): HelixSpec {
   return spec;
 }
 
-/** The fields the factory and the editor generator actually use. */
-export function effectiveFields(spec: HelixSpec): HelixField[] {
-  if (!spec.paged) return spec.fields;
-  return [
-    ...spec.fields,
-    { name: 'limit', label: 'Limit', kind: 'int', default: spec.paged.limit ?? 20, hint: '1-100', optional: true } as HelixField,
-    { name: 'all', label: 'Get all', kind: 'bool', default: false, optional: true } as HelixField,
-    { name: 'allMax', label: 'Max', kind: 'int', default: spec.paged.max ?? 1000, optional: true } as HelixField,
-  ];
+export function specTier(spec: HelixSpec): HelixTier {
+  return spec.tier ?? 'core';
+}
+
+/** The action names in dropdown order (declaration order). */
+export function actionNames(spec: HelixSpec): string[] {
+  return spec.actions ? Object.keys(spec.actions) : [];
+}
+
+export function defaultActionName(spec: HelixSpec): string | undefined {
+  const names = actionNames(spec);
+  if (!names.length) return undefined;
+  return spec.defaultAction && spec.actions![spec.defaultAction]
+    ? spec.defaultAction
+    : names[0];
+}
+
+/** Every scope the spec can need, across all actions, in first-seen order. */
+export function specScopes(spec: HelixSpec): string[] {
+  const scopes = [...spec.scopes];
+  for (const action of Object.values(spec.actions ?? {})) {
+    for (const scope of action.scopes) {
+      if (scopes.indexOf(scope) === -1) scopes.push(scope);
+    }
+  }
+  return scopes;
+}
+
+/** The paged config used for one action (falls back to the node's `paged`). */
+export function actionPaged(spec: HelixSpec, action?: HelixAction): HelixPagedSpec | undefined {
+  return action?.paged ?? spec.paged;
+}
+
+/**
+ * The fields the factory and the editor generator actually use for one action:
+ * shared + action fields, plus the generated paging fields. De-duplicated by
+ * name so an action that reuses a shared field (e.g. `broadcaster`) renders once.
+ */
+export function effectiveFields(
+  spec: HelixSpec,
+  action?: HelixAction
+): HelixField[] {
+  const base = action ? [...spec.fields, ...action.fields] : spec.fields;
+  const paged = actionPaged(spec, action);
+  const all: HelixField[] = paged
+    ? [
+        ...base,
+        { name: 'limit', label: 'Limit', kind: 'int', default: paged.limit ?? 20, hint: '1-100', optional: true } as HelixField,
+        { name: 'all', label: 'Get all', kind: 'bool', default: false, optional: true } as HelixField,
+        { name: 'allMax', label: 'Max', kind: 'int', default: paged.max ?? 1000, optional: true } as HelixField,
+      ]
+    : base;
+
+  const seen = new Set<string>();
+  return all.filter((field) => {
+    if (seen.has(field.name)) return false;
+    seen.add(field.name);
+    return true;
+  });
 }
 
 export function selectValues(field: HelixField): string[] {

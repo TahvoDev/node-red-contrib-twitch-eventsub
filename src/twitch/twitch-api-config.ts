@@ -4,6 +4,56 @@ import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
 import { MockAuthProvider } from './mock-auth-provider';
+import { HELIX_SPECS } from './helix/specs';
+import { effectiveFields, specTier, defaultActionName, type HelixField, type HelixSpec, type HelixAction } from './helix/define';
+import { enabledTiers } from './helix/factory';
+
+/** A field reduced to the metadata the generic node's editor needs. */
+function serializeField(field: HelixField) {
+  return {
+    name: field.name,
+    label: field.label,
+    kind: field.kind,
+    default: field.default,
+    hint: field.hint,
+    options: field.options,
+    required: field.required,
+    primary: field.primary,
+    aliases: field.aliases,
+    faIcon: field.faIcon,
+  };
+}
+
+function serializeActionFields(spec: HelixSpec, action: HelixAction) {
+  // Shared fields are listed once on the spec, so the action only carries its own.
+  return effectiveFields({ ...spec, fields: [] } as HelixSpec, action)
+    .filter((field) => !field.hidden)
+    .map(serializeField);
+}
+
+function serializeSpec(spec: HelixSpec) {
+  const actions = spec.actions
+    ? Object.fromEntries(
+        Object.entries(spec.actions).map(([name, action]) => [
+          name,
+          { label: action.label, help: action.help, fields: serializeActionFields(spec, action) },
+        ])
+      )
+    : undefined;
+
+  return {
+    type: spec.type,
+    label: spec.label,
+    help: spec.help,
+    tier: specTier(spec),
+    resource: spec.resource ?? 'other',
+    fields: effectiveFields(spec)
+      .filter((field) => !field.hidden)
+      .map(serializeField),
+    actions,
+    defaultAction: defaultActionName(spec),
+  };
+}
 
 type TwitchApiConfigProps = {
   id: string;
@@ -12,6 +62,7 @@ type TwitchApiConfigProps = {
   twitch_user_login?: string;
   twitch_mock_server_port?: string;
   twitch_mock_user_id?: string;
+  twitch_mock_token?: string;
 };
 
 type TwitchApiCredentials = {
@@ -72,8 +123,17 @@ const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...loadHelixSpecScopes()])].sor
 module.exports = function (RED: NodeAPI) {
 
   // Every scope a user could need, for the editor's Login with Twitch button.
+  // Scopes are fixed at build time so a tier change never forces a re-login.
   RED.httpAdmin.get('/twitch-eventsub/helix/scopes', (_req: any, res: any) => {
     res.json({ scopes: MOCK_SCOPES });
+  });
+
+  // The endpoint picker for the generic request node: every spec in an enabled
+  // tier, including the hidden long-tail ones that have no palette node.
+  RED.httpAdmin.get('/twitch-eventsub/helix/specs', (_req: any, res: any) => {
+    const tiers = enabledTiers((RED as any).settings);
+    const specs = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(serializeSpec);
+    res.json({ tiers, specs });
   });
 
   // --- Auth endpoints for Device Code Flow ---
@@ -250,7 +310,8 @@ module.exports = function (RED: NodeAPI) {
         const authProvider = new MockAuthProvider(
           this.config.twitch_client_id || 'mock-client-id',
           userId,
-          MOCK_SCOPES
+          MOCK_SCOPES,
+          this.config.twitch_mock_token || undefined
         );
 
         this.userId = userId;

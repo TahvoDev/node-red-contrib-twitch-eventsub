@@ -8,6 +8,7 @@ RED.nodes.registerType('twitch-api-config', {
     twitch_user_login: { value: '' },
     twitch_mock_server_port: { value: '' },
     twitch_mock_user_id: { value: '' },
+    twitch_mock_token: { value: '' },
   },
   credentials: {
     twitch_client_secret: { type: 'password' },
@@ -252,6 +253,12 @@ RED.nodes.registerType('twitch-api-config', {
           <i class="fa fa-user"></i> Mock User ID
         </label>
         <input type="text" id="node-config-input-twitch_mock_user_id" placeholder="printed by mock-api start">
+      </div>
+      <div class="form-row">
+        <label for="node-config-input-twitch_mock_token">
+          <i class="fa fa-key"></i> Mock Token
+        </label>
+        <input type="text" id="node-config-input-twitch_mock_token" placeholder="printed by mock-api start">
       </div>
     </details>
 

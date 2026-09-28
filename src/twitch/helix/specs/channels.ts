@@ -1,4 +1,4 @@
-import { defineHelix } from '../define';
+import { defineHelix, type HelixField } from '../define';
 import {
   mapChannel,
   mapFollowedChannel,
@@ -8,36 +8,25 @@ import {
 
 const VALID_COMMERCIAL_LENGTHS = [30, 60, 90, 120, 150, 180];
 
-function mapTeam(team: any) {
-  return {
-    id: team.id,
-    name: team.name,
-    displayName: team.displayName,
-    backgroundImageUrl: team.backgroundImageUrl ?? null,
-    bannerUrl: team.bannerUrl ?? null,
-    creationDate: team.creationDate,
-    updateDate: team.updateDate,
-    info: team.info,
-    logoThumbnailUrl: team.logoThumbnailUrl,
-  };
-}
+const broadcaster: HelixField = {
+  name: 'broadcaster',
+  label: 'Broadcaster',
+  kind: 'user',
+  optional: true,
+  aliases: ['broadcasterId'],
+  hint: 'blank = authenticated user',
+  faIcon: 'fa-user',
+};
 
 export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-get-channel-info',
+    tier: 'core',
+    resource: 'channels',
     label: 'get channel info',
     help: "Gets a channel's title, game, language and tags. Leave Broadcaster blank to use the authenticated account.",
     scopes: [],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-      },
-    ],
+    fields: [broadcaster],
     run: async ({ api, broadcasterId }) => {
       const channel = await api.channels.getChannelInfoById(broadcasterId);
       if (!channel) throw new Error(`Channel "${broadcasterId}" was not found on Twitch`);
@@ -48,19 +37,14 @@ export const channelSpecs = [
 
   defineHelix({
     type: 'twitch-helix-update-channel-info',
+    tier: 'core',
+    resource: 'channels',
     label: 'update channel info',
     help: "Updates a channel's title, game, tags or language. Only the fields you fill in are changed; the node fetches and returns the channel afterwards. The authenticated account must be the broadcaster.",
     scopes: ['channel:manage:broadcast'],
     context: 'broadcaster',
     fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
       {
         name: 'title',
         label: 'Title',
@@ -119,19 +103,14 @@ export const channelSpecs = [
 
   defineHelix({
     type: 'twitch-helix-get-followers',
+    tier: 'core',
+    resource: 'followers',
     label: 'get followers',
     help: "Lists a channel's followers, most recent first. Set User to a single login to just confirm whether that user follows. The authenticated account must be a moderator or the broadcaster.",
     scopes: ['moderator:read:followers'],
     paged: { limit: 20, max: 1000 },
     fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
       {
         name: 'user',
         label: 'User',
@@ -151,6 +130,9 @@ export const channelSpecs = [
 
   defineHelix({
     type: 'twitch-helix-get-followed-channels',
+    tier: 'core',
+    resource: 'followers',
+    palette: false,
     label: 'get followed channels',
     help: 'Lists the channels a user follows. Set Channel to a single login to just confirm whether the user follows it. Defaults to the authenticated account.',
     scopes: ['user:read:follows'],
@@ -185,135 +167,85 @@ export const channelSpecs = [
   }),
 
   defineHelix({
-    type: 'twitch-helix-get-ad-schedule',
-    label: 'get ad schedule',
-    help: "Gets a channel's ad schedule: available snoozes, next ad time and pre-roll free time. The authenticated account must be the broadcaster.",
-    scopes: ['channel:read:ads'],
+    type: 'twitch-helix-ads',
+    tier: 'extended',
+    resource: 'ads',
+    label: 'ads',
+    help: 'Reads the ad schedule, snoozes the next ad or starts a commercial break.',
+    scopes: ['channel:read:ads', 'channel:manage:ads', 'channel:edit:commercial'],
     context: 'broadcaster',
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
+    fields: [broadcaster],
+    defaultAction: 'get',
+    actions: {
+      get: {
+        label: 'get schedule',
+        help: 'Gets the ad schedule: available snoozes, next ad time and pre-roll free time.',
+        scopes: ['channel:read:ads'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.channels.getAdSchedule(broadcasterId),
+        map: (schedule, { broadcasterId }) => ({
+          broadcasterId,
+          snoozeCount: schedule.snoozeCount,
+          snoozeRefreshDate: schedule.snoozeRefreshDate ?? null,
+          nextAdDate: schedule.nextAdDate ?? null,
+          duration: schedule.duration,
+          lastAdDate: schedule.lastAdDate ?? null,
+          prerollFreeTime: schedule.prerollFreeTime,
+        }),
       },
-    ],
-    run: async ({ api, broadcasterId }) => api.channels.getAdSchedule(broadcasterId),
-    map: (schedule, { broadcasterId }) => ({
-      broadcasterId,
-      snoozeCount: schedule.snoozeCount,
-      snoozeRefreshDate: schedule.snoozeRefreshDate ?? null,
-      nextAdDate: schedule.nextAdDate ?? null,
-      duration: schedule.duration,
-      lastAdDate: schedule.lastAdDate ?? null,
-      prerollFreeTime: schedule.prerollFreeTime,
-    }),
-  }),
-
-  defineHelix({
-    type: 'twitch-helix-snooze-next-ad',
-    label: 'snooze next ad',
-    help: "Snoozes the channel's next ad when a snooze is available. The authenticated account must be the broadcaster.",
-    scopes: ['channel:manage:ads'],
-    context: 'broadcaster',
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
+      snooze: {
+        label: 'snooze',
+        help: 'Snoozes the next ad when a snooze is available.',
+        scopes: ['channel:manage:ads'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.channels.snoozeNextAd(broadcasterId),
+        map: (result, { broadcasterId }) => ({
+          broadcasterId,
+          snoozeCount: result.snoozeCount,
+          snoozeRefreshDate: result.snoozeRefreshDate,
+          nextAdDate: result.nextAdDate,
+        }),
       },
-    ],
-    run: async ({ api, broadcasterId }) => api.channels.snoozeNextAd(broadcasterId),
-    map: (result, { broadcasterId }) => ({
-      broadcasterId,
-      snoozeCount: result.snoozeCount,
-      snoozeRefreshDate: result.snoozeRefreshDate,
-      nextAdDate: result.nextAdDate,
-    }),
-  }),
+      start: {
+        label: 'start commercial',
+        help: 'Starts a commercial break.',
+        scopes: ['channel:edit:commercial'],
+        fields: [
+          {
+            name: 'length',
+            label: 'Length (s)',
+            kind: 'int',
+            default: 30,
+            primary: true,
+            aliases: ['commercialLength'],
+            faIcon: 'fa-hourglass-half',
+            hint: '30, 60, 90, 120, 150 or 180',
+          },
+        ],
+        run: async ({ api, broadcasterId, input }) => {
+          const length = input.length ?? 30;
+          if (VALID_COMMERCIAL_LENGTHS.indexOf(length) === -1) {
+            throw new Error(
+              `Commercial length must be one of ${VALID_COMMERCIAL_LENGTHS.join(', ')} seconds`
+            );
+          }
 
-  defineHelix({
-    type: 'twitch-helix-start-commercial',
-    label: 'start commercial',
-    help: 'Starts a commercial break on a channel. The authenticated account must be the broadcaster.',
-    scopes: ['channel:edit:commercial'],
-    context: 'broadcaster',
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
+          await api.channels.startChannelCommercial(broadcasterId, length);
+          return { broadcasterId, length, started: true };
+        },
       },
-      {
-        name: 'length',
-        label: 'Length (s)',
-        kind: 'int',
-        default: 30,
-        primary: true,
-        aliases: ['commercialLength'],
-        faIcon: 'fa-hourglass-half',
-        hint: '30, 60, 90, 120, 150 or 180',
-      },
-    ],
-    run: async ({ api, broadcasterId, input }) => {
-      const length = input.length ?? 30;
-      if (VALID_COMMERCIAL_LENGTHS.indexOf(length) === -1) {
-        throw new Error(
-          `Commercial length must be one of ${VALID_COMMERCIAL_LENGTHS.join(', ')} seconds`
-        );
-      }
-
-      await api.channels.startChannelCommercial(broadcasterId, length);
-
-      return { broadcasterId, length, started: true };
     },
-  }),
-
-  defineHelix({
-    type: 'twitch-helix-get-channel-teams',
-    label: 'get channel teams',
-    help: 'Lists the Twitch teams a channel belongs to.',
-    scopes: [],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-      },
-    ],
-    run: async ({ api, broadcasterId }) => {
-      const teams = await api.teams.getTeamsForBroadcaster(broadcasterId);
-      return teams.map(mapTeam);
-    },
-    extra: (teams) => ({ pagination: { cursor: null }, total: teams.length }),
   }),
 
   defineHelix({
     type: 'twitch-helix-get-stream-key',
+    tier: 'advanced',
+    resource: 'channels',
+    palette: false,
     label: 'get stream key',
     help: "Gets the channel's stream key. Treat the result as a secret. The authenticated account must be the broadcaster.",
     scopes: ['channel:read:stream_key'],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        aliases: ['broadcasterId'],
-        hint: 'blank = authenticated user',
-      },
-    ],
+    fields: [broadcaster],
     run: async ({ api, broadcasterId }) => {
       const streamKey = await api.streams.getStreamKey(broadcasterId);
       return { streamKey, broadcasterId };

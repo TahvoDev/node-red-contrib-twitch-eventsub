@@ -1,4 +1,4 @@
-import { defineHelix } from '../define';
+import { defineHelix, type HelixField } from '../define';
 import {
   firstDefined,
   mapBadgeSet,
@@ -12,9 +12,20 @@ import {
   toStr,
 } from '../twitch-helix-utils';
 
+const broadcaster: HelixField = {
+  name: 'broadcaster',
+  label: 'Broadcaster',
+  kind: 'user',
+  optional: true,
+  hint: 'blank = authenticated user',
+  faIcon: 'fa-user',
+};
+
 export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-send-chat-message',
+    tier: 'core',
+    resource: 'chat',
     label: 'send chat message',
     help: 'Sends a chat message to a channel as the authenticated account.',
     scopes: ['user:write:chat'],
@@ -28,13 +39,7 @@ export const chatSpecs = [
         faIcon: 'fa-comment',
         hint: 'msg.payload overrides this',
       },
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
     ],
     run: async ({ api, broadcasterId, input, msg }) => {
       const text = input.message ?? toStr(msg.text);
@@ -51,6 +56,8 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-send-announcement',
+    tier: 'core',
+    resource: 'chat',
     label: 'send announcement',
     help: "Sends a highlighted announcement in a channel, falling back to primary for any other colour.",
     scopes: ['moderator:manage:announcements'],
@@ -78,13 +85,7 @@ export const chatSpecs = [
           { value: 'purple', label: 'purple' },
         ],
       },
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
     ],
     run: async ({ api, broadcasterId, input, msg, config }) => {
       const text = input.message ?? toStr(msg.text);
@@ -97,6 +98,8 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-send-shoutout',
+    tier: 'core',
+    resource: 'chat',
     label: 'send shoutout',
     help: 'Sends a shoutout from one channel to another.',
     scopes: ['moderator:manage:shoutouts'],
@@ -136,236 +139,219 @@ export const chatSpecs = [
   }),
 
   defineHelix({
-    type: 'twitch-helix-get-chatters',
-    label: 'get chatters',
-    help: "Lists the users currently in a channel's chat.",
-    scopes: ['moderator:read:chatters'],
-    paged: { limit: 20, max: 1000 },
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
+    type: 'twitch-helix-chat',
+    tier: 'core',
+    resource: 'chat',
+    palette: false,
+    label: 'chat moderation',
+    help: 'Lists the chatters in a channel, clears the chat or deletes a single message.',
+    scopes: ['moderator:read:chatters', 'moderator:manage:chat_messages'],
+    fields: [broadcaster],
+    defaultAction: 'chatters',
+    actions: {
+      chatters: {
+        label: 'chatters',
+        help: "Lists the users currently in a channel's chat.",
+        scopes: ['moderator:read:chatters'],
+        paged: { limit: 20, max: 1000 },
+        fields: [],
+        run: async ({ api, broadcasterId, input }) =>
+          api.chat.getChatters(broadcasterId, { limit: input.limit, after: input.after }),
+        map: (chatter) => mapChatter(chatter),
       },
-    ],
-    run: async ({ api, broadcasterId, input }) =>
-      api.chat.getChatters(broadcasterId, { limit: input.limit, after: input.after }),
-    map: mapChatter,
+      clear: {
+        label: 'clear',
+        help: "Clears every message from a channel's chat.",
+        scopes: ['moderator:manage:chat_messages'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => {
+          await api.moderation.deleteChatMessages(broadcasterId);
+          return { broadcasterId, cleared: true };
+        },
+      },
+      delete: {
+        label: 'delete message',
+        help: 'Deletes one chat message.',
+        scopes: ['moderator:manage:chat_messages'],
+        fields: [
+          {
+            name: 'messageId',
+            label: 'Message ID',
+            kind: 'string',
+            default: '',
+            aliases: ['id'],
+            faIcon: 'fa-comment-o',
+            hint: 'msg.messageId or msg.id overrides this',
+          },
+        ],
+        run: async ({ api, broadcasterId, input, msg }) => {
+          const messageId = input.messageId ?? toStr(msg.id);
+          if (!messageId) throw new Error('Message ID is required — set msg.messageId or msg.id');
+
+          await api.moderation.deleteChatMessages(broadcasterId, messageId);
+          return { broadcasterId, messageId, deleted: true };
+        },
+      },
+    },
   }),
 
   defineHelix({
-    type: 'twitch-helix-get-chat-settings',
-    label: 'get chat settings',
-    help: "Gets a channel's chat settings, including the non-moderator delay.",
-    scopes: [],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
-    ],
-    run: async ({ api, broadcasterId }) => api.chat.getSettingsPrivileged(broadcasterId),
-    map: (settings) => mapChatSettings(settings, true),
-  }),
-
-  defineHelix({
-    type: 'twitch-helix-update-chat-settings',
-    label: 'update chat settings',
-    help: 'Changes only the chat settings you set, leaving the rest unchanged.',
+    type: 'twitch-helix-chat-settings',
+    tier: 'extended',
+    resource: 'chat',
+    label: 'chat settings',
+    help: "Reads or changes a channel's chat settings.",
     scopes: ['moderator:manage:chat_settings'],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
+    fields: [broadcaster],
+    defaultAction: 'get',
+    actions: {
+      get: {
+        label: 'get',
+        help: 'Gets the chat settings, including the non-moderator delay.',
+        scopes: [],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.chat.getSettingsPrivileged(broadcasterId),
+        map: (settings) => mapChatSettings(settings, true),
       },
-      {
-        name: 'slowMode',
-        label: 'Slow mode',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-clock-o',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
+      update: {
+        label: 'update',
+        help: 'Changes only the chat settings you set, leaving the rest unchanged.',
+        scopes: ['moderator:manage:chat_settings'],
+        fields: [
+          {
+            name: 'slowMode',
+            label: 'Slow mode',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-clock-o',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'slowModeDelay',
+            label: 'Slow delay (s)',
+            kind: 'int',
+            default: '',
+            faIcon: 'fa-hourglass-half',
+            hint: 'leave blank to keep',
+          },
+          {
+            name: 'followerOnlyMode',
+            label: 'Followers only',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-users',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'followerOnlyModeDelay',
+            label: 'Follower delay (min)',
+            kind: 'int',
+            default: '',
+            faIcon: 'fa-hourglass-half',
+            hint: 'leave blank to keep',
+          },
+          {
+            name: 'subscriberOnlyMode',
+            label: 'Subscribers only',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-star',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'emoteOnlyMode',
+            label: 'Emote only',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-smile-o',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'uniqueChatMode',
+            label: 'Unique chat',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-commenting-o',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'nonModeratorChatDelay',
+            label: 'Non-mod delay',
+            kind: 'select',
+            default: '',
+            faIcon: 'fa-clock-o',
+            options: [
+              { value: '', label: 'leave unchanged' },
+              { value: 'true', label: 'on' },
+              { value: 'false', label: 'off' },
+            ],
+          },
+          {
+            name: 'nonModeratorChatDelayDuration',
+            label: 'Non-mod delay (s)',
+            kind: 'int',
+            default: '',
+            faIcon: 'fa-hourglass-half',
+            hint: 'leave blank to keep',
+          },
         ],
-      },
-      {
-        name: 'slowModeDelay',
-        label: 'Slow delay (s)',
-        kind: 'int',
-        default: '',
-        faIcon: 'fa-hourglass-half',
-        hint: 'leave blank to keep',
-      },
-      {
-        name: 'followerOnlyMode',
-        label: 'Followers only',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-users',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
-      },
-      {
-        name: 'followerOnlyModeDelay',
-        label: 'Follower delay (min)',
-        kind: 'int',
-        default: '',
-        faIcon: 'fa-hourglass-half',
-        hint: 'leave blank to keep',
-      },
-      {
-        name: 'subscriberOnlyMode',
-        label: 'Subscribers only',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-star',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
-      },
-      {
-        name: 'emoteOnlyMode',
-        label: 'Emote only',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-smile-o',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
-      },
-      {
-        name: 'uniqueChatMode',
-        label: 'Unique chat',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-commenting-o',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
-      },
-      {
-        name: 'nonModeratorChatDelay',
-        label: 'Non-mod delay',
-        kind: 'select',
-        default: '',
-        faIcon: 'fa-clock-o',
-        options: [
-          { value: '', label: 'leave unchanged' },
-          { value: 'true', label: 'on' },
-          { value: 'false', label: 'off' },
-        ],
-      },
-      {
-        name: 'nonModeratorChatDelayDuration',
-        label: 'Non-mod delay (s)',
-        kind: 'int',
-        default: '',
-        faIcon: 'fa-hourglass-half',
-        hint: 'leave blank to keep',
-      },
-    ],
-    run: async ({ api, broadcasterId, input }) => {
-      const settings: any = {};
-      const flag = (key: string, value: unknown) => {
-        const b = toBool(value);
-        if (b !== undefined) settings[key] = b;
-      };
-      const num = (key: string, value: unknown) => {
-        const n = toInt(value);
-        if (n !== undefined) settings[key] = n;
-      };
+        run: async ({ api, broadcasterId, input }) => {
+          const settings: any = {};
+          const flag = (key: string, value: unknown) => {
+            const b = toBool(value);
+            if (b !== undefined) settings[key] = b;
+          };
+          const num = (key: string, value: unknown) => {
+            const n = toInt(value);
+            if (n !== undefined) settings[key] = n;
+          };
 
-      flag('slowModeEnabled', input.slowMode);
-      num('slowModeDelay', input.slowModeDelay);
-      flag('followerOnlyModeEnabled', input.followerOnlyMode);
-      num('followerOnlyModeDelay', input.followerOnlyModeDelay);
-      flag('subscriberOnlyModeEnabled', input.subscriberOnlyMode);
-      flag('emoteOnlyModeEnabled', input.emoteOnlyMode);
-      flag('uniqueChatModeEnabled', input.uniqueChatMode);
-      flag('nonModeratorChatDelayEnabled', input.nonModeratorChatDelay);
-      num('nonModeratorChatDelay', input.nonModeratorChatDelayDuration);
+          flag('slowModeEnabled', input.slowMode);
+          num('slowModeDelay', input.slowModeDelay);
+          flag('followerOnlyModeEnabled', input.followerOnlyMode);
+          num('followerOnlyModeDelay', input.followerOnlyModeDelay);
+          flag('subscriberOnlyModeEnabled', input.subscriberOnlyMode);
+          flag('emoteOnlyModeEnabled', input.emoteOnlyMode);
+          flag('uniqueChatModeEnabled', input.uniqueChatMode);
+          flag('nonModeratorChatDelayEnabled', input.nonModeratorChatDelay);
+          num('nonModeratorChatDelay', input.nonModeratorChatDelayDuration);
 
-      if (Object.keys(settings).length === 0) {
-        throw new Error('Nothing to update — set at least one chat setting');
-      }
+          if (Object.keys(settings).length === 0) {
+            throw new Error('Nothing to update — set at least one chat setting');
+          }
 
-      const updated = await api.chat.updateSettings(broadcasterId, settings);
-      return mapChatSettings(updated, true);
+          const updated = await api.chat.updateSettings(broadcasterId, settings);
+          return mapChatSettings(updated, true);
+        },
+      },
     },
   }),
 
   defineHelix({
-    type: 'twitch-helix-clear-chat',
-    label: 'clear chat',
-    help: "Clears every message from a channel's chat.",
-    scopes: ['moderator:manage:chat_messages'],
-    fields: [
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
-    ],
-    run: async ({ api, broadcasterId }) => {
-      await api.moderation.deleteChatMessages(broadcasterId);
-      return { broadcasterId, cleared: true };
-    },
-  }),
-
-  defineHelix({
-    type: 'twitch-helix-delete-chat-message',
-    label: 'delete chat message',
-    help: 'Deletes one chat message.',
-    scopes: ['moderator:manage:chat_messages'],
-    fields: [
-      {
-        name: 'messageId',
-        label: 'Message ID',
-        kind: 'string',
-        default: '',
-        faIcon: 'fa-comment-o',
-        hint: 'msg.messageId or msg.id overrides this',
-      },
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
-    ],
-    run: async ({ api, broadcasterId, input, msg }) => {
-      const messageId = input.messageId ?? toStr(msg.id);
-      if (!messageId) throw new Error('Message ID is required — set msg.messageId or msg.id');
-
-      await api.moderation.deleteChatMessages(broadcasterId, messageId);
-      return { broadcasterId, messageId, deleted: true };
-    },
-  }),
-
-  defineHelix({
-    type: 'twitch-helix-get-emotes',
+    type: 'twitch-helix-emotes',
+    tier: 'core',
+    resource: 'chat',
+    palette: false,
     label: 'get emotes',
     help: "Lists a channel's emotes or Twitch's global emotes.",
     scopes: [],
@@ -382,13 +368,7 @@ export const chatSpecs = [
           { value: 'global', label: 'global' },
         ],
       },
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
     ],
     run: async ({ api, broadcasterId, input }) => {
       if (input.source === 'global') {
@@ -399,7 +379,10 @@ export const chatSpecs = [
   }),
 
   defineHelix({
-    type: 'twitch-helix-get-chat-badges',
+    type: 'twitch-helix-chat-badges',
+    tier: 'core',
+    resource: 'chat',
+    palette: false,
     label: 'get chat badges',
     help: "Lists a channel's custom chat badges or Twitch's global badges.",
     scopes: [],
@@ -416,13 +399,7 @@ export const chatSpecs = [
           { value: 'global', label: 'global' },
         ],
       },
-      {
-        name: 'broadcaster',
-        label: 'Broadcaster',
-        kind: 'user',
-        optional: true,
-        hint: 'blank = authenticated user',
-      },
+      broadcaster,
     ],
     run: async ({ api, broadcasterId, input }) => {
       if (input.source === 'global') {

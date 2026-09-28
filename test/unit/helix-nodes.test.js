@@ -25,8 +25,8 @@ const helixDist = path.join(root, 'dist', 'twitch', 'helix')
 
 const utils = require(path.join(helixDist, 'twitch-helix-utils.js'))
 const { createHelixNode } = require(path.join(helixDist, 'twitch-helix-base.js'))
-const { makeHandler } = require(path.join(helixDist, 'factory.js'))
-const { defineHelix } = require(path.join(helixDist, 'define.js'))
+const { makeHandler, resolveActiveCall, enabledTiers, isTierEnabled } = require(path.join(helixDist, 'factory.js'))
+const { defineHelix, specTier, actionNames } = require(path.join(helixDist, 'define.js'))
 const { HELIX_SPECS } = require(path.join(helixDist, 'specs', 'index.js'))
 
 const {
@@ -128,9 +128,10 @@ function deepProxy() {
   })
 }
 
-function registerNode(type, twitchConfig) {
+function registerNode(type, twitchConfig, settings) {
   const captured = {}
   const RED = {
+    settings: settings || { twitchApi: { tiers: ['core', 'extended', 'advanced'] } },
     nodes: {
       createNode() {},
       getNode: () => twitchConfig,
@@ -288,11 +289,92 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
   assert.deepStrictEqual(walked.data, [1, 2, 3])
   assert.strictEqual(walked.cursor, 'c3')
 
+  /* ----------------------------------------------------- action nodes */
+
+  const actionSpec = defineHelix({
+    type: 'twitch-helix-test-actions',
+    label: 'test actions',
+    help: 'test',
+    tier: 'extended',
+    scopes: ['test:scope'],
+    fields: [{ name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true }],
+    defaultAction: 'first',
+    actions: {
+      first: {
+        label: 'First',
+        help: 'first',
+        scopes: ['test:scope'],
+        fields: [{ name: 'text', label: 'Text', kind: 'string', default: 'one' }],
+        run: async ({ input, action }) => ({ action, text: input.text }),
+      },
+      second: {
+        label: 'Second',
+        help: 'second',
+        scopes: ['other:scope'],
+        fields: [{ name: 'text', label: 'Text', kind: 'string', default: 'two' }],
+        run: async ({ input, action }) => ({ action, text: input.text }),
+      },
+      needed: {
+        label: 'Needed',
+        help: 'needs a field',
+        scopes: [],
+        fields: [{ name: 'user', label: 'User', kind: 'user', required: true }],
+        run: async ({ action }) => ({ action }),
+      },
+    },
+  })
+  const bothScopes = {
+    ...factoryTwitch,
+    getAuthProvider: () => ({ getCurrentScopesForUser: () => ['test:scope', 'other:scope'] }),
+  }
+
+  // Default action resolves when msg.action and config.action are blank.
+  const act1 = await makeHandler(actionSpec)(factoryApi, {}, {}, bothScopes)
+  assert.strictEqual(act1.payload.action, 'first')
+  assert.strictEqual(act1.payload.text, 'one')
+  // msg.action beats config.action.
+  const act2 = await makeHandler(actionSpec)(factoryApi, { action: 'second' }, { action: 'first' }, bothScopes)
+  assert.strictEqual(act2.payload.action, 'second')
+  assert.strictEqual(act2.payload.text, 'two')
+  // config.action is used when the message has none.
+  const act3 = await makeHandler(actionSpec)(factoryApi, {}, { action: 'second' }, bothScopes)
+  assert.strictEqual(act3.payload.action, 'second')
+  // An unknown action names the valid ones.
+  await assert.rejects(
+    () => makeHandler(actionSpec)(factoryApi, { action: 'nope' }, {}, bothScopes),
+    /Unknown action "nope" — valid actions: first, second, needed/
+  )
+  // Scopes are checked for the selected action, not the node.
+  await assert.rejects(
+    () => makeHandler(actionSpec)(factoryApi, { action: 'second' }, {}, factoryTwitch),
+    /Missing scope other:scope/
+  )
+  // Required-field validation uses the selected action's fields.
+  await assert.rejects(
+    () => makeHandler(actionSpec)(factoryApi, { action: 'needed' }, {}, bothScopes),
+    /User is required/
+  )
+  // The editor metadata resolves the selected action's field set.
+  const resolved = resolveActiveCall(actionSpec, { action: 'second' }, {})
+  assert.strictEqual(resolved.action, 'second')
+  assert.deepStrictEqual(resolved.fields.map((f) => f.name), ['broadcaster', 'text'])
+
+  /* ------------------------------------------------------------ tiers */
+
+  assert.deepStrictEqual(enabledTiers({}), ['core'])
+  assert.deepStrictEqual(enabledTiers({ twitchApi: { tiers: ['core', 'advanced'] } }), ['core', 'advanced'])
+  assert.deepStrictEqual(enabledTiers({ twitchApi: { tiers: ['bogus'] } }), ['core'])
+  assert.strictEqual(isTierEnabled({}, 'core'), true)
+  assert.strictEqual(isTierEnabled({}, 'extended'), false)
+
   /* ---------------------------------------------- data-driven per spec */
 
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
   const manifest = pkg['node-red'].nodes
-  assert.ok(HELIX_SPECS.length >= 76, `expected at least 76 Helix specs, found ${HELIX_SPECS.length}`)
+  const paletteSpecs = HELIX_SPECS.filter((spec) => spec.palette !== false)
+  assert.ok(HELIX_SPECS.length >= 30, `expected at least 30 Helix specs, found ${HELIX_SPECS.length}`)
+  assert.ok(paletteSpecs.length >= 25 && paletteSpecs.length <= 32, `expected about 30 palette nodes, found ${paletteSpecs.length}`)
+  assert.ok(paletteSpecs.filter((spec) => specTier(spec) === 'core').length <= 15, 'core palette should be at most 15 nodes')
 
   for (const spec of HELIX_SPECS) {
     const generatedJs = path.join(helixDist, 'generated', `${spec.type}.js`)
@@ -305,12 +387,27 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
     assert.ok(html.includes(`data-template-name="${spec.type}"`), `${spec.type}: no editor template`)
     assert.ok(html.includes(`data-help-name="${spec.type}"`), `${spec.type}: no help block`)
 
+    // Action nodes get an action dropdown and per-action field toggling.
+    if (spec.actions) {
+      assert.ok(html.includes('id="node-input-action"'), `${spec.type}: no action dropdown`)
+      for (const name of actionNames(spec)) {
+        assert.ok(html.includes(`value="${name}"`), `${spec.type}: missing action option ${name}`)
+      }
+      assert.ok(html.includes('data-action='), `${spec.type}: action fields are not toggleable`)
+    }
+
     // The manifest points at the generated module and the file exists.
     assert.strictEqual(manifest[spec.type], `dist/twitch/helix/generated/${spec.type}.js`, `${spec.type}: manifest entry wrong`)
     assert.ok(fs.existsSync(path.join(root, manifest[spec.type])), `${spec.type}: manifest file missing`)
 
-    // Registers and reports a missing config node.
     const ctor = registerNode(spec.type, successTwitch)
+
+    // Hidden specs stay registered-but-hidden: the stub must not claim a type.
+    if (spec.palette === false) {
+      assert.strictEqual(ctor, undefined, `${spec.type}: hidden spec should not register a palette node`)
+      continue
+    }
+
     assert.strictEqual(typeof ctor, 'function', `${spec.type}: did not register`)
     const noConfigNode = makeNode()
     const noConfigCtor = registerNode(spec.type, undefined)
@@ -318,17 +415,83 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
     assert.ok(noConfigNode.errors.length >= 1, `${spec.type}: missing config not reported`)
 
     // Garbage input never escapes: done() always fires, errors set a red status.
-    const node = makeNode()
-    ctor.call(node, { config: 'cfg' })
-    const result = await runInput(node, {})
-    assert.ok('err' in result, `${spec.type}: done() never called`)
-    if (result.err) {
-      const last = node.statuses[node.statuses.length - 1]
-      assert.strictEqual(last && last.fill, 'red', `${spec.type}: error without red status`)
+    // Action nodes are exercised once per action.
+    const actionList = spec.actions ? actionNames(spec) : [undefined]
+    for (const action of actionList) {
+      const node = makeNode()
+      ctor.call(node, action ? { config: 'cfg', action } : { config: 'cfg' })
+      const msg = action ? { action } : {}
+      const result = await runInput(node, msg)
+      assert.ok('err' in result, `${spec.type}${action ? '/' + action : ''}: done() never called`)
+      if (result.err) {
+        const last = node.statuses[node.statuses.length - 1]
+        assert.strictEqual(last && last.fill, 'red', `${spec.type}${action ? '/' + action : ''}: error without red status`)
+      }
     }
   }
 
-  console.log(`helix nodes test: ok (${HELIX_SPECS.length} specs)`)
+  // Tier gating: a disabled tier's node does not register.
+  const coreSpec = paletteSpecs.find((spec) => specTier(spec) === 'core')
+  const extendedSpec = paletteSpecs.find((spec) => specTier(spec) === 'extended')
+  assert.ok(coreSpec && extendedSpec, 'expected at least one core and one extended spec')
+  assert.strictEqual(typeof registerNode(coreSpec.type, successTwitch, {}), 'function')
+  assert.strictEqual(registerNode(extendedSpec.type, successTwitch, {}), undefined)
+  assert.strictEqual(
+    typeof registerNode(extendedSpec.type, successTwitch, { twitchApi: { tiers: ['core', 'extended'] } }),
+    'function'
+  )
+
+  /* --------------------------------------------- generic request node */
+
+  const genericModule = require(path.join(helixDist, 'twitch-helix-api-request.js'))
+  const genericCaptured = {}
+  genericModule({
+    settings: { twitchApi: { tiers: ['core', 'extended', 'advanced'] } },
+    nodes: {
+      createNode() {},
+      getNode: () => successTwitch,
+      registerType: (type, ctor) => { genericCaptured[type] = ctor },
+    },
+  })
+  const GenericCtor = genericCaptured['twitch-helix-api-request']
+  assert.strictEqual(typeof GenericCtor, 'function', 'generic node did not register')
+
+  // Endpoint and action resolve from config, then msg overrides them.
+  const genericSpec = paletteSpecs.find((spec) => spec.actions && specTier(spec) !== 'advanced')
+  const genericNode = makeNode()
+  GenericCtor.call(genericNode, { config: 'cfg', endpoint: genericSpec.type, action: genericSpec.defaultAction })
+  const genericOk = await runInput(genericNode, { action: Object.keys(genericSpec.actions)[1] })
+  assert.ok('err' in genericOk, 'generic node: done() never called')
+
+  // Unknown endpoint names close matches instead of throwing raw.
+  const genericBad = makeNode()
+  GenericCtor.call(genericBad, { config: 'cfg', endpoint: 'twitch-helix-bnas' })
+  const genericBadResult = await runInput(genericBad, {})
+  assert.ok(genericBadResult.err, 'generic node: unknown endpoint did not error')
+  assert.match(String(genericBadResult.err.message), /Unknown endpoint/)
+  assert.match(String(genericBadResult.err.message), /did you mean/)
+
+  // An endpoint from a disabled tier is refused at runtime.
+  const advancedCtor = (() => {
+    // Re-register the generic under a core-only host to check the runtime guard.
+    const captured = {}
+    genericModule({
+      settings: { twitchApi: { tiers: ['core'] } },
+      nodes: {
+        createNode() {},
+        getNode: () => successTwitch,
+        registerType: (type, ctor) => { captured[type] = ctor },
+      },
+    })
+    return captured['twitch-helix-api-request']
+  })()
+  const tierNode = makeNode()
+  advancedCtor.call(tierNode, { config: 'cfg', endpoint: extendedSpec.type })
+  const tierResult = await runInput(tierNode, {})
+  assert.ok(tierResult.err, 'generic node: disabled-tier endpoint did not error')
+  assert.match(String(tierResult.err.message), /tier, which is not enabled/)
+
+  console.log(`helix nodes test: ok (${HELIX_SPECS.length} specs, ${paletteSpecs.length} palette)`)
 })().catch((err) => {
   console.error('helix nodes test failed:', err && err.message ? err.message : err)
   process.exit(1)
