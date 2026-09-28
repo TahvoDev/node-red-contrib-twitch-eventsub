@@ -1,5 +1,6 @@
 import { getRawData } from '@twurple/common';
 import { defineHelix, type HelixField } from '../define';
+import { broadcaster } from './common';
 import {
   clampLimit,
   firstDefined,
@@ -9,16 +10,6 @@ import {
 } from '../twitch-helix-utils';
 
 const PERIODS = ['day', 'week', 'month', 'year', 'all'];
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 const segmentId: HelixField = {
   name: 'segmentId',

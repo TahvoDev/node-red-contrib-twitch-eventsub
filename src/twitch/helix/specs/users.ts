@@ -1,15 +1,6 @@
-import { defineHelix, type HelixField } from '../define';
+import { defineHelix } from '../define';
+import { broadcaster } from './common';
 import { mapUser } from '../twitch-helix-utils';
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 function mapBlock(block: any) {
   return {

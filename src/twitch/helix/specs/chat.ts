@@ -1,5 +1,6 @@
 import { getRawData } from '@twurple/common';
-import { defineHelix, type HelixField } from '../define';
+import { defineHelix } from '../define';
+import { broadcaster } from './common';
 import {
   firstDefined,
   mapBadgeSet,
@@ -34,15 +35,6 @@ function mapSharedChat(session: any) {
     updatedDate: session.updatedDate,
   };
 }
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 export const chatSpecs = [
   defineHelix({

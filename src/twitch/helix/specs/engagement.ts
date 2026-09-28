@@ -1,4 +1,5 @@
 import { defineHelix, type HelixField } from '../define';
+import { broadcaster } from './common';
 import {
   clampLimit,
   fetchAllPages,
@@ -11,16 +12,6 @@ import {
 
 const REDEMPTION_STATUSES = ['UNFULFILLED', 'FULFILLED', 'CANCELED'];
 const TARGET_STATUSES = ['FULFILLED', 'CANCELED'];
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 function imageUrl(reward: any, scale: number): string | null {
   try {

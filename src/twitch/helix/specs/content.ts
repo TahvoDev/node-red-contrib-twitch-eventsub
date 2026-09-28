@@ -1,4 +1,5 @@
-import { defineHelix, type HelixField } from '../define';
+import { defineHelix } from '../define';
+import { broadcaster } from './common';
 import {
   clampLimit,
   fetchAllPages,
@@ -106,16 +107,6 @@ function toPlainStream(stream: any) {
     isMature: stream.isMature,
   };
 }
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 type Page = (cursor?: string) => Promise<{ data: any[]; cursor: string | null; total?: number }>;
 

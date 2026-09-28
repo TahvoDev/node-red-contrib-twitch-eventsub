@@ -1,4 +1,5 @@
 import { defineHelix, type HelixField } from '../define';
+import { broadcaster } from './common';
 import {
   firstDefined,
   MAX_TIMEOUT_SECONDS,
@@ -11,16 +12,6 @@ import {
   toBool,
   toStr,
 } from '../twitch-helix-utils';
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 const target: HelixField = {
   name: 'user',

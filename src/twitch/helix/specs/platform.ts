@@ -1,18 +1,9 @@
 import { getRawData } from '@twurple/common';
-import { defineHelix, type HelixField } from '../define';
+import { defineHelix } from '../define';
+import { broadcaster } from './common';
 import { toBool, toIdList, toStr } from '../twitch-helix-utils';
 
 /** The platform/integration specs: drops entitlements, extensions and content classification labels. */
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 function mapEntitlement(entitlement: any) {
   return {

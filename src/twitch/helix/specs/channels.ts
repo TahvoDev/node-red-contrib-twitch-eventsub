@@ -1,4 +1,5 @@
-import { defineHelix, type HelixField } from '../define';
+import { defineHelix } from '../define';
+import { broadcaster } from './common';
 import {
   mapChannel,
   mapFollowedChannel,
@@ -16,16 +17,6 @@ function mapEditor(editor: any) {
 }
 
 const VALID_COMMERCIAL_LENGTHS = [30, 60, 90, 120, 150, 180];
-
-const broadcaster: HelixField = {
-  name: 'broadcaster',
-  label: 'Broadcaster',
-  kind: 'user',
-  optional: true,
-  aliases: ['broadcasterId'],
-  hint: 'blank = authenticated user',
-  faIcon: 'fa-user',
-};
 
 export const channelSpecs = [
   defineHelix({
