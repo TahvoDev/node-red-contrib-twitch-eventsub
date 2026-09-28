@@ -18,15 +18,22 @@
   },
   {
     "id": "helixupd01",
-    "type": "twitch-helix-update-channel-info",
+    "type": "twitch-api",
     "z": "helixchat01",
     "name": "set title",
     "config": "helixcfg01",
-    "broadcaster": "",
-    "title": "Hello from Node-RED",
-    "game": "",
-    "tags": "",
-    "language": "",
+    "endpoint": "twitch-helix-update-channel-info",
+    "action": "",
+    "fields": {
+      "broadcaster": "",
+      "title": "Hello from Node-RED",
+      "game": "",
+      "tags": "",
+      "language": "",
+      "labels": "",
+      "delay": "",
+      "isBrandedContent": ""
+    },
     "x": 400,
     "y": 120,
     "wires": [["helixdbg01"]]
@@ -67,15 +74,19 @@
   },
   {
     "id": "helixfol01",
-    "type": "twitch-helix-get-followers",
+    "type": "twitch-api",
     "z": "helixchat01",
     "name": "followers",
     "config": "helixcfg01",
-    "broadcaster": "",
-    "user": "",
-    "limit": "20",
-    "all": false,
-    "allMax": "1000",
+    "endpoint": "twitch-helix-get-followers",
+    "action": "",
+    "fields": {
+      "broadcaster": "",
+      "user": "",
+      "limit": "20",
+      "all": false,
+      "allMax": "1000"
+    },
     "x": 400,
     "y": 200,
     "wires": [["helixdbg02"]]
@@ -116,12 +127,16 @@
   },
   {
     "id": "helixmsg01",
-    "type": "twitch-helix-send-chat-message",
+    "type": "twitch-api",
     "z": "helixchat01",
     "name": "say hi",
     "config": "helixcfg01",
-    "broadcaster": "",
-    "message": "Hello chat!",
+    "endpoint": "twitch-helix-send-chat-message",
+    "action": "",
+    "fields": {
+      "message": "Hello chat!",
+      "broadcaster": ""
+    },
     "x": 400,
     "y": 280,
     "wires": [["helixdbg03"]]

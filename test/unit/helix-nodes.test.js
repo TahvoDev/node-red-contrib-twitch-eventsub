@@ -258,6 +258,42 @@ const baseConfig = { config: 'cfg' }
   }
   assert.ok(HELIX_SPECS.length >= 50, `expected the Helix registry, found ${HELIX_SPECS.length}`)
 
+  // Every config.<field> a spec reads must be a declared field (plus the paging
+  // fields the core adds). Catches dead reads like `config.language` with no field.
+  const pagingFields = ['limit', 'all', 'allMax']
+  for (const spec of HELIX_SPECS) {
+    const runs = []
+    if (spec.run) runs.push({ label: spec.type, run: spec.run, fields: spec.fields || [] })
+    for (const [name, runAction] of Object.entries(spec.actions || {})) {
+      const paged = runAction.paged || spec.paged
+      runs.push({
+        label: `${spec.type}.${name}`,
+        run: runAction.run,
+        fields: [
+          ...(spec.fields || []),
+          ...(runAction.fields || []),
+          ...(paged ? pagingFields.map((fieldName) => ({ name: fieldName })) : []),
+        ],
+      })
+    }
+    for (const { label, run, fields } of runs) {
+      const names = new Set(fields.map((field) => field.name))
+      for (const ref of String(run).match(/config\.([A-Za-z0-9_]+)/g) || []) {
+        const key = ref.slice('config.'.length)
+        assert.ok(names.has(key), `${label}: config.${key} is not a declared field`)
+      }
+    }
+  }
+
+  // The shipped example must only use node types the manifest registers.
+  const exampleFlow = require(path.join(root, 'examples', 'helix-channel-chat.json'))
+  const manifestTypes = new Set(Object.keys(require(path.join(root, 'package.json'))['node-red'].nodes))
+  for (const entry of exampleFlow) {
+    if (entry.type && entry.type.indexOf('twitch') === 0) {
+      assert.ok(manifestTypes.has(entry.type), `example uses unknown node type ${entry.type}`)
+    }
+  }
+
   /* --------------------------------------------------- twitch-api node */
 
   const apiModule = require(path.join(helixDist, 'twitch-api.js'))

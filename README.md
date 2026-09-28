@@ -141,9 +141,10 @@ Helix nodes are grouped into three tiers so the palette stays small:
 - **core** (default): the everyday read/write nodes — users, streams, channel info, chat, bans, clips.
 - **extended**: moderators, VIPs, blocked terms, chat settings, Channel Points, polls, predictions,
   schedule, raids, ads, videos, stream markers.
-- **advanced**: bits, subscriptions, teams, charity, hype train, goals, whispers.
+- **advanced**: bits, subscriptions, schedule extras, teams, charity, hype train, goals, whispers,
+  stream key, channel editors, games, search, drops, extensions and content classification labels.
 
-Only the enabled tiers are registered in the palette. Enable more in your Node-RED `settings.js`:
+Only endpoints in an enabled tier appear in the **Endpoint** picker. Enable more in your Node-RED `settings.js`:
 
 ```js
 module.exports = {
@@ -154,10 +155,10 @@ module.exports = {
 };
 ```
 
-The default is `['core']`. A flow that uses a node from a disabled tier shows it as an unknown node
-until that tier is enabled again; the type stays registered, so nothing else breaks. OAuth scopes
-are always requested for every tier in a single login, so enabling a tier never forces you to
-re-authenticate.
+The default is `['core']`. The `twitch-api` node itself is always registered; a flow that selects an
+endpoint from a disabled tier fails that message with `Endpoint "…" is in the … tier, which is not
+enabled` rather than disappearing from the palette. OAuth scopes are always requested for every tier
+in a single login, so enabling a tier never forces you to re-authenticate.
 
 ### The twitch-api node
 
@@ -245,9 +246,9 @@ the mock images if they are missing, starts Node-RED against the Twitch CLI mock
 delivered. It needs podman (preferred) or docker. That requirement is isolated to the
 test: `npm install`, `npm run build` and `npm run check` work without a container engine.
 
-`npm run test:e2e:helix` is the Helix counterpart: it deploys a flow with the generated
-Helix nodes, reads the credentials the Twitch CLI mock generates, and asserts the mock
-received the request each node is supposed to make. Same container-engine requirement.
+`npm run test:e2e:helix` is the Helix counterpart: it deploys a flow of `twitch-api` nodes (one
+per endpoint), reads the credentials the Twitch CLI mock generates, and asserts the mock received
+the request each one is supposed to make. Same container-engine requirement.
 
 ## Adding a new event
 

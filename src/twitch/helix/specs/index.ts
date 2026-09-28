@@ -2,7 +2,7 @@ import { getRawData } from '@twurple/common';
 import { defineHelix, type HelixField, type HelixSpec } from '../define';
 import { broadcaster, selfUser, triState } from './fields';
 import { mapAutoModSettings, mapBitsEntry, mapBitsProduct, mapBlock, mapChannelReference, mapCharityAmount, mapClip, mapEditor, mapEntitlement, mapGame, mapGoal, mapHypeTrainEvent, mapMarker, mapModeratedChannel, mapPoll, mapPrediction, mapRedemption, mapReward, mapSearchResult, mapSegment, mapSharedChat, mapShieldMode, mapSubscription, mapTeam, mapTransaction, mapUnbanRequest, mapUserEmote, mapVideo, toPlainStream, toStringList } from './mappers';
-import { MAX_TIMEOUT_SECONDS, clampLimit, fetchAllPages, firstDefined, mapAutoModStatus, mapBadgeSet, mapBan, mapBlockedTerm, mapChannel, mapChatSettings, mapChatter, mapEmote, mapFollowedChannel, mapFollower, mapSentMessage, mapUser, mapUserRelation, mapWarning, resolveAllMax, resolveAnnounceColor, resolveGameId, resolveUserId, toBool, toIdList, toInt, toStr } from '../twitch-helix-utils';
+import { MAX_TIMEOUT_SECONDS, clampLimit, fetchAllPages, firstDefined, mapAutoModStatus, mapBadgeSet, mapBan, mapBlockedTerm, mapChannel, mapChatSettings, mapChatter, mapEmote, mapFollowedChannel, mapFollower, mapSentMessage, mapUser, mapUserRelation, mapWarning, resolveAllMax, resolveAnnounceColor, resolveGameId, toBool, toIdList, toInt, toStr } from '../twitch-helix-utils';
 
 /**
  * The Helix endpoint registry: every endpoint the single `twitch-api` node can
@@ -1750,7 +1750,7 @@ defineHelix({
           { name: 'all', label: 'Get all', kind: 'bool', default: false, faIcon: 'fa-download', hint: 'follows pages up to the maximum' },
           { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
-        run: async ({ api, root, input, msg, config, moderatorId }) => {
+        run: async ({ api, root, input, msg, moderatorId }) => {
           const limit = clampLimit(input.limit, 20);
           const after = firstDefined(msg.after, msg.cursor);
 
@@ -1760,10 +1760,7 @@ defineHelix({
             return { payload: videos.map(mapVideo), cursor: null, total: videos.length };
           }
 
-          let userId = input.user;
-          if (!userId) {
-            userId = await resolveUserId(root, firstDefined(toStr(config.broadcaster), moderatorId));
-          }
+          const userId = input.user ?? moderatorId;
 
           const filter: any = { limit, after };
           if (input.type) filter.type = input.type;
@@ -1985,6 +1982,7 @@ defineHelix({
       { name: 'userId', label: 'User ID', kind: 'string', default: '', faIcon: 'fa-user', hint: 'e.g., 125328655' },
       { name: 'userName', label: 'User Name', kind: 'string', default: '', faIcon: 'fa-user-circle', hint: 'e.g., Neon_Woof' },
       { name: 'game', label: 'Game ID', kind: 'string', default: '', faIcon: 'fa-gamepad', hint: 'e.g., 509658' },
+      { name: 'language', label: 'Language', kind: 'string', default: '', faIcon: 'fa-language', hint: 'optional: ISO tag, e.g. en' },
       {
         name: 'streamType',
         label: 'Stream type',
@@ -2928,6 +2926,14 @@ defineHelix({
               { value: 'CANCELED', label: 'canceled' },
             ],
           },
+          {
+            name: 'newestFirst',
+            label: 'Newest first',
+            kind: 'bool',
+            default: true,
+            faIcon: 'fa-sort-amount-desc',
+            hint: 'off = oldest first',
+          },
         ],
         run: async ({ api, broadcasterId, input, msg, config }) => {
           const rewardId = toStr(firstDefined(msg.rewardId, msg.reward, config.rewardId));
@@ -2938,7 +2944,7 @@ defineHelix({
             throw new Error(`Status must be one of ${REDEMPTION_STATUSES.join(', ')}`);
           }
 
-          const newestFirst = toBool(firstDefined(msg.newestFirst, config.newestFirst));
+          const newestFirst = toBool(input.newestFirst);
           const filter: any = { limit: input.limit, after: input.after };
           if (newestFirst !== undefined) filter.newestFirst = newestFirst;
 

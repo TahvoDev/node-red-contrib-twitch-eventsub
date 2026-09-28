@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
   spec-to-node factory/build-generation are gone. Endpoints are registry entries under
-  `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (group → endpoint → action
+  `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (endpoint → action
   picker, dynamic fields) calls them through one shared path (`helix-core.ts`). Fewer nodes means no
   bulk generation: no generated `.js`/`.html` per endpoint, no `scopes.json`.
 - Consolidated the Helix palette: endpoints that share a resource now sit behind an Action dropdown
@@ -43,10 +43,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   `get-chat-settings`/`update-chat-settings` → `chat-settings`;
   `get-bits-leaderboard`/`get-cheermotes` → `bits`;
   `get-subscriptions`/`check-user-subscription` → `subscriptions`;
-  `get-teams`/`get-channel-teams` → `teams`. The remaining long-tail endpoints keep their types and
-  are ordinary (tier-gated) palette nodes.
-- Helix endpoints are registry entries under `src/twitch/helix/specs/`: an entry declares its group,
-  tier, scopes, fields and the twurple call, and the single `twitch-api` node runs it. Adding an
+  `get-teams`/`get-channel-teams` → `teams`. The remaining long-tail endpoints are ordinary registry
+  entries too; the single `twitch-api` node runs them all.
+- Helix endpoints are registry entries under `src/twitch/helix/specs/`: an entry declares its tier,
+  scopes, fields and the twurple call, and the single `twitch-api` node runs it. Adding an
   endpoint is one entry, no other file.
 - The config node's "Login with Twitch" button requests the union of the scopes declared by the
   registry, so it cannot drift from what the picker can call.
@@ -56,7 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   than failing
 
 ### Added
-- More Helix coverage, all as the same declarative specs and tier-gated palette nodes: AutoMod
+- More Helix coverage, all as the same declarative specs run by the one `twitch-api` node: AutoMod
   settings and held messages, Shield Mode, unban requests, moderated channels, ban/moderator checks,
   chat colour, user emotes, shared chat, followed streams, channel editors, charity donations,
   schedule iCal/vacation/single-segment, content classification labels, drops entitlements,
@@ -70,23 +70,23 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `test/e2e/run-helix-e2e.js`: runs the built module in a Node-RED container against the Twitch CLI
   mock, deploys the `twitch-api` node at several endpoints and checks each reaches the mock API
 - `test/unit/helix-nodes.test.js` covers the dispatcher, paging, actions, aliases and tier gating
-- Helix API nodes under the `twitch api` palette category for engagement and monetisation:
+- Helix endpoints in the `twitch-api` endpoint picker for engagement and monetisation:
   channel points (`get/create/update/delete custom reward`, `get redemptions`,
   `update redemption status`), polls (`get/create/end poll`), predictions
   (`get/create/end prediction`), `get bits leaderboard`, `get cheermotes`,
   `get subscriptions`, `check user subscription`, schedule (`get schedule`,
   `create/update/delete segment`), `get teams`, `get channel teams`, `get goals`,
   `get charity campaign`, `get hype train` and `send whisper`
-- Helix API nodes under the `twitch api` palette category for streams, clips and content:
+- Helix endpoints in the `twitch-api` endpoint picker for streams, clips and content:
   `create stream marker`, `get stream markers`, `get stream key`, `create clip`, `get clips`,
   `get videos`, `delete videos`, `get games`, `get top games`, `search categories`,
   `search channels`, `start raid`, `cancel raid`, `start commercial`, `get ad schedule` and
   `snooze next ad`
-- Helix API nodes under the `twitch api` palette category for moderation: `ban user` (with an
+- Helix endpoints in the `twitch-api` endpoint picker for moderation: `ban user` (with an
   optional timeout duration), `unban user`, `get banned users`, `get moderators`, `add moderator`,
   `remove moderator`, `get vips`, `add vip`, `remove vip`, `warn user`, `get blocked terms`,
   `add blocked term`, `remove blocked term` and `check automod status`
-- Helix API nodes under the `twitch api` palette category for channel & chat: `get channel info`,
+- Helix endpoints in the `twitch-api` endpoint picker for channel & chat: `get channel info`,
   `update channel info`, `send chat message`, `send announcement`, `send shoutout`, `get chatters`,
   `get chat settings`, `update chat settings`, `clear chat`, `delete chat message`, `get emotes`,
   `get chat badges`, `get followers` and `get followed channels`.

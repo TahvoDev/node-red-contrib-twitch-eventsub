@@ -1,7 +1,7 @@
 /**
  * The declarative spec format for Helix nodes.
  *
- * An endpoint is data: its group, palette label, help text, tier, config fields
+ * An endpoint is data: its label, help text, tier, config fields
  * and the API call(s) it makes. An endpoint with a single verb is a plain spec;
  * one that groups a resource behind an action dropdown declares `actions`. The
  * single `twitch-api` node runs them all, so adding or regrouping endpoints is a

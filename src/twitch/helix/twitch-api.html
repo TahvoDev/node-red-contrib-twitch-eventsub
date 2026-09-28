@@ -35,7 +35,8 @@
         var label = '<label for="' + id + '"><i class="fa ' + esc(field.faIcon || 'fa-font') + '"></i> ' + esc(field.label) + '</label>';
         var hint = field.hint ? ' placeholder="' + esc(field.hint) + '"' : '';
         if (field.kind === 'bool') {
-          return '<div class="form-row">' + label + '<input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (value ? ' checked' : '') + '/></div>';
+          var checked = value === true || value === 'true' || value === 1 || value === '1';
+          return '<div class="form-row">' + label + '<input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (checked ? ' checked' : '') + '/></div>';
         }
         if (field.kind === 'select') {
           var options = (field.options || []).map(function (option) {
@@ -65,11 +66,16 @@
         var entry = spec();
         var $row = $('#twitch-api-action-row');
         if (!entry || !entry.actions) { $row.hide(); return; }
+        // Keep the saved action: emptying the select throws away the value
+        // Node-RED populated from node.action, so read it first.
+        var previous = $action.val() || node.action || '';
         $action.empty();
         Object.keys(entry.actions).forEach(function (name) {
           $action.append('<option value="' + esc(name) + '">' + esc(entry.actions[name].label) + '</option>');
         });
-        var actionName = $action.val() || entry.defaultAction || Object.keys(entry.actions)[0];
+        var actionName = entry.actions[previous]
+          ? previous
+          : (entry.defaultAction || Object.keys(entry.actions)[0]);
         $action.val(actionName);
         $row.show();
       }
