@@ -3,7 +3,7 @@
 
 /**
  * Vendors the Bootstrap Icons (MIT) glyphs referenced by
- * `src/twitch/eventsub/eventsub-icons.ts` into `src/icons/glyphs.json`, so a
+ * `src/twitch/chat/twitch-chat-icons.ts` into `src/icons/glyphs.json`, so a
  * normal build does not need bootstrap-icons installed.
  *
  * Only needed when the glyph mapping changes:
@@ -18,7 +18,7 @@ const path = require('path')
 const root = path.resolve(__dirname, '..')
 const iconsDir = path.join(root, 'node_modules', 'bootstrap-icons', 'icons')
 const iconsPkg = path.join(root, 'node_modules', 'bootstrap-icons', 'package.json')
-const mappingPath = path.join(root, 'dist', 'twitch', 'eventsub', 'eventsub-icons.js')
+const mappingPath = path.join(root, 'dist', 'twitch', 'chat', 'twitch-chat-icons.js')
 
 if (!fs.existsSync(iconsPkg)) {
   console.error('bootstrap-icons is not installed. run: npm i --no-save bootstrap-icons')
@@ -29,15 +29,7 @@ if (!fs.existsSync(mappingPath)) {
   process.exit(1)
 }
 
-const { EVENT_ICONS } = require(mappingPath)
-
-// The Chat nodes use their own mapping; include it so one run vendors every
-// glyph the package ships.
-const names = new Set(Object.values(EVENT_ICONS))
-const chatMappingPath = path.join(root, 'dist', 'twitch', 'chat', 'twitch-chat-icons.js')
-if (fs.existsSync(chatMappingPath)) {
-  for (const name of Object.values(require(chatMappingPath).CHAT_ICONS)) names.add(name)
-}
+const names = new Set(Object.values(require(mappingPath).CHAT_ICONS))
 const sorted = [...names].sort()
 
 const glyphs = {}

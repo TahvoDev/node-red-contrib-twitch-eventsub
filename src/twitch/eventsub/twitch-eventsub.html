@@ -1,0 +1,106 @@
+<script type="text/javascript">
+(function () {
+  // Injected at build time by scripts/generate-eventsub-editor.js. Keeping it
+  // inline means the dropdown is populated synchronously (no admin-route fetch,
+  // no race, no shadow field) and the editor fails loudly at build if it is not
+  // replaced.
+  var catalog = __EVENT_CATALOG__;
+
+  function entryFor(type) {
+    return catalog.find(function (candidate) { return candidate.type === type; });
+  }
+
+  RED.nodes.registerType('twitch-eventsub', {
+    category: 'twitch',
+    color: '#b9a3e3',
+    defaults: {
+      name: { value: '' },
+      config: { type: 'twitch-api-config', required: true },
+      event: { value: '', required: true }
+    },
+    inputs: 0,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'twitch events',
+    label: function () {
+      if (this.name) return this.name;
+      var found = entryFor(this.event);
+      if (found) return found.label;
+      // An event id that predates the current catalog.
+      return this.event ? String(this.event).replace(/^twitch-eventsub-/, '').replace(/-/g, ' ') : 'twitch events';
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      var node = this;
+      var $event = $('#node-input-event');
+      var $info = $('#twitch-eventsub-info');
+
+      function renderInfo() {
+        var found = entryFor($event.val());
+        $info.empty();
+        if (!found) return;
+        $info.append($('<p>').text(found.description || ''));
+        if (found.unsupportedReason) {
+          $info.append($('<p>').addClass('red-text').text(found.unsupportedReason));
+        }
+        if (found.fields && found.fields.length) {
+          $info.append($('<h3>').text('Payload properties'));
+          var $list = $('<ul>');
+          found.fields.forEach(function (key) { $list.append($('<li>').append($('<code>').text(key))); });
+          $info.append($list);
+        }
+      }
+
+      var groups = {};
+      catalog.forEach(function (item) {
+        (groups[item.category] = groups[item.category] || []).push(item);
+      });
+      $event.empty().append('<option value=""></option>');
+      Object.keys(groups).sort().forEach(function (category) {
+        var $group = $('<optgroup>').attr('label', category);
+        groups[category]
+          .slice()
+          .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
+          .forEach(function (item) {
+            // Say up front which events Twitch never delivers over the WebSocket.
+            var text = item.unsupportedReason
+              ? item.label + ' (not available over WebSocket)'
+              : item.label;
+            $group.append($('<option>').attr('value', item.type).text(text));
+          });
+        $event.append($group);
+      });
+      $event.val(node.event || '');
+      renderInfo();
+      $event.on('change', renderInfo);
+    }
+  });
+})();
+</script>
+
+<script type="text/html" data-template-name="twitch-eventsub">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-event"><i class="fa fa-bolt"></i> Event</label>
+    <select id="node-input-event"></select>
+  </div>
+  <div id="twitch-eventsub-info"></div>
+</script>
+
+<script type="text/html" data-help-name="twitch-eventsub">
+  <p>Emits one Twitch EventSub event. Pick the event in the node's <b>Event</b> dropdown; the payload
+  properties it sets are listed under the dropdown.</p>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>The event data. Most events also include <code>rawEvent</code> with the full unmodified event.</dd>
+  </dl>
+</script>

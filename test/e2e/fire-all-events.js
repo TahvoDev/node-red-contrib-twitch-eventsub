@@ -24,7 +24,7 @@
  *
  * Options:
  *   --node-red <url>     Node-RED base URL (default http://127.0.0.1:1880)
- *   --flow <path>        Flow file to read (default examples/mock-all-nodes.json)
+ *   --flow <path>        Flow file to read (default: built from the EventSub registry)
  *   --user <id>          Mock broadcaster user id (default: from the flow)
  *   --client-id <id>     Client id the nodes registered with (default: from the flow)
  *   --nr-container <n>   Container running Node-RED (default twitch-nr)
@@ -42,7 +42,7 @@ const path = require('path')
 
 const defaults = {
     nodeRed: 'http://127.0.0.1:1880',
-    flow: path.join(__dirname, '..', '..', 'examples', 'mock-all-nodes.json'),
+    flow: null,
     nrContainer: 'twitch-nr',
     wsContainer: 'twitch-mock-ws',
     clientId: null,
@@ -79,11 +79,19 @@ function parseArgs(argv) {
 }
 
 function loadFlow(flowPath) {
-    const flow = JSON.parse(fs.readFileSync(flowPath, 'utf8'))
+    let flow
+    if (flowPath) {
+        // An explicitly named flow that is missing is a typo, not a reason to
+        // silently test a different flow.
+        if (!fs.existsSync(flowPath)) throw new Error(`flow not found: ${flowPath}`)
+        flow = JSON.parse(fs.readFileSync(flowPath, 'utf8'))
+    } else {
+        flow = require('./make-flow').buildFlow()
+    }
     const config = flow.find((n) => n.type === 'twitch-api-config') || {}
     const nodes = []
     for (const node of flow) {
-        if (typeof node.type !== 'string' || !node.type.startsWith('twitch-eventsub-')) continue
+        if (node.type !== 'twitch-eventsub') continue
         nodes.push({ name: node.name, id: node.id, debugId: (node.wires || []).flat()[0] })
     }
     return { config, nodes }
