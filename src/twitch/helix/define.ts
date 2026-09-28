@@ -40,6 +40,8 @@ export interface HelixField {
 export interface HelixRunContext {
   /** The API client to call, already scoped to the spec's context user. */
   api: any;
+  /** The unscoped client, for the rare spec that needs a different user context. */
+  root: any;
   twitchConfig: any;
   /** Resolved broadcaster id; defaults to the authenticated user. */
   broadcasterId: string;
@@ -74,6 +76,8 @@ export interface HelixSpec {
   run: (ctx: HelixRunContext) => Promise<any>;
   /** Converts the twurple result to a plain serialisable object. */
   map?: (result: any, ctx: HelixRunContext) => any;
+  /** Extra message properties to merge (pagination, total, ...) for non-paged specs. */
+  extra?: (result: any, ctx: HelixRunContext) => Record<string, any> | undefined;
   /** Set for list endpoints; adds limit/all/allMax fields and pagination handling. */
   paged?: HelixPagedSpec;
   /**

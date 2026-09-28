@@ -44,40 +44,21 @@ RED.nodes.registerType('twitch-api-config', {
         return;
       }
 
-    const scopes = [
-      "bits:read", "channel:edit:commercial", "channel:manage:ads", "channel:manage:broadcast",
-      "channel:manage:moderators", "channel:manage:polls", "channel:manage:predictions",
-      "channel:manage:raids", "channel:manage:redemptions", "channel:manage:schedule",
-      "channel:manage:videos", "channel:manage:vips", "channel:moderate",
-      "channel:read:ads", "channel:read:charity", "channel:read:emotes", "channel:read:goals",
-      "channel:read:guest_star", "channel:read:hype_train", "channel:read:polls",
-      "channel:read:predictions", "channel:read:redemptions", "channel:read:stream_key",
-      "channel:read:subscriptions", "channel:read:vips",
-      "chat:read", "chat:edit", "clips:edit",
-      "moderation:read", "moderator:manage:announcements", "moderator:manage:banned_users",
-      "moderator:manage:blocked_terms", "moderator:manage:chat_messages",
-      "moderator:manage:chat_settings", "moderator:manage:shoutouts",
-      "moderator:manage:unban_requests", "moderator:manage:warnings",
-      "moderator:read:automod_settings",
-      "moderator:read:blocked_terms", "moderator:read:chat_settings",
-      "moderator:read:chatters", "moderator:read:followers", "moderator:read:guest_star",
-      "moderator:read:shield_mode", "moderator:read:shoutouts",
-      "moderator:read:suspicious_users", "moderator:read:unban_requests",
-      "moderator:read:whispers",
+      // The scopes come from the Helix specs at build time, so the login button
+      // always requests exactly what the palette's nodes need.
+      $.ajax({
+        url: 'twitch-eventsub/helix/scopes',
+        type: 'GET',
+        success: function (resp) {
+          startDeviceAuth(clientId, ((resp && resp.scopes) || []).join(' '));
+        },
+        error: function () {
+          startDeviceAuth(clientId, '');
+        },
+      });
+    });
 
-      "user:edit",
-      "user:edit:broadcast",
-      "user:read:blocked_users",
-      "user:read:broadcast",
-      "user:read:chat",
-      "user:read:email",
-      "user:read:follows",
-      "user:read:subscriptions",
-      "user:write:chat",
-      "user:manage:blocked_users",
-      "user:manage:whispers"
-    ].join(' ');
-
+    function startDeviceAuth(clientId, scopes) {
       $.ajax({
         url: 'twitch-eventsub/auth/device',
         type: 'POST',
@@ -99,7 +80,7 @@ RED.nodes.registerType('twitch-api-config', {
           RED.notify('Auth start failed: ' + xhr.responseText, 'error');
         },
       });
-    });
+    }
 
     function startPolling(clientId, deviceCode, intervalSeconds) {
       stopPolling();

@@ -5,7 +5,28 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Changed
+- Helix nodes are now declarative specs instead of one `.ts`/`.html` pair each. A spec declares the
+  type, palette label, help, scopes, fields and the single twurple call; the factory resolves and
+  coerces fields, resolves usernames to ids, checks scopes and handles paging, and the build generates
+  the runtime module, the editor html and the `package.json` manifest entry. Adding an endpoint is one
+  entry in `src/twitch/helix/specs/*.ts`, no other file. Node type names, config field names and
+  message shapes are preserved
+- The config node's "Login with Twitch" button now requests the union of the scopes declared by the
+  specs (served from `dist/twitch/helix/generated/scopes.json`), so it cannot drift from the palette
+- The README Helix node catalogue is generated from the specs by `scripts/generate-helix-readme.js`
+  and `npm run check` fails if it is stale
+- Behaviour changes introduced by the migration, flagged here: `get-blocks` and `update-user-description`
+  now check their required scopes (`user:read:blocked_users` / `user:edit`) before calling Twitch instead
+  of relying on the API error, and an unrecognised `select` value falls back to the field default rather
+  than failing
+
 ### Added
+- `src/twitch/helix/define.ts`, `factory.ts` and `helix-editor.ts`: the spec format, the factory that
+  turns a spec into a Node-RED handler, and the editor-html generator
+- `scripts/generate-helix-nodes.js`: emits one Node-RED module (`.js` + `.html`) per spec and the
+  aggregated scope list
+- `test/unit/helix-nodes.test.js` is now data-driven over every spec and covers the factory directly
 - Helix API nodes under the `twitch api` palette category for engagement and monetisation:
   channel points (`get/create/update/delete custom reward`, `get redemptions`,
   `update redemption status`), polls (`get/create/end poll`), predictions

@@ -1,0 +1,698 @@
+import { getRawData } from '@twurple/common';
+import { defineHelix, type HelixField } from '../define';
+import {
+  clampLimit,
+  firstDefined,
+  resolveGameId,
+  toBool,
+  toStr,
+} from '../twitch-helix-utils';
+
+const PERIODS = ['day', 'week', 'month', 'year', 'all'];
+
+const broadcaster: HelixField = {
+  name: 'broadcaster',
+  label: 'Broadcaster',
+  kind: 'user',
+  optional: true,
+  aliases: ['broadcasterId'],
+  hint: 'blank = authenticated user',
+  faIcon: 'fa-user',
+};
+
+function mapBitsEntry(entry: any) {
+  return {
+    userId: entry.userId,
+    userName: entry.userName,
+    userDisplayName: entry.userDisplayName,
+    rank: entry.rank,
+    amount: entry.amount,
+  };
+}
+
+function mapGoal(goal: any) {
+  return {
+    id: goal.id,
+    broadcasterId: goal.broadcasterId,
+    broadcasterName: goal.broadcasterName,
+    broadcasterDisplayName: goal.broadcasterDisplayName,
+    type: goal.type,
+    description: goal.description,
+    currentAmount: goal.currentAmount,
+    targetAmount: goal.targetAmount,
+    creationDate: goal.creationDate,
+  };
+}
+
+function mapTeam(team: any) {
+  return {
+    id: team.id,
+    name: team.name,
+    displayName: team.displayName,
+    backgroundImageUrl: team.backgroundImageUrl ?? null,
+    bannerUrl: team.bannerUrl ?? null,
+    creationDate: team.creationDate,
+    updateDate: team.updateDate,
+    info: team.info,
+    logoThumbnailUrl: team.logoThumbnailUrl,
+    members: (team.userRelations ?? []).map((relation: any) => ({
+      id: relation.id,
+      name: relation.name,
+      displayName: relation.displayName,
+    })),
+  };
+}
+
+function mapSegment(segment: any) {
+  return {
+    id: segment.id,
+    startDate: segment.startDate,
+    endDate: segment.endDate,
+    title: segment.title,
+    cancelEndDate: segment.cancelEndDate ?? null,
+    categoryId: segment.categoryId ?? null,
+    categoryName: segment.categoryName ?? null,
+    isRecurring: segment.isRecurring,
+  };
+}
+
+function mapSubscription(sub: any) {
+  return {
+    userId: sub.userId,
+    userName: sub.userName,
+    userDisplayName: sub.userDisplayName,
+    broadcasterId: sub.broadcasterId,
+    broadcasterName: sub.broadcasterName,
+    broadcasterDisplayName: sub.broadcasterDisplayName,
+    gifterId: sub.gifterId ?? null,
+    gifterName: sub.gifterName ?? null,
+    gifterDisplayName: sub.gifterDisplayName ?? null,
+    isGift: sub.isGift,
+    tier: sub.tier,
+  };
+}
+
+function mapContribution(contribution: any) {
+  return {
+    userId: contribution.userId,
+    type: contribution.type,
+    total: contribution.total,
+  };
+}
+
+function mapHypeTrainEvent(event: any) {
+  return {
+    eventId: event.eventId,
+    eventType: event.eventType,
+    eventDate: event.eventDate,
+    eventVersion: event.eventVersion,
+    id: event.id,
+    broadcasterId: event.broadcasterId,
+    level: event.level,
+    total: event.total,
+    goal: event.goal,
+    startDate: event.startDate,
+    expiryDate: event.expiryDate,
+    cooldownDate: event.cooldownDate,
+    lastContribution: mapContribution(event.lastContribution),
+    topContributions: (event.topContributions ?? []).map(mapContribution),
+  };
+}
+
+function mapCharityAmount(amount: any) {
+  if (!amount) return null;
+  return {
+    value: amount.value,
+    decimalPlaces: amount.decimalPlaces,
+    localizedValue: amount.localizedValue,
+    currency: amount.currency,
+  };
+}
+
+export const monetisationSpecs = [
+  defineHelix({
+    type: 'twitch-helix-get-bits-leaderboard',
+    label: 'get bits leaderboard',
+    help: 'Gets the Bits leaderboard for a channel. Set Center on user to make sure one user appears with others ranked around them.',
+    scopes: ['bits:read'],
+    fields: [
+      broadcaster,
+      {
+        name: 'count',
+        label: 'Count',
+        kind: 'int',
+        default: 20,
+        aliases: ['limit'],
+        faIcon: 'fa-list-ol',
+        hint: '1-100',
+      },
+      {
+        name: 'period',
+        label: 'Period',
+        kind: 'select',
+        default: '',
+        faIcon: 'fa-calendar',
+        options: [
+          { value: '', label: 'Twitch default (all)' },
+          { value: 'day', label: 'day' },
+          { value: 'week', label: 'week' },
+          { value: 'month', label: 'month' },
+          { value: 'year', label: 'year' },
+          { value: 'all', label: 'all' },
+        ],
+      },
+      {
+        name: 'startDate',
+        label: 'Start date',
+        kind: 'string',
+        default: '',
+        aliases: ['startingDate'],
+        faIcon: 'fa-clock-o',
+        hint: 'optional: RFC3339 date',
+      },
+      {
+        name: 'user',
+        label: 'Center on user',
+        kind: 'user',
+        optional: true,
+        aliases: ['contextUser'],
+        faIcon: 'fa-search',
+        hint: 'optional: show one user',
+      },
+    ],
+    run: async ({ api, broadcasterId, input, raw }) => {
+      const count = clampLimit(input.count, 20);
+
+      if (raw.period && PERIODS.indexOf(String(raw.period)) === -1) {
+        throw new Error(`period must be one of ${PERIODS.join(', ')}`);
+      }
+
+      const startDateText = toStr(input.startDate);
+      let startDate: Date | undefined;
+      if (startDateText) {
+        startDate = new Date(startDateText);
+        if (Number.isNaN(startDate.getTime())) {
+          throw new Error(`startDate "${startDateText}" is not a valid date`);
+        }
+      }
+
+      const params: any = { count };
+      if (input.period) params.period = input.period;
+      if (startDate) params.startDate = startDate;
+      if (input.user) params.contextUserId = input.user;
+
+      return api.bits.getLeaderboard(broadcasterId, params);
+    },
+    map: (leaderboard) => (leaderboard?.entries ?? []).map(mapBitsEntry),
+    extra: (leaderboard) => ({
+      pagination: { cursor: null },
+      total: leaderboard?.totalCount,
+    }),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-cheermotes',
+    label: 'get cheermotes',
+    help: "Lists the Bits cheermotes Twitch supports, including each tier's images. Leave Channel blank for global cheermotes, or set it to a channel to also include its custom cheermotes.",
+    scopes: [],
+    fields: [
+      {
+        name: 'broadcaster',
+        label: 'Channel',
+        kind: 'user',
+        optional: true,
+        primary: true,
+        aliases: ['broadcasterId'],
+        hint: 'blank = global cheermotes only',
+        faIcon: 'fa-user',
+      },
+    ],
+    run: async ({ api, input }) => {
+      const list = await api.bits.getCheermotes(input.broadcaster);
+      const raw = getRawData(list) as Record<string, any>;
+
+      return Object.keys(raw).map((prefix) => {
+        const cheermote = raw[prefix];
+        return {
+          prefix: cheermote.prefix ?? prefix,
+          type: cheermote.type,
+          order: cheermote.order,
+          lastUpdated: cheermote.last_updated ?? null,
+          tiers: (cheermote.tiers ?? []).map((tier: any) => ({
+            minBits: tier.min_bits,
+            id: tier.id,
+            color: tier.color,
+            canCheer: tier.can_cheer,
+            showInBitsCard: tier.show_in_bits_card,
+            images: tier.images,
+          })),
+        };
+      });
+    },
+    extra: (payload) => ({ pagination: { cursor: null }, total: payload.length }),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-subscriptions',
+    label: 'get subscriptions',
+    help: "Lists a channel's subscribers. Set User to check a single user instead, which returns that user's subscription if they have one.",
+    scopes: ['channel:read:subscriptions'],
+    paged: { limit: 20, max: 1000 },
+    fields: [
+      broadcaster,
+      {
+        name: 'user',
+        label: 'User',
+        kind: 'user',
+        optional: true,
+        faIcon: 'fa-search',
+        hint: 'optional: check one subscriber',
+      },
+    ],
+    run: async ({ api, broadcasterId, input }) => {
+      if (input.user) {
+        const subs = await api.subscriptions.getSubscriptionsForUsers(broadcasterId, [input.user]);
+        return { data: subs, cursor: null, total: subs.length };
+      }
+      return api.subscriptions.getSubscriptions(broadcasterId, {
+        limit: input.limit,
+        after: input.after,
+      });
+    },
+    map: (sub) => mapSubscription(sub),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-check-user-subscription',
+    label: 'check user subscription',
+    help: "Checks whether a user is subscribed to a channel, using the authenticated user's token. Blank User defaults to the authenticated account.",
+    scopes: ['user:read:subscriptions'],
+    fields: [
+      broadcaster,
+      {
+        name: 'user',
+        label: 'User',
+        kind: 'user',
+        optional: true,
+        primary: true,
+        aliases: ['userId'],
+        faIcon: 'fa-search',
+        hint: 'blank = authenticated user',
+      },
+    ],
+    run: async ({ api, broadcasterId, input, moderatorId }) => {
+      const userId = input.user ?? moderatorId;
+
+      const subscription = await api.subscriptions.checkUserSubscription(userId, broadcasterId);
+      if (!subscription) return null;
+
+      return {
+        userId,
+        broadcasterId: subscription.broadcasterId,
+        broadcasterName: subscription.broadcasterName,
+        broadcasterDisplayName: subscription.broadcasterDisplayName,
+        isGift: subscription.isGift,
+        tier: subscription.tier,
+      };
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-schedule',
+    label: 'get schedule',
+    help: "Gets a channel's streaming schedule as a list of segments.",
+    scopes: [],
+    paged: { limit: 20, max: 1000 },
+    fields: [
+      broadcaster,
+      {
+        name: 'startDate',
+        label: 'From date',
+        kind: 'string',
+        default: '',
+        faIcon: 'fa-calendar',
+        hint: 'optional: RFC3339 date',
+      },
+      {
+        name: 'utcOffset',
+        label: 'UTC offset',
+        kind: 'int',
+        default: '',
+        faIcon: 'fa-clock-o',
+        hint: 'optional: minutes',
+      },
+    ],
+    run: async ({ api, broadcasterId, input }) => {
+      const filter: any = { limit: input.limit, after: input.after };
+      if (input.startDate !== undefined) filter.startDate = input.startDate;
+      if (input.utcOffset !== undefined) filter.utcOffset = input.utcOffset;
+
+      const res = await api.schedule.getSchedule(broadcasterId, filter);
+      return {
+        data: res.data?.segments ?? [],
+        cursor: res.cursor ?? null,
+        total: undefined,
+      };
+    },
+    map: (segment) => mapSegment(segment),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-create-segment',
+    label: 'create segment',
+    help: "Adds a segment to a channel's streaming schedule. Twitch requires startDate (in UTC) and timezone; duration defaults to 240 minutes and isRecurring to false.",
+    scopes: ['channel:manage:schedule'],
+    fields: [
+      broadcaster,
+      {
+        name: 'startDate',
+        label: 'Start date (UTC)',
+        kind: 'string',
+        required: true,
+        aliases: ['startTime'],
+        faIcon: 'fa-calendar',
+        hint: 'e.g. 2026-01-01T18:00:00Z',
+      },
+      {
+        name: 'timezone',
+        label: 'Timezone',
+        kind: 'string',
+        required: true,
+        faIcon: 'fa-globe',
+        hint: 'e.g. America/New_York',
+      },
+      {
+        name: 'duration',
+        label: 'Duration (min)',
+        kind: 'int',
+        default: '',
+        faIcon: 'fa-hourglass-half',
+        hint: 'optional: default 240',
+      },
+      {
+        name: 'isRecurring',
+        label: 'Recurring',
+        kind: 'select',
+        default: '',
+        faIcon: 'fa-repeat',
+        options: [
+          { value: '', label: 'no' },
+          { value: 'true', label: 'weekly' },
+          { value: 'false', label: 'no' },
+        ],
+      },
+      {
+        name: 'categoryId',
+        label: 'Category',
+        kind: 'string',
+        default: '',
+        aliases: ['category'],
+        faIcon: 'fa-gamepad',
+        hint: 'optional: category name or ID',
+      },
+      {
+        name: 'title',
+        label: 'Title',
+        kind: 'string',
+        default: '',
+        primary: true,
+        faIcon: 'fa-comment',
+        hint: 'msg.payload overrides this',
+      },
+    ],
+    run: async ({ api, root, broadcasterId, input }) => {
+      const data: any = {
+        startDate: input.startDate,
+        timezone: input.timezone,
+        isRecurring: toBool(input.isRecurring) === true,
+      };
+      if (input.duration !== undefined) data.duration = input.duration;
+      if (input.categoryId !== undefined) {
+        data.categoryId = await resolveGameId(root, input.categoryId);
+      }
+      if (input.title !== undefined) data.title = input.title;
+
+      const segment = await api.schedule.createScheduleSegment(broadcasterId, data);
+      return mapSegment(segment);
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-update-segment',
+    label: 'update segment',
+    help: 'Changes an existing schedule segment. Only the fields you fill in are sent; leave a field blank to keep its current value.',
+    scopes: ['channel:manage:schedule'],
+    fields: [
+      broadcaster,
+      {
+        name: 'segmentId',
+        label: 'Segment ID',
+        kind: 'string',
+        required: true,
+        aliases: ['id'],
+        faIcon: 'fa-hashtag',
+        hint: 'the schedule segment to update',
+      },
+      {
+        name: 'startDate',
+        label: 'Start date (UTC)',
+        kind: 'string',
+        default: '',
+        aliases: ['startTime'],
+        faIcon: 'fa-calendar',
+        hint: 'leave blank to keep',
+      },
+      {
+        name: 'timezone',
+        label: 'Timezone',
+        kind: 'string',
+        default: '',
+        faIcon: 'fa-globe',
+        hint: 'leave blank to keep',
+      },
+      {
+        name: 'duration',
+        label: 'Duration (min)',
+        kind: 'int',
+        default: '',
+        faIcon: 'fa-hourglass-half',
+        hint: 'leave blank to keep',
+      },
+      {
+        name: 'isCanceled',
+        label: 'Canceled',
+        kind: 'select',
+        default: '',
+        faIcon: 'fa-ban',
+        options: [
+          { value: '', label: 'leave unchanged' },
+          { value: 'true', label: 'yes' },
+          { value: 'false', label: 'no' },
+        ],
+      },
+      {
+        name: 'categoryId',
+        label: 'Category',
+        kind: 'string',
+        default: '',
+        aliases: ['category'],
+        faIcon: 'fa-gamepad',
+        hint: 'leave blank to keep',
+      },
+      {
+        name: 'title',
+        label: 'Title',
+        kind: 'string',
+        default: '',
+        primary: true,
+        faIcon: 'fa-comment',
+        hint: 'leave blank to keep',
+      },
+    ],
+    run: async ({ api, root, broadcasterId, input }) => {
+      const data: any = {};
+      if (input.startDate !== undefined) data.startDate = input.startDate;
+      if (input.timezone !== undefined) data.timezone = input.timezone;
+      if (input.duration !== undefined) data.duration = input.duration;
+      if (input.categoryId !== undefined) {
+        data.categoryId = await resolveGameId(root, input.categoryId);
+      }
+      if (input.title !== undefined) data.title = input.title;
+
+      const isCanceled = toBool(input.isCanceled);
+      if (isCanceled !== undefined) data.isCanceled = isCanceled;
+
+      if (Object.keys(data).length === 0) {
+        throw new Error('Nothing to update — set a startDate, timezone, duration, title or category');
+      }
+
+      const segment = await api.schedule.updateScheduleSegment(
+        broadcasterId,
+        input.segmentId,
+        data
+      );
+      return mapSegment(segment);
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-delete-segment',
+    label: 'delete segment',
+    help: "Removes a segment from a channel's schedule.",
+    scopes: ['channel:manage:schedule'],
+    fields: [
+      broadcaster,
+      {
+        name: 'segmentId',
+        label: 'Segment ID',
+        kind: 'string',
+        required: true,
+        aliases: ['id'],
+        faIcon: 'fa-hashtag',
+        hint: 'the schedule segment to delete',
+      },
+    ],
+    run: async ({ api, broadcasterId, input }) => {
+      await api.schedule.deleteScheduleSegment(broadcasterId, input.segmentId);
+      return { segmentId: input.segmentId, deleted: true };
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-teams',
+    label: 'get teams',
+    help: 'Looks up a Twitch team by ID or name and returns its details and members. Twitch has no endpoint that lists every team, so supply an ID or name (a numeric msg.team is treated as an ID).',
+    scopes: [],
+    fields: [
+      {
+        name: 'teamId',
+        label: 'Team ID',
+        kind: 'string',
+        default: '',
+        faIcon: 'fa-hashtag',
+        hint: 'look up by ID',
+      },
+      {
+        name: 'teamName',
+        label: 'Team name',
+        kind: 'string',
+        default: '',
+        faIcon: 'fa-users',
+        hint: 'look up by name',
+      },
+    ],
+    run: async ({ root, input, msg }) => {
+      const id = toStr(input.teamId);
+      const name = toStr(input.teamName);
+      const generic = toStr(firstDefined(msg.team, msg.payload));
+
+      let team: any;
+      if (id) {
+        team = await root.teams.getTeamById(id);
+      } else if (name) {
+        team = await root.teams.getTeamByName(name);
+      } else if (generic) {
+        team = /^\d+$/.test(generic)
+          ? await root.teams.getTeamById(generic)
+          : await root.teams.getTeamByName(generic);
+      } else {
+        throw new Error('A team ID or name is required — set teamId, teamName or msg.team');
+      }
+
+      return team ? [mapTeam(team)] : [];
+    },
+    extra: (payload) => ({ pagination: { cursor: null }, total: payload.length }),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-goals',
+    label: 'get goals',
+    help: "Gets a channel's active creator goals (follower and subscription targets).",
+    scopes: ['channel:read:goals'],
+    fields: [broadcaster],
+    run: async ({ api, broadcasterId }) => {
+      const goals = await api.goals.getGoals(broadcasterId);
+      return goals.map(mapGoal);
+    },
+    extra: (payload) => ({ pagination: { cursor: null }, total: payload.length }),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-charity-campaign',
+    label: 'get charity campaign',
+    help: 'Gets the charity campaign a channel is currently running, or null when there is no active campaign.',
+    scopes: ['channel:read:charity'],
+    fields: [broadcaster],
+    run: async ({ api, broadcasterId }) => {
+      const campaign = await api.charity.getCharityCampaign(broadcasterId);
+      if (!getRawData(campaign)) return null;
+
+      return {
+        id: campaign.id,
+        broadcasterId: campaign.broadcasterId,
+        broadcasterName: campaign.broadcasterName,
+        broadcasterDisplayName: campaign.broadcasterDisplayName,
+        charityName: campaign.charityName,
+        charityDescription: campaign.charityDescription,
+        charityLogo: campaign.charityLogo,
+        charityWebsite: campaign.charityWebsite,
+        currentAmount: mapCharityAmount(campaign.currentAmount),
+        targetAmount: mapCharityAmount(campaign.targetAmount),
+      };
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-get-hype-train',
+    label: 'get hype train',
+    help: 'Gets Hype Train events for a channel. Twitch exposes no REST endpoint for the current Hype Train, so this returns the recorded events of the current or latest train (paginated), not a live snapshot.',
+    scopes: ['channel:read:hype_train'],
+    paged: { limit: 20, max: 1000 },
+    fields: [broadcaster],
+    run: async ({ api, broadcasterId, input }) =>
+      api.hypeTrain.getHypeTrainEventsForBroadcaster(broadcasterId, {
+        limit: input.limit,
+        after: input.after,
+      }),
+    map: (event) => mapHypeTrainEvent(event),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-send-whisper',
+    label: 'send whisper',
+    help: 'Sends a whisper from the authenticated account to another user. Twitch may silently drop whispers it considers abusive, so a success only means the request was accepted.',
+    scopes: ['user:manage:whispers'],
+    fields: [
+      {
+        name: 'to',
+        label: 'Recipient',
+        kind: 'user',
+        required: true,
+        aliases: ['recipient', 'user'],
+        faIcon: 'fa-user',
+        hint: 'username or user ID',
+      },
+      {
+        name: 'message',
+        label: 'Message',
+        kind: 'string',
+        default: '',
+        primary: true,
+        required: true,
+        aliases: ['text'],
+        faIcon: 'fa-comment',
+        hint: 'msg.payload overrides this',
+      },
+    ],
+    run: async ({ api, moderatorId, input }) => {
+      const toUserId = input.to;
+      const message = input.message;
+      if (!message) {
+        throw new Error('Whisper text is required — set msg.payload or the node message');
+      }
+
+      await api.whispers.sendWhisper(moderatorId, toUserId, message);
+      return { fromUserId: moderatorId, toUserId, sent: true };
+    },
+  }),
+];

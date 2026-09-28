@@ -2,6 +2,7 @@ import type { NodeAPI } from 'node-red';
 import { createHelixNode } from './twitch-helix-base';
 import {
   authUserId,
+  clampLimit,
   fetchAllPages,
   firstDefined,
   requireScopes,
@@ -40,8 +41,12 @@ async function coerceField(apiClient: any, field: HelixField, value: unknown): P
       const chosen = toStr(value);
       if (!chosen) return undefined;
       const allowed = selectValues(field);
-      // An unrecognised value is ignored so the default (or required check) applies.
-      return allowed.length && allowed.indexOf(chosen) === -1 ? undefined : chosen;
+      if (allowed.length && allowed.indexOf(chosen) === -1) {
+        // An unrecognised value falls back to the default rather than erroring.
+        const fallback = toStr(field.default);
+        return fallback && allowed.indexOf(fallback) !== -1 ? fallback : undefined;
+      }
+      return chosen;
     }
     default:
       return toStr(value);
@@ -101,6 +106,7 @@ export function makeHandler(spec: HelixSpec) {
       msg,
       config,
       api: undefined as any,
+      root: apiClient,
     };
 
     const contextUser =
@@ -118,9 +124,13 @@ export function makeHandler(spec: HelixSpec) {
 
     if (!spec.paged) {
       const result = await invoke();
-      return { payload: spec.map ? spec.map(result, ctx) : result };
+      return {
+        payload: spec.map ? spec.map(result, ctx) : result,
+        extra: spec.extra ? spec.extra(result, ctx) : undefined,
+      };
     }
 
+    input.limit = clampLimit(input.limit, spec.paged.limit ?? 20);
     const afterValue = firstDefined(msg.after, msg.cursor);
     const fetchPage = async (cursor?: string) => {
       const res = await invoke(cursor ?? afterValue);

@@ -36,4 +36,9 @@ for (const spec of HELIX_SPECS) {
   fs.writeFileSync(path.join(outDir, `${spec.type}.html`), renderEditorHtml(spec))
 }
 
-console.log(`generated ${HELIX_SPECS.length} Helix node modules`)
+// The union of every spec's scopes, so the config node can request everything a
+// user might authorise in a single login instead of a hand-maintained list.
+const scopes = [...new Set(HELIX_SPECS.flatMap((spec) => spec.scopes))].sort()
+fs.writeFileSync(path.join(outDir, 'scopes.json'), `${JSON.stringify(scopes, null, 2)}\n`)
+
+console.log(`generated ${HELIX_SPECS.length} Helix node modules (${scopes.length} scopes)`)

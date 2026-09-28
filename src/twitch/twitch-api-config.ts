@@ -25,10 +25,10 @@ type Status = {
   text: string;
 };
 
-// A mock server never validates tokens, but Twurple checks the scopes on the
-// token it is given and falls back to the real validate endpoint when the scope
-// list is unknown, so the mock provider has to claim a full set up front.
-const MOCK_SCOPES = [
+// Scopes used by the EventSub and chat nodes plus the base Twitch login. The
+// Helix node scopes are appended from what the specs declare (generated at build
+// time), so authorising once covers the whole palette without a hand-kept list.
+const CORE_SCOPES = [
   'bits:read', 'channel:edit:commercial', 'channel:manage:ads', 'channel:manage:broadcast',
   'channel:manage:moderators', 'channel:manage:polls', 'channel:manage:predictions',
   'channel:manage:raids', 'channel:manage:redemptions', 'channel:manage:schedule',
@@ -54,7 +54,27 @@ const MOCK_SCOPES = [
   'user:manage:whispers',
 ];
 
+/** Scopes declared by the declarative Helix specs, written by the build. */
+function loadHelixSpecScopes(): string[] {
+  try {
+    const scopes = require('./helix/generated/scopes.json');
+    return Array.isArray(scopes) ? scopes : [];
+  } catch {
+    return [];
+  }
+}
+
+// A mock server never validates tokens, but Twurple checks the scopes on the
+// token it is given and falls back to the real validate endpoint when the scope
+// list is unknown, so the mock provider has to claim a full set up front.
+const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...loadHelixSpecScopes()])].sort();
+
 module.exports = function (RED: NodeAPI) {
+
+  // Every scope a user could need, for the editor's Login with Twitch button.
+  RED.httpAdmin.get('/twitch-eventsub/helix/scopes', (_req: any, res: any) => {
+    res.json({ scopes: MOCK_SCOPES });
+  });
 
   // --- Auth endpoints for Device Code Flow ---
 

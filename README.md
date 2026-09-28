@@ -116,78 +116,115 @@ help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when
 
 ### Nodes
 
+The catalogue below is generated from the Helix specs at build time — do not edit it by hand.
+
+<!-- helix-nodes:start -->
 | Node | Purpose | Scopes |
 | --- | --- | --- |
-| get channel info | A channel's title, game, language and tags | — |
-| update channel info | Change title, game, tags or language | `channel:manage:broadcast` |
-| send chat message | Send a chat message as the authenticated user | `user:write:chat` |
-| send announcement | Highlighted announcement in a channel | `moderator:manage:announcements` |
-| send shoutout | Shout out another channel | `moderator:manage:shoutouts` |
-| get chatters | Users currently in chat | `moderator:read:chatters` |
-| get chat settings | Chat mode and delay settings | — |
-| update chat settings | Turn chat modes and delays on or off | `moderator:manage:chat_settings` |
-| clear chat | Remove every chat message | `moderator:manage:chat_messages` |
-| delete chat message | Remove one chat message | `moderator:manage:chat_messages` |
-| get emotes | A channel's emotes or the global emotes | — |
-| get chat badges | A channel's badges or the global badges | — |
-| get followers | A channel's followers (or check one user) | `moderator:read:followers` |
-| get followed channels | The channels a user follows (or check one) | `user:read:follows` |
-| ban user | Ban a user, or time them out when a duration is set | `moderator:manage:banned_users` |
-| unban user | Remove a ban or timeout | `moderator:manage:banned_users` |
-| get banned users | A channel's banned and timed-out users | `moderation:read` |
-| get moderators | A channel's moderators (or check one) | `moderation:read` |
-| add moderator | Give a user moderator status | `channel:manage:moderators` |
-| remove moderator | Remove a user's moderator status | `channel:manage:moderators` |
-| get vips | A channel's VIPs | `channel:read:vips` |
-| add vip | Give a user VIP status | `channel:manage:vips` |
-| remove vip | Remove a user's VIP status | `channel:manage:vips` |
-| warn user | Send a warning a user must acknowledge | `moderator:manage:warnings` |
-| get blocked terms | A channel's blocked terms | `moderator:read:blocked_terms` |
-| add blocked term | Block a term | `moderator:manage:blocked_terms` |
-| remove blocked term | Unblock a term | `moderator:manage:blocked_terms` |
-| check automod status | Ask whether a message would be held | `moderation:read` |
-| create stream marker | Add a marker to the live stream | `channel:manage:broadcast` |
-| get stream markers | A channel's (or one video's) stream markers | `user:read:broadcast` |
-| get stream key | The channel's stream key | `channel:read:stream_key` |
-| create clip | Clip the live stream | `clips:edit` |
-| get clips | Clips by channel, IDs or game | — |
-| get videos | Videos by user or IDs | — |
-| delete videos | Delete videos by ID | `channel:manage:videos` |
-| get games | Look up a game/category | — |
-| get top games | Twitch's top games | — |
-| search categories | Search categories by name | — |
-| search channels | Search channels by name | — |
-| start raid | Raid another channel | `channel:manage:raids` |
-| cancel raid | Cancel the channel's raid | `channel:manage:raids` |
-| start commercial | Start a commercial break | `channel:edit:commercial` |
-| get ad schedule | The channel's ad schedule | `channel:read:ads` |
-| snooze next ad | Snooze the next ad | `channel:manage:ads` |
-| get custom rewards | A channel's custom rewards | `channel:read:redemptions` |
-| create custom reward | Create a custom reward | `channel:manage:redemptions` |
-| update custom reward | Update a custom reward | `channel:manage:redemptions` |
-| delete custom reward | Delete a custom reward | `channel:manage:redemptions` |
-| get redemptions | Reward redemptions, optionally by status | `channel:read:redemptions` |
-| update redemption status | Fulfil or cancel a redemption | `channel:manage:redemptions` |
-| get polls | A channel's polls | `channel:read:polls` |
-| create poll | Create a poll | `channel:manage:polls` |
-| end poll | End a poll | `channel:manage:polls` |
-| get predictions | A channel's predictions | `channel:read:predictions` |
-| create prediction | Create a prediction | `channel:manage:predictions` |
-| end prediction | Resolve or cancel a prediction | `channel:manage:predictions` |
-| get bits leaderboard | The bits leaderboard | `bits:read` |
-| get cheermotes | Global or channel cheermotes | — |
-| get subscriptions | A channel's subscribers | `channel:read:subscriptions` |
-| check user subscription | Whether a user is subscribed | `user:read:subscriptions` |
-| get schedule | The channel's stream schedule | — |
-| create segment | Add a schedule segment | `channel:manage:schedule` |
-| update segment | Update a schedule segment | `channel:manage:schedule` |
-| delete segment | Delete a schedule segment | `channel:manage:schedule` |
-| get teams | Look up a Twitch team by ID or name | — |
-| get channel teams | The teams a channel belongs to | — |
-| get goals | A channel's creator goals | `channel:read:goals` |
-| get charity campaign | The channel's active charity campaign | `channel:read:charity` |
-| get hype train | The channel's hype train events | `channel:read:hype_train` |
-| send whisper | Whisper another user | `user:manage:whispers` |
+| get auth user | Fetches the profile of the currently authenticated Twitch user. | — |
+| block user | Blocks or unblocks a Twitch user using the authenticated configuration context. | — |
+| get users | Looks up Twitch profiles using explicit fields for IDs and Usernames. If both inputs are used simultaneously, the node merges and de-duplicates the results automatically. | — |
+| get blocks | Gets a list of users blocked by the given Twitch user. | `user:read:blocked_users` |
+| update bio | Updates the channel description of the authenticated Twitch user. | `user:edit` |
+| get channel info | Gets a channel's title, game, language and tags. Leave Broadcaster blank to use the authenticated account. | — |
+| update channel info | Updates a channel's title, game, tags or language. Only the fields you fill in are changed; the node fetches and returns the channel afterwards. The authenticated account must be the broadcaster. | `channel:manage:broadcast` |
+| get followers | Lists a channel's followers, most recent first. Set User to a single login to just confirm whether that user follows. The authenticated account must be a moderator or the broadcaster. | `moderator:read:followers` |
+| get followed channels | Lists the channels a user follows. Set Channel to a single login to just confirm whether the user follows it. Defaults to the authenticated account. | `user:read:follows` |
+| get ad schedule | Gets a channel's ad schedule: available snoozes, next ad time and pre-roll free time. The authenticated account must be the broadcaster. | `channel:read:ads` |
+| snooze next ad | Snoozes the channel's next ad when a snooze is available. The authenticated account must be the broadcaster. | `channel:manage:ads` |
+| start commercial | Starts a commercial break on a channel. The authenticated account must be the broadcaster. | `channel:edit:commercial` |
+| get channel teams | Lists the Twitch teams a channel belongs to. | — |
+| get stream key | Gets the channel's stream key. Treat the result as a secret. The authenticated account must be the broadcaster. | `channel:read:stream_key` |
+| send chat message | Sends a chat message to a channel as the authenticated account. | `user:write:chat` |
+| send announcement | Sends a highlighted announcement in a channel, falling back to primary for any other colour. | `moderator:manage:announcements` |
+| send shoutout | Sends a shoutout from one channel to another. | `moderator:manage:shoutouts` |
+| get chatters | Lists the users currently in a channel's chat. | `moderator:read:chatters` |
+| get chat settings | Gets a channel's chat settings, including the non-moderator delay. | — |
+| update chat settings | Changes only the chat settings you set, leaving the rest unchanged. | `moderator:manage:chat_settings` |
+| clear chat | Clears every message from a channel's chat. | `moderator:manage:chat_messages` |
+| delete chat message | Deletes one chat message. | `moderator:manage:chat_messages` |
+| get emotes | Lists a channel's emotes or Twitch's global emotes. | — |
+| get chat badges | Lists a channel's custom chat badges or Twitch's global badges. | — |
+| ban user | Bans or times out a user in a channel (duration in seconds, capped at two weeks). | `moderator:manage:banned_users` |
+| unban user | Removes a ban or timeout from a user in a channel. | `moderator:manage:banned_users` |
+| get banned users | Lists a channel's banned and timed-out users, optionally filtered to one user. | `moderation:read` |
+| get moderators | Lists a channel's moderators, optionally filtered to one user. | `moderation:read` |
+| add moderator | Gives a user moderator status in a channel. | `channel:manage:moderators` |
+| remove moderator | Removes a user's moderator status in a channel. | `channel:manage:moderators` |
+| get vips | Lists a channel's VIPs. | `channel:read:vips` |
+| add vip | Gives a user VIP status in a channel. | `channel:manage:vips` |
+| remove vip | Removes a user's VIP status in a channel. | `channel:manage:vips` |
+| warn user | Issues a warning to a user that they must acknowledge before chatting again. | `moderator:manage:warnings` |
+| get blocked terms | Lists the terms blocked in a channel's chat. | `moderator:read:blocked_terms` |
+| add blocked term | Adds a blocked term to a channel; matching messages are held for review. | `moderator:manage:blocked_terms` |
+| remove blocked term | Removes a blocked term from a channel's chat. | `moderator:manage:blocked_terms` |
+| check automod status | Asks Twitch whether messages would be approved or held by AutoMod, without posting them. | `moderation:read` |
+| create stream marker | Adds a marker to a live stream at the current position. The channel's stream must be live. The authenticated account must be the broadcaster. | `channel:manage:broadcast` |
+| get stream markers | Lists the stream markers of a channel, optionally limited to a single video. The authenticated account must be the channel owner. | `user:read:broadcast` |
+| create clip | Creates a clip of a running stream. The stream must be live. The authenticated account must be the broadcaster. | `clips:edit` |
+| get clips | Lists clips by broadcaster, by clip IDs, or by game. When Clip IDs is set the IDs are looked up directly; otherwise a Game selects clips for that category, falling back to the broadcaster's clips. No scope is required. | — |
+| get videos | Lists videos by user or by video IDs, with optional type, period, sort and language filters. When Video IDs is set the IDs are looked up directly and the filters are ignored. No scope is required. | — |
+| delete videos | Deletes one or more videos by ID. This cannot be undone. The authenticated account must be the broadcaster. | `channel:manage:videos` |
+| get games | Looks up a single game/category by name or numeric ID and returns its details. | — |
+| get top games | Lists the most viewed games/categories on Twitch right now. | — |
+| search categories | Searches games/categories by a partial or exact query. | — |
+| search channels | Searches channels by a partial or exact query, optionally limited to live channels. | — |
+| start raid | Starts a raid from a live channel to another live channel. The authenticated account must be the raiding broadcaster. | `channel:manage:raids` |
+| cancel raid | Cancels a raid the channel has started. The authenticated account must be the raiding broadcaster. | `channel:manage:raids` |
+| get streams | Fetches a list of active Twitch streams based on your configuration parameters. | — |
+| get custom rewards | Lists a channel's custom Channel Points rewards. | `channel:read:redemptions` |
+| create custom reward | Creates a custom Channel Points reward. Only the fields you set are sent. | `channel:manage:redemptions` |
+| update custom reward | Updates a custom Channel Points reward. Only the fields you set are sent. | `channel:manage:redemptions` |
+| delete custom reward | Deletes a custom Channel Points reward. | `channel:manage:redemptions` |
+| get redemptions | Lists redemptions of a custom Channel Points reward, newest first by default. | `channel:read:redemptions` |
+| update redemption status | Marks one or more custom reward redemptions as fulfilled or canceled. | `channel:manage:redemptions` |
+| get polls | Lists a channel's polls, most recent first, or fetches specific polls. | `channel:read:polls` |
+| create poll | Creates a channel poll with 2 to 5 choices. | `channel:manage:polls` |
+| end poll | Ends an active channel poll, optionally hiding the result from viewers. | `channel:manage:polls` |
+| get predictions | Lists a channel's predictions, most recent first, or fetches specific predictions. | `channel:read:predictions` |
+| create prediction | Creates a channel prediction with 2 to 10 outcomes. | `channel:manage:predictions` |
+| end prediction | Ends a channel prediction by resolving it with a winning outcome or cancelling it. | `channel:manage:predictions` |
+| get bits leaderboard | Gets the Bits leaderboard for a channel. Set Center on user to make sure one user appears with others ranked around them. | `bits:read` |
+| get cheermotes | Lists the Bits cheermotes Twitch supports, including each tier's images. Leave Channel blank for global cheermotes, or set it to a channel to also include its custom cheermotes. | — |
+| get subscriptions | Lists a channel's subscribers. Set User to check a single user instead, which returns that user's subscription if they have one. | `channel:read:subscriptions` |
+| check user subscription | Checks whether a user is subscribed to a channel, using the authenticated user's token. Blank User defaults to the authenticated account. | `user:read:subscriptions` |
+| get schedule | Gets a channel's streaming schedule as a list of segments. | — |
+| create segment | Adds a segment to a channel's streaming schedule. Twitch requires startDate (in UTC) and timezone; duration defaults to 240 minutes and isRecurring to false. | `channel:manage:schedule` |
+| update segment | Changes an existing schedule segment. Only the fields you fill in are sent; leave a field blank to keep its current value. | `channel:manage:schedule` |
+| delete segment | Removes a segment from a channel's schedule. | `channel:manage:schedule` |
+| get teams | Looks up a Twitch team by ID or name and returns its details and members. Twitch has no endpoint that lists every team, so supply an ID or name (a numeric msg.team is treated as an ID). | — |
+| get goals | Gets a channel's active creator goals (follower and subscription targets). | `channel:read:goals` |
+| get charity campaign | Gets the charity campaign a channel is currently running, or null when there is no active campaign. | `channel:read:charity` |
+| get hype train | Gets Hype Train events for a channel. Twitch exposes no REST endpoint for the current Hype Train, so this returns the recorded events of the current or latest train (paginated), not a live snapshot. | `channel:read:hype_train` |
+| send whisper | Sends a whisper from the authenticated account to another user. Twitch may silently drop whispers it considers abusive, so a success only means the request was accepted. | `user:manage:whispers` |
+<!-- helix-nodes:end -->
+
+### Adding a Helix node
+
+A Helix node is a spec, not a file pair. Add an entry to the matching group file under
+`src/twitch/helix/specs/` (for example `specs/chat.ts`), then run `npm run build`. The build generates
+the runtime module and editor html, updates `package.json` and refreshes the catalogue above.
+
+```ts
+defineHelix({
+  type: 'twitch-helix-get-something',
+  label: 'get something',
+  help: 'One line shown in the node help.',
+  scopes: ['channel:read:something'],
+  fields: [
+    { name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true, hint: 'blank = authenticated user' },
+    { name: 'limit', label: 'Limit', kind: 'int', default: 20 },
+  ],
+  // run only makes the twurple call; fields are already resolved and coerced
+  run: ({ api, broadcasterId, input }) => api.channels.getSomething(broadcasterId, input.limit),
+  // map returns a plain serialisable object, never a twurple class instance
+  map: (result) => ({ id: result.id, name: result.name }),
+})
+```
+
+For a list endpoint add `paged: { limit: 20, max: 1000 }` instead of declaring `limit`/`all`/`allMax`:
+the factory walks the pages and sets `msg.pagination`/`msg.total`. If an editor cannot be generated
+from the fields, `customHtml` is the escape hatch.
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again
