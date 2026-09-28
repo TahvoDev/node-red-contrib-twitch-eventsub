@@ -2,8 +2,13 @@
 'use strict'
 
 /**
- * Asserts the message-property rules the chat nodes rely on, so a change to one
- * node cannot quietly break the node it is wired to, nor reopen a gate.
+ * Chat nodes test.
+ *
+ * Asserts the message-property rules and helper behaviour the chat nodes rely
+ * on, so a change to one node cannot quietly break the node it is wired to.
+ * There is no test framework: it runs against the built dist/ output, and any
+ * failed assert throws and exits non-zero, failing `npm run test:unit`,
+ * `npm run check` and `npm run build`.
  */
 
 const assert = require('assert')
@@ -65,11 +70,30 @@ assert.deepStrictEqual(buildCommandTrigger('', 'hello'), { name: 'hello', trigge
 assert.throws(() => buildCommandTrigger('!', ''), /requires a command name/)
 assert.throws(() => buildCommandTrigger('!', '   '), /requires a command name/)
 
-// Word boundary: "!ban" must not match "!banned".
+// Command matching uses a token boundary, not a regex word boundary: the trigger
+// must be followed by whitespace or the end of the string. Case is ignored for
+// the match, while the arguments keep their original case.
 assert.deepStrictEqual(matchCommand('!hello world', '!hello'), ['world'])
 assert.deepStrictEqual(matchCommand('!HELLO', '!hello'), [])
-assert.deepStrictEqual(matchCommand('!ban target', '!ban'), ['target'])
-assert.strictEqual(matchCommand('!banned', '!ban'), undefined)
+assert.deepStrictEqual(matchCommand('!BAN Victim', '!ban'), ['Victim'])
+assert.deepStrictEqual(matchCommand('!ban two  words', '!ban'), ['two', 'words'])
+assert.deepStrictEqual(matchCommand('!ban\tvictim', '!ban'), ['victim'])
+assert.deepStrictEqual(matchCommand('!ban   ', '!ban'), [])
+assert.deepStrictEqual(matchCommand('!ban', '!ban'), [])
+// Anything glued to the command is a different token, so it does not match.
+for (const glued of [
+  '!banned',
+  '!banana',
+  '!ban.',
+  '!ban!',
+  '!ban,victim',
+  '!ban-victim',
+  '!ban_victim',
+  '!ban@victim',
+]) {
+  assert.strictEqual(matchCommand(glued, '!ban'), undefined, glued)
+}
+// The match is anchored at the start of the message.
 assert.strictEqual(matchCommand('x!ban', '!ban'), undefined)
 assert.strictEqual(matchCommand('hello', '!hello'), undefined)
 assert.strictEqual(matchCommand('', '!hello'), undefined)
@@ -94,8 +118,8 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
     /could not be found/
   )
 
-  console.log('chat node message properties: ok')
+  console.log('chat nodes test: ok')
 })().catch((err) => {
-  console.error(err.message)
+  console.error('chat nodes test failed:', err.message)
   process.exit(1)
 })
