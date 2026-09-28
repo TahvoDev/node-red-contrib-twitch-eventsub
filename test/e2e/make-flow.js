@@ -51,7 +51,6 @@ function buildFlow() {
       name: event.label,
       config: CONFIG_ID,
       event: event.type,
-      eventLabel: event.label,
       x: 640,
       y,
       wires: [[debugId]],
