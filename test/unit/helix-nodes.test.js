@@ -34,11 +34,18 @@ const {
   requireScopes,
   resolveAnnounceColor,
   clearUserCache,
+  MAX_TIMEOUT_SECONDS,
   mapUser,
   mapChannel,
   mapChatter,
   mapFollowedChannel,
   mapSentMessage,
+  mapBan,
+  mapModerator,
+  mapUserRelation,
+  mapWarning,
+  mapBlockedTerm,
+  mapAutoModStatus,
 } = utils
 
 /* ------------------------------------------------------------- coercion */
@@ -152,6 +159,26 @@ assert.strictEqual(helixErrorMessage(new Error('plain problem')), 'plain problem
   assert.deepStrictEqual(mapSentMessage({ id: 'm', isSent: true }), {
     id: 'm', isSent: true, dropReasonCode: null, dropReasonMessage: null,
   })
+
+  const ban = mapBan({ userId: 'u', userName: 'n', expiryDate: null })
+  assert.strictEqual(ban.userId, 'u')
+  assert.strictEqual(ban.isPermanent, true)
+  assert.strictEqual(ban.expiryDate, null)
+  assert.strictEqual(mapBan({ expiryDate: new Date(0) }).isPermanent, false)
+  assert.deepStrictEqual(mapModerator({ userId: 'u', userName: 'n', userDisplayName: 'N' }), {
+    userId: 'u', userName: 'n', userDisplayName: 'N',
+  })
+  assert.deepStrictEqual(mapUserRelation({ id: 'u', name: 'n', displayName: 'N' }), {
+    id: 'u', name: 'n', displayName: 'N',
+  })
+  assert.deepStrictEqual(mapWarning({ broadcasterId: 'b', moderatorId: 'm', userId: 'u', reason: 'r' }), {
+    broadcasterId: 'b', moderatorId: 'm', userId: 'u', reason: 'r',
+  })
+  assert.strictEqual(mapBlockedTerm({ id: 't', text: 'x' }).expirationDate, null)
+  assert.deepStrictEqual(mapAutoModStatus({ messageId: 'm', isPermitted: false }), {
+    messageId: 'm', isPermitted: false,
+  })
+  assert.strictEqual(MAX_TIMEOUT_SECONDS, 1209600)
 
   assert.strictEqual(resolveAnnounceColor({ color: '#FF0000' }, {}), 'primary')
   assert.strictEqual(resolveAnnounceColor({ announceColor: 'purple' }, {}), 'purple')
@@ -319,12 +346,91 @@ assert.strictEqual(helixErrorMessage(new Error('plain problem')), 'plain problem
   assert.deepStrictEqual(followerResult.sent[0].pagination, { cursor: 'next' })
   assert.strictEqual(followerResult.sent[0].total, 1)
 
+  /* ------------------------------------------------- moderation node */
+
+  const banCalls = []
+  const modApiClient = {
+    users: { getUserByName: async (n) => ({ id: `id-${n}` }) },
+    asUser: async (id, fn) => fn({
+      moderation: {
+        banUser: async (broadcaster, request) => {
+          banCalls.push({ id, broadcaster, request })
+          return [{ userId: request.user, userName: 'victim', expiryDate: null }]
+        },
+        getBannedUsers: async (broadcaster, filter) => {
+          banCalls.push({ list: broadcaster, filter })
+          return { data: [], cursor: null, total: 0 }
+        },
+      },
+    }),
+  }
+  const modRed = {
+    nodes: {
+      createNode() {},
+      getNode: () => ({
+        userId: '1001', config: { twitch_user_id: '1001' }, initAuth: async () => {}, apiClient: modApiClient,
+        getAuthProvider: () => ({ getCurrentScopesForUser: () => ['moderator:manage:banned_users'] }),
+      }),
+      registerType: (type, ctor) => { modRed._types[type] = ctor },
+    },
+    _types: {},
+  }
+  require(path.join(dist, 'twitch', 'helix', 'twitch-helix-ban-user.js'))(modRed)
+  const banNode = makeNode()
+  modRed._types['twitch-helix-ban-user'].call(banNode, { config: 'cfg' })
+  const banResult = await runInput(banNode, { user: 'victim', duration: '60', reason: 'spam' })
+  assert.strictEqual(banResult.err, undefined)
+  assert.strictEqual(banCalls[0].request.user, 'id-victim')
+  assert.strictEqual(banCalls[0].request.duration, 60)
+  assert.strictEqual(banCalls[0].request.reason, 'spam')
+  assert.strictEqual(banCalls[0].id, '1001')
+  assert.strictEqual(banResult.sent[0].payload.userId, 'id-victim')
+
+  // A blank duration is a permanent ban.
+  const banNode2 = makeNode()
+  modRed._types['twitch-helix-ban-user'].call(banNode2, { config: 'cfg', user: '1002' })
+  const permanent = await runInput(banNode2, {})
+  assert.strictEqual(permanent.err, undefined)
+  assert.strictEqual(banCalls[1].request.duration, undefined)
+
+  // A non-numeric duration fails the node instead of reaching Twitch.
+  const banNode3 = makeNode()
+  modRed._types['twitch-helix-ban-user'].call(banNode3, { config: 'cfg', user: '1002' })
+  const badDuration = await runInput(banNode3, { duration: 'soon' })
+  assert.match(badDuration.err.message, /Duration must be a positive number/)
+
+  // Missing scope fails with an actionable message.
+  const modRedScope = {
+    nodes: {
+      createNode() {},
+      getNode: () => ({
+        userId: '1001', config: { twitch_user_id: '1001' }, initAuth: async () => {}, apiClient: modApiClient,
+        getAuthProvider: () => ({ getCurrentScopesForUser: () => ['moderation:read'] }),
+      }),
+    },
+    _types: {},
+  }
+  modRedScope.nodes.registerType = (type, ctor) => { modRedScope._types[type] = ctor }
+  delete require.cache[require.resolve(path.join(dist, 'twitch', 'helix', 'twitch-helix-ban-user.js'))]
+  require(path.join(dist, 'twitch', 'helix', 'twitch-helix-ban-user.js'))(modRedScope)
+  const scopeNode = makeNode()
+  modRedScope._types['twitch-helix-ban-user'].call(scopeNode, { config: 'cfg', user: '1002' })
+  const scopeFailure = await runInput(scopeNode, {})
+  assert.match(scopeFailure.err.message, /Missing scope moderator:manage:banned_users/)
+
   /* ------------------------------------------------------------ palette */
 
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'))
   const newTypes = [
+    'twitch-helix-add-blocked-term',
+    'twitch-helix-add-moderator',
+    'twitch-helix-add-vip',
+    'twitch-helix-ban-user',
+    'twitch-helix-check-automod-status',
     'twitch-helix-clear-chat',
     'twitch-helix-delete-chat-message',
+    'twitch-helix-get-banned-users',
+    'twitch-helix-get-blocked-terms',
     'twitch-helix-get-channel-info',
     'twitch-helix-get-chat-badges',
     'twitch-helix-get-chat-settings',
@@ -332,11 +438,18 @@ assert.strictEqual(helixErrorMessage(new Error('plain problem')), 'plain problem
     'twitch-helix-get-emotes',
     'twitch-helix-get-followed-channels',
     'twitch-helix-get-followers',
+    'twitch-helix-get-moderators',
+    'twitch-helix-get-vips',
+    'twitch-helix-remove-blocked-term',
+    'twitch-helix-remove-moderator',
+    'twitch-helix-remove-vip',
     'twitch-helix-send-announcement',
     'twitch-helix-send-chat-message',
     'twitch-helix-send-shoutout',
+    'twitch-helix-unban-user',
     'twitch-helix-update-channel-info',
     'twitch-helix-update-chat-settings',
+    'twitch-helix-warn-user',
   ]
   for (const type of newTypes) {
     const file = pkg['node-red'].nodes[type]

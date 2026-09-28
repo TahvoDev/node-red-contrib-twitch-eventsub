@@ -29,7 +29,8 @@ type Status = {
 // token it is given and falls back to the real validate endpoint when the scope
 // list is unknown, so the mock provider has to claim a full set up front.
 const MOCK_SCOPES = [
-  'bits:read', 'channel:manage:broadcast', 'channel:moderate', 'channel:read:ads',
+  'bits:read', 'channel:manage:broadcast', 'channel:manage:moderators', 'channel:manage:vips',
+  'channel:moderate', 'channel:read:ads',
   'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
   'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
   'channel:read:predictions', 'channel:read:redemptions', 'channel:read:subscriptions',
@@ -37,7 +38,8 @@ const MOCK_SCOPES = [
   'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
   'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
   'moderator:manage:chat_settings', 'moderator:manage:shoutouts',
-  'moderator:manage:unban_requests', 'moderator:read:automod_settings',
+  'moderator:manage:unban_requests', 'moderator:manage:warnings',
+  'moderator:read:automod_settings',
   'moderator:read:blocked_terms', 'moderator:read:chat_settings',
   'moderator:read:chatters', 'moderator:read:followers', 'moderator:read:guest_star',
   'moderator:read:shield_mode', 'moderator:read:shoutouts',

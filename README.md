@@ -132,6 +132,20 @@ help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when
 | get chat badges | A channel's badges or the global badges | — |
 | get followers | A channel's followers (or check one user) | `moderator:read:followers` |
 | get followed channels | The channels a user follows (or check one) | `user:read:follows` |
+| ban user | Ban a user, or time them out when a duration is set | `moderator:manage:banned_users` |
+| unban user | Remove a ban or timeout | `moderator:manage:banned_users` |
+| get banned users | A channel's banned and timed-out users | `moderation:read` |
+| get moderators | A channel's moderators (or check one) | `moderation:read` |
+| add moderator | Give a user moderator status | `channel:manage:moderators` |
+| remove moderator | Remove a user's moderator status | `channel:manage:moderators` |
+| get vips | A channel's VIPs | `channel:read:vips` |
+| add vip | Give a user VIP status | `channel:manage:vips` |
+| remove vip | Remove a user's VIP status | `channel:manage:vips` |
+| warn user | Send a warning a user must acknowledge | `moderator:manage:warnings` |
+| get blocked terms | A channel's blocked terms | `moderator:read:blocked_terms` |
+| add blocked term | Block a term | `moderator:manage:blocked_terms` |
+| remove blocked term | Unblock a term | `moderator:manage:blocked_terms` |
+| check automod status | Ask whether a message would be held | `moderation:read` |
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again

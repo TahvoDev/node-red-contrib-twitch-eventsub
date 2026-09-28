@@ -1,0 +1,84 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-ban-user', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      broadcaster: { value: '' },
+      user:        { value: '' },
+      reason:      { value: '' },
+      duration:    { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'ban user',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'ban user' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      $('#node-input-duration').on('change', function () {
+        const value = String($(this).val()).trim();
+        if (value && !/^\d+$/.test(value)) RED.notify('Duration must be a whole number of seconds', 'warning');
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-ban-user">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-user"><i class="fa fa-gavel"></i> User</label>
+    <input type="text" id="node-input-user" placeholder="username or ID to ban" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-reason"><i class="fa fa-comment"></i> Reason</label>
+    <input type="text" id="node-input-reason" placeholder="optional" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-duration"><i class="fa fa-hourglass-half"></i> Duration (seconds)</label>
+    <input type="text" id="node-input-duration" placeholder="blank = permanent ban" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-ban-user">
+  <p>Bans a user, or times them out when <b>Duration</b> is set (in seconds, capped at two weeks).
+    The authenticated account must be a moderator or the broadcaster.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>targetUserId | targetUser | user <span class="property-type">string</span></dt>
+    <dd>The user to ban or time out; a username or an ID. <code>targetUserId</code> takes priority.</dd>
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID.</dd>
+    <dt>reason <span class="property-type">string</span></dt>
+    <dd>Optional. Reason shown to moderators.</dd>
+    <dt>duration <span class="property-type">number | string</span></dt>
+    <dd>Optional. Timeout length in seconds; blank or zero-length means a permanent ban.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd><code>userId</code>, <code>userName</code>, <code>userDisplayName</code>, <code>moderatorId</code>,
+      <code>reason</code>, <code>creationDate</code>, <code>expiryDate</code>, <code>isPermanent</code>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>moderator:manage:banned_users</code></p>
+</script>

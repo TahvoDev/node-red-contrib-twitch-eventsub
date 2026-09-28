@@ -191,6 +191,9 @@ export function requireScopes(twitchConfig: any, scopes: string[]): void {
 
 /* ----------------------------------------------------------------- paging */
 
+/** Twitch caps a timeout at two weeks, in seconds. */
+export const MAX_TIMEOUT_SECONDS = 1_209_600;
+
 /** Twitch paged endpoints default to 20 and cap at 100. */
 export function clampLimit(value: unknown, fallback = 20): number {
   const n = toInt(value, fallback) ?? fallback;
@@ -394,6 +397,66 @@ export function mapSentMessage(message: any) {
     isSent: message.isSent,
     dropReasonCode: message.dropReasonCode ?? null,
     dropReasonMessage: message.dropReasonMessage ?? null,
+  };
+}
+
+export function mapBan(ban: any) {
+  return {
+    userId: ban.userId,
+    userName: ban.userName,
+    userDisplayName: ban.userDisplayName,
+    moderatorId: ban.moderatorId,
+    moderatorName: ban.moderatorName,
+    moderatorDisplayName: ban.moderatorDisplayName,
+    reason: ban.reason ?? null,
+    creationDate: ban.creationDate,
+    expiryDate: ban.expiryDate ?? null,
+    isPermanent: !ban.expiryDate,
+  };
+}
+
+export function mapModerator(moderator: any) {
+  return {
+    userId: moderator.userId,
+    userName: moderator.userName,
+    userDisplayName: moderator.userDisplayName,
+  };
+}
+
+/** A user relation (used by the VIP list): id, name, displayName. */
+export function mapUserRelation(relation: any) {
+  return {
+    id: relation.id,
+    name: relation.name,
+    displayName: relation.displayName,
+  };
+}
+
+export function mapWarning(warning: any) {
+  return {
+    broadcasterId: warning.broadcasterId,
+    moderatorId: warning.moderatorId,
+    userId: warning.userId,
+    reason: warning.reason,
+  };
+}
+
+export function mapBlockedTerm(term: any) {
+  return {
+    id: term.id,
+    text: term.text,
+    broadcasterId: term.broadcasterId,
+    moderatorId: term.moderatorId,
+    creationDate: term.creationDate,
+    updatedDate: term.updatedDate,
+    expirationDate: term.expirationDate ?? null,
+  };
+}
+
+export function mapAutoModStatus(status: any) {
+  return {
+    messageId: status.messageId,
+    isPermitted: status.isPermitted,
   };
 }
 
