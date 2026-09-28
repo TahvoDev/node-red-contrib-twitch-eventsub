@@ -35,7 +35,7 @@
         var label = '<label for="' + id + '"><i class="fa ' + esc(field.faIcon || 'fa-font') + '"></i> ' + esc(field.label) + '</label>';
         var hint = field.hint ? ' placeholder="' + esc(field.hint) + '"' : '';
         if (field.kind === 'bool') {
-          return '<div class="form-row"><label>&nbsp;</label><input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (value ? ' checked' : '') + '/></div>';
+          return '<div class="form-row">' + label + '<input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (value ? ' checked' : '') + '/></div>';
         }
         if (field.kind === 'select') {
           var options = (field.options || []).map(function (option) {

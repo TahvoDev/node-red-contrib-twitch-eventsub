@@ -19,6 +19,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Every spec now declares a `tier` (`core` | `extended` | `advanced`). Only enabled tiers register;
   configure `twitchApi.tiers` in `settings.js` (default `['core']`). OAuth scopes stay the fixed
   build-time union, so changing tiers never forces users to re-authenticate.
+- Helix calls always run as the authenticated account. Removed the actor overrides that could never
+  work with a second account: the broadcaster context on *update channel info*, *ads* and *raids*,
+  and the `From` / `User` overrides on *send shoutout* and *get followed channels* (those fields name
+  the channel/target, not the actor). Public endpoints (emotes, chat badges, content classification
+  labels, drops, extensions) still use an app token, deliberately without a user.
+- The editor renders boolean fields with their label (e.g. **Get all**, **Include Email**) instead of
+  an unlabelled checkbox.
 - **Paging:** **Get all** now follows every page by default instead of stopping at a 1000-row cap, so
   flows no longer need a manual pagination loop. **Max** is a blank-by-default safety ceiling (hard
   limit 50000); when it is reached the node sets `msg.truncated: true` and leaves the cursor so a flow

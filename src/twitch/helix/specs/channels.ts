@@ -1,5 +1,5 @@
 import { defineHelix } from '../define';
-import { broadcaster, selfUser, triState } from './common';
+import { broadcaster, triState } from './common';
 import {
   mapChannel,
   mapFollowedChannel,
@@ -42,7 +42,6 @@ export const channelSpecs = [
     label: 'update channel info',
     help: "Updates a channel's title, game, tags or language. Only the fields you fill in are changed; the node fetches and returns the channel afterwards. The authenticated account must be the broadcaster.",
     scopes: ['channel:manage:broadcast'],
-    context: 'broadcaster',
     fields: [
       broadcaster,
       {
@@ -162,11 +161,10 @@ export const channelSpecs = [
     group: 'followers',
     tier: 'core',
     label: 'get followed channels',
-    help: 'Lists the channels a user follows. Set Channel to a single login to just confirm whether the user follows it. Defaults to the authenticated account.',
+    help: 'Lists the channels the authenticated account follows. Set Channel to a single login to just confirm whether they follow it.',
     scopes: ['user:read:follows'],
     paged: { limit: 20 },
     fields: [
-      selfUser,
       {
         name: 'broadcaster',
         label: 'Channel',
@@ -176,15 +174,11 @@ export const channelSpecs = [
         hint: 'optional: check one channel',
       },
     ],
-    run: async ({ root, input, moderatorId }) => {
-      const userId = input.user ?? moderatorId;
-      return root.asUser(userId, (ctx: any) =>
-        ctx.channels.getFollowedChannels(userId, input.broadcaster, {
-          limit: input.limit,
-          after: input.after,
-        })
-      );
-    },
+    run: async ({ api, input, moderatorId }) =>
+      api.channels.getFollowedChannels(moderatorId, input.broadcaster, {
+        limit: input.limit,
+        after: input.after,
+      }),
     map: (channel) => mapFollowedChannel(channel),
   }),
 
@@ -195,7 +189,6 @@ export const channelSpecs = [
     label: 'ads',
     help: 'Reads the ad schedule, snoozes the next ad or starts a commercial break.',
     scopes: ['channel:read:ads', 'channel:manage:ads', 'channel:edit:commercial'],
-    context: 'broadcaster',
     fields: [broadcaster],
     defaultAction: 'get',
     actions: {

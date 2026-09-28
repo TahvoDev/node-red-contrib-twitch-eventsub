@@ -537,7 +537,6 @@ export const contentSpecs = [
     label: 'raids',
     help: 'Starts or cancels a raid.',
     scopes: ['channel:manage:raids'],
-    context: 'broadcaster',
     fields: [broadcaster],
     defaultAction: 'start',
     actions: {

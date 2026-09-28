@@ -116,34 +116,26 @@ export const chatSpecs = [
     group: 'chat',
     tier: 'core',
     label: 'send shoutout',
-    help: 'Sends a shoutout from one channel to another.',
+    help: 'Sends a shoutout from the authenticated channel to another.',
     scopes: ['moderator:manage:shoutouts'],
     fields: [
-      {
-        name: 'fromBroadcaster',
-        label: 'From',
-        kind: 'user',
-        optional: true,
-        aliases: ['from'],
-        hint: 'blank = authenticated user',
-      },
       {
         name: 'toBroadcaster',
         label: 'Shout out',
         kind: 'user',
-        optional: true,
+        required: true,
         aliases: ['to'],
         faIcon: 'fa-bullhorn',
         hint: 'channel name or ID to shout out',
       },
     ],
-    run: async ({ root, moderatorId, input, raw }) => {
-      const fromId = String(input.fromBroadcaster ?? moderatorId);
+    run: async ({ api, root, moderatorId, input, raw }) => {
+      const fromId = moderatorId;
       const toId = input.toBroadcaster;
       if (!toId) throw new Error('Target broadcaster is required — set msg.to or the node field');
 
       const toUser = await root.users.getUserById(toId);
-      await root.asUser(fromId, (ctx: any) => ctx.chat.shoutoutUser(fromId, toId));
+      await api.chat.shoutoutUser(fromId, toId);
 
       return {
         fromBroadcasterId: fromId,
