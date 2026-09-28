@@ -203,7 +203,6 @@
       "twitch-helix-update-custom-reward": "dist/twitch/helix/generated/twitch-helix-update-custom-reward.js",
       "twitch-helix-update-redemption-status": "dist/twitch/helix/generated/twitch-helix-update-redemption-status.js",
       "twitch-helix-update-segment": "dist/twitch/helix/generated/twitch-helix-update-segment.js",
-      "twitch-helix-update-user": "dist/twitch/helix/twitch-helix-update-user-description.js",
       "twitch-helix-update-user-description": "dist/twitch/helix/generated/twitch-helix-update-user-description.js",
       "twitch-helix-user-block": "dist/twitch/helix/generated/twitch-helix-user-block.js",
       "twitch-helix-warn-user": "dist/twitch/helix/generated/twitch-helix-warn-user.js"
