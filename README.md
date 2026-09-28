@@ -8,10 +8,95 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
   redeems, bits, cheers, raids, polls, predictions, hype trains, goals, charity,
   moderation, AutoMod, chat, warnings, whispers, stream online/offline and more.
 - The palette groups them into `twitch ...` categories that follow Twitch's own
-  EventSub areas: automod, bits & ads, channel, channel points, charity, chat, goals,
-  hype train, moderation, polls, predictions, raids, stream, subscriptions and user.
+  EventSub areas: automod, bits & ads, channel, channel points, charity, chat events,
+  goals, hype train, moderation, polls, predictions, raids, stream, subscriptions and user.
 - Every event node has its own icon, drawn from the event at build time.
 - The Helix API nodes live under `twitch api`.
+- Twitch Chat (IRC) nodes live under `twitch chat (irc)`: receive and send chat messages,
+  run commands, moderate, announce, join and leave channels.
+
+## Twitch Chat
+
+The `twitch chat (irc)` nodes talk to chat over Twitch's IRC gateway using
+[`@twurple/chat`](https://www.npmjs.com/package/@twurple/chat). They share one connection through the
+**twitch-chat-connection** config node.
+
+### The connection node
+
+Drop the config node once, then point the other chat nodes at it from their **Connection** dropdown:
+
+- **Account** — a `twitch-api-config` node. The chat connection borrows that node's OAuth token;
+  it never stores credentials itself.
+- **Channels** — comma-separated channel logins to join on startup, without a leading `#`
+  (for example `channelname1, channelname2`).
+
+The connection always identifies as a bot, so Twitch applies its bot rate limits rather than the
+tighter anonymous-user ones. Register the account as a known bot with Twitch to get the full
+allowance.
+
+The node shows **Connected**, **Reconnecting** or **Disconnected** and every node using it mirrors
+that status.
+
+### Broadcaster vs bot accounts
+
+The account used for chat is the account the bot logs in as, so it is usually easiest to create a
+**second `twitch-api-config` node** for a dedicated bot account and select it in the chat connection.
+The broadcaster account can stay as the main login for EventSub. To let the bot post in the
+broadcaster's channel, give the bot account moderator (or at least chat) permissions there. If you
+only use one account, that account must be the broadcaster or a moderator of the channel it posts in.
+
+Both config nodes need these OAuth scopes:
+
+- `chat:read`, `chat:edit`, `user:read:chat`
+
+The **bot's** `twitch-api-config` node additionally needs the moderation scopes:
+
+- `channel:moderate`
+- `moderator:manage:banned_users`, `moderator:manage:chat_messages`, `moderator:manage:announcements`
+
+`chat:read` and `chat:edit` are needed to read and send over IRC; the `moderator:*` scopes are needed
+for the moderation nodes. Keep them **on the bot's config node only**, never on the broadcaster's
+EventSub node: a token that can ban and clear chat is materially worse if it leaks, and the chat
+nodes only ever use the bot account. If your existing token was created before you added a scope, log
+the account in again so the new scope is granted.
+
+### Nodes
+
+- **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …),
+  with an optional **Ignore own messages** switch for the connection's own account.
+- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
+- **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
+  `msg.id` that **chat in** emits.
+- **chat command** — placed after **chat in**, matches one `!command` up to a word boundary and
+  enriches the message with `msg.command` and `msg.args`, with optional mod / sub / VIP /
+  broadcaster checks.
+- **chat ban**, **chat timeout**, **chat unban** — moderation actions. The target is
+  `msg.targetUser` (login) or `msg.targetUserId` (id).
+- **chat delete message** — deletes a single message by its ID (`msg.messageId` or `msg.id`).
+- **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
+  colours (`msg.announceColor`, `primary` by default) from `msg.payload`, or `msg.text` when there
+  is no payload.
+- **chat clear** — clears the whole channel.
+- **chat join**, **chat part** — join or leave a channel at runtime.
+
+The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no longer accepts the
+moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
+target channel. Which account triggered the action is not sent: Twitch requires the ban/clear/announce
+request to be made by the token's own user, so the bot is what Twitch logs.
+
+### Example: reply to `!hello`
+
+`chat in` → `chat command` (command `hello`, prefix `!`) → a function node that builds the reply →
+`chat send`. The command node passes the original message through, so `msg.user` and `msg.channel`
+are still available:
+
+```js
+msg.payload = `Hello, ${msg.user}!`;
+return msg;
+```
+
+Leave **chat send**'s channel blank so it uses the channel from `msg.channel`, and set **chat in**'s
+channel to the same channel (or leave it blank to listen to every joined channel).
 
 ## Testing without a Twitch account
 
@@ -60,11 +145,14 @@ has drifted from the registry. The field mapping supports a plain property name,
 renamed property, a default value and a `map` function for anything more complex.
 
 The palette category and icon are derived as well. `categoryFor` in the registry maps the
-event area to a `twitch ...` category, and `eventsub-icons.ts` maps the event to a glyph
+event area to a `twitch ...` category (the chat events area is `twitch chat events`), and `eventsub-icons.ts` maps the event to a glyph
 that the build renders white on Node-RED's standard 40x60 icon canvas, so it keeps the
 same padding as the stock icons. To use a new glyph, `npm i --no-save bootstrap-icons`,
 add the name in `eventsub-icons.ts`, then run `npx tsc && npm run collect-glyphs` to
-vendor its path into `src/icons/glyphs.json`.
+vendor its path into `src/icons/glyphs.json`. The Twitch Chat nodes use the same
+mechanism: their glyphs live in `src/twitch/chat/twitch-chat-icons.ts` and are
+rendered by `scripts/generate-chat-icons.js`, and both generators share
+`scripts/render-glyph-icon.js`.
 
 ## Credits
 

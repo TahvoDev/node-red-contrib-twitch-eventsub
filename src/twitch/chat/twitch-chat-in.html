@@ -1,0 +1,90 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-in', {
+  category: 'twitch chat (irc)',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '' },
+    connection: { type: 'twitch-chat-connection', required: true },
+    channel: { value: '' },
+    ignoreOwnMessages: { value: false },
+  },
+  inputs: 0,
+  outputs: 1,
+  outputLabels: ['message'],
+  icon: 'twitch-chat-in.svg',
+  paletteLabel: 'chat in',
+  label: function () {
+    if (this.name) return this.name;
+    var connection = RED.nodes.node(this.connection);
+    return 'chat in' + (connection ? ' (' + (connection.name || '') + ')' : '');
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-in">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection"><i class="fa fa-plug"></i> Connection</label>
+    <input type="text" id="node-input-connection" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
+    <input type="text" id="node-input-channel" placeholder="Leave blank for all joined channels" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-ignoreOwnMessages"><i class="fa fa-eye-slash"></i> Ignore own messages</label>
+    <input type="checkbox" id="node-input-ignoreOwnMessages" style="display:inline-block; width:auto; vertical-align:top;">
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-in">
+  <p>Emits a message for every chat message received on the joined channels.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>Connection <span class="property-type">twitch-chat-connection</span></dt>
+    <dd>The chat connection that supplies the message stream.</dd>
+
+    <dt>Channel <span class="property-type">string</span></dt>
+    <dd>Optional channel login to filter on. Leave blank to pass messages from every joined channel.</dd>
+
+    <dt>Ignore own messages <span class="property-type">boolean</span></dt>
+    <dd>Do not emit messages sent by the connection's own account. Off by default.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>topic <span class="property-type">string</span></dt>
+    <dd><code>twitch/chat/{channel}/{user}</code>.</dd>
+
+    <dt>text / payload <span class="property-type">string</span></dt>
+    <dd>The raw chat message text.</dd>
+
+    <dt>user / displayName / userId <span class="property-type">string</span></dt>
+    <dd>The sender's login, display name and numeric user ID.</dd>
+
+    <dt>id <span class="property-type">string</span></dt>
+    <dd>The Twitch message ID, accepted by <b>chat reply</b> and <b>chat delete message</b>.</dd>
+
+    <dt>emotes / badges <span class="property-type">object[]</span></dt>
+    <dd>Emotes used in the message and the sender's chat badges.</dd>
+
+    <dt>bits / isCheer <span class="property-type">number | boolean</span></dt>
+    <dd>Bits cheered and whether the message is a cheer.</dd>
+
+    <dt>isMod / isSubscriber / isVip / isBroadcaster <span class="property-type">boolean</span></dt>
+    <dd>The sender's status in the channel.</dd>
+
+    <dt>color <span class="property-type">string</span></dt>
+    <dd>The sender's chosen chat colour, if set.</dd>
+  </dl>
+</script>

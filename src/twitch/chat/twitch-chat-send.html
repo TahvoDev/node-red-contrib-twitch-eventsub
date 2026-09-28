@@ -1,0 +1,56 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-send', {
+  category: 'twitch chat (irc)',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '' },
+    connection: { type: 'twitch-chat-connection', required: true },
+    channel: { value: '' },
+  },
+  inputs: 1,
+  outputs: 0,
+  icon: 'twitch-chat-send.svg',
+  paletteLabel: 'chat send',
+  label: function () {
+    if (this.name) return this.name;
+    return this.channel ? 'chat send (' + this.channel + ')' : 'chat send';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-send">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection"><i class="fa fa-plug"></i> Connection</label>
+    <input type="text" id="node-input-connection" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
+    <input type="text" id="node-input-channel" placeholder="Default channel (msg.channel overrides)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-send">
+  <p>Sends a chat message to a Twitch channel.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd>The message text to send. <code>msg.text</code> is used when there is no payload.
+    Carriage returns and line feeds are stripped and the text is capped at 500 characters.</dd>
+
+    <dt class="optional">channel <span class="property-type">string</span></dt>
+    <dd>Overrides the channel configured on the node.</dd>
+  </dl>
+
+  <p>If neither the node's channel nor <code>msg.channel</code> is set, or the message text is
+  empty, the node reports an error instead of sending.</p>
+</script>

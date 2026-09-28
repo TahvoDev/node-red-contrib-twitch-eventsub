@@ -1471,7 +1471,9 @@ const EVENT_LIST: EventSubEventInput[] = [
 function categoryFor(type: string): string {
   const name = type.replace(/^twitch-eventsub-/, '');
   if (/^automod-/.test(name)) return 'twitch automod';
-  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'twitch chat';
+  // Only this area is clarified (as "twitch chat events") so it cannot be
+  // mistaken for the IRC nodes in the `twitch chat (irc)` category.
+  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'twitch chat events';
   if (/^channel-subscription/.test(name)) return 'twitch subscriptions';
   if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'twitch channel points';
   if (/^channel-poll-/.test(name)) return 'twitch polls';

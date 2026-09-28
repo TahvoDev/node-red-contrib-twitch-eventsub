@@ -1,0 +1,51 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-join', {
+  category: 'twitch chat (irc)',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '' },
+    connection: { type: 'twitch-chat-connection', required: true },
+    channel: { value: '' },
+  },
+  inputs: 1,
+  outputs: 0,
+  icon: 'twitch-chat-join.svg',
+  paletteLabel: 'chat join',
+  label: function () {
+    if (this.name) return this.name;
+    return this.channel ? 'chat join (' + this.channel + ')' : 'chat join';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-join">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection"><i class="fa fa-plug"></i> Connection</label>
+    <input type="text" id="node-input-connection" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
+    <input type="text" id="node-input-channel" placeholder="Default channel (msg.channel overrides)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-join">
+  <p>Joins a channel so its chat messages start arriving at <b>chat in</b>. Channel membership resets
+  on startup: a restart or redeploy drops runtime joins and the connection rejoins only its
+  configured <b>Channels</b>.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt class="optional">channel <span class="property-type">string</span></dt>
+    <dd>Channel login to join. Falls back to the channel configured on the node.</dd>
+  </dl>
+</script>

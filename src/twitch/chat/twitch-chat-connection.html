@@ -1,0 +1,59 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-connection', {
+  category: 'config',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '', required: true },
+    account: { type: 'twitch-api-config', required: true },
+    channels: { value: '' },
+  },
+  inputs: 0,
+  outputs: 0,
+  icon: 'twitch-chat-connection.svg',
+  label: function () {
+    return this.name || 'twitch-chat-connection';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-connection">
+  <div class="form-row">
+    <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-config-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-account"><i class="fa fa-user"></i> Account</label>
+    <input type="text" id="node-config-input-account" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-config-input-channels"><i class="fa fa-comments"></i> Channels</label>
+    <input type="text" id="node-config-input-channels" placeholder="channelname1, channelname2" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-connection">
+  <p>Holds the shared Twitch chat (IRC) connection used by the other <b>Twitch Chat</b> nodes.</p>
+
+  <h3>Configuration</h3>
+  <dl class="message-properties">
+    <dt>Account <span class="property-type">twitch-api-config</span></dt>
+    <dd>The Twitch API config node that provides the OAuth token. Use a separate config node for a
+    bot account if you want the bot to chat while the broadcaster account stays as the main login.</dd>
+
+    <dt>Channels <span class="property-type">string</span></dt>
+    <dd>Comma-separated channel logins to join on startup, without a leading <code>#</code>
+    (for example <code>channelname1, channelname2</code>).</dd>
+  </dl>
+
+  <p>The connection always identifies as a bot, so Twitch applies its bot rate limits rather
+  than the tighter anonymous-user ones. Register the account as a known bot with Twitch to get
+  the full bot allowance.</p>
+
+  <p>The OAuth token needs the <code>chat:read</code> and <code>chat:edit</code> scopes, and
+  <code>user:read:chat</code> for the account that should receive chat.</p>
+</script>

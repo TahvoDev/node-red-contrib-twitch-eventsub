@@ -30,10 +30,18 @@ if (!fs.existsSync(mappingPath)) {
 }
 
 const { EVENT_ICONS } = require(mappingPath)
-const names = [...new Set(Object.values(EVENT_ICONS))].sort()
+
+// The Chat nodes use their own mapping; include it so one run vendors every
+// glyph the package ships.
+const names = new Set(Object.values(EVENT_ICONS))
+const chatMappingPath = path.join(root, 'dist', 'twitch', 'chat', 'twitch-chat-icons.js')
+if (fs.existsSync(chatMappingPath)) {
+  for (const name of Object.values(require(chatMappingPath).CHAT_ICONS)) names.add(name)
+}
+const sorted = [...names].sort()
 
 const glyphs = {}
-for (const name of names) {
+for (const name of sorted) {
   const file = path.join(iconsDir, `${name}.svg`)
   const svg = fs.readFileSync(file, 'utf8')
   const viewBox = /viewBox="([^"]+)"/.exec(svg)?.[1] ?? '0 0 16 16'
@@ -50,4 +58,4 @@ const output = {
 }
 fs.mkdirSync(path.join(root, 'src', 'icons'), { recursive: true })
 fs.writeFileSync(path.join(root, 'src', 'icons', 'glyphs.json'), `${JSON.stringify(output, null, 2)}\n`)
-console.log(`wrote ${names.length} glyphs to src/icons/glyphs.json`)
+console.log(`wrote ${sorted.length} glyphs to src/icons/glyphs.json`)

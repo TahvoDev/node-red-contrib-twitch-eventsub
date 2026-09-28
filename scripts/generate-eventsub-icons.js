@@ -9,11 +9,14 @@
  * directory beside a registered node file.
  *
  * The glyph paths are vendored from Bootstrap Icons (MIT) in `src/icons/glyphs.json`
- * by `scripts/collect-glyphs.js`; the mapping lives in `eventsub-icons.ts`.
+ * by `scripts/collect-glyphs.js`; the mapping lives in `eventsub-icons.ts` and the
+ * rendering is shared with the Chat icons in `scripts/render-glyph-icon.js`.
  */
 
 const fs = require('fs')
 const path = require('path')
+
+const { renderGlyphIcon } = require('./render-glyph-icon')
 
 const root = path.resolve(__dirname, '..')
 const distDir = path.join(root, 'dist', 'twitch', 'eventsub')
@@ -33,35 +36,10 @@ if (unmapped.length) {
   process.exit(1)
 }
 
-// The glyph is white; the node body supplies the colour. The canvas matches the
-// 40x60 viewBox of Node-RED's stock icons, with the glyph inset so it keeps the
-// same breathing room on the workspace node.
-const ICON_COLOR = '#ffffff'
-const CANVAS_WIDTH = 40
-const CANVAS_HEIGHT = 60
-const GLYPH_SIZE = 26
-
-function renderIcon(glyphName) {
-  const glyph = glyphs[glyphName]
-  if (!glyph) throw new Error(`missing glyph: ${glyphName} (run scripts/collect-glyphs.js)`)
-
-  // SVG allows commas as well as whitespace between viewBox values.
-  const [gx, gy, gw, gh] = glyph.viewBox.split(/[\s,]+/).map(Number)
-  const scale = GLYPH_SIZE / Math.max(gw, gh)
-  const x = (CANVAS_WIDTH - gw * scale) / 2 - gx * scale
-  const y = (CANVAS_HEIGHT - gh * scale) / 2 - gy * scale
-
-  return (
-    `<svg xmlns="http://www.w3.org/2000/svg" width="${CANVAS_WIDTH}" height="${CANVAS_HEIGHT}" viewBox="0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}">` +
-    `<g transform="translate(${x} ${y}) scale(${scale})" fill="${ICON_COLOR}">${glyph.body}</g>` +
-    '</svg>\n'
-  )
-}
-
 fs.mkdirSync(outDir, { recursive: true })
 
 for (const definition of EVENTS) {
-  fs.writeFileSync(path.join(outDir, definition.icon), renderIcon(glyphFor(definition.type)))
+  fs.writeFileSync(path.join(outDir, definition.icon), renderGlyphIcon(glyphs, glyphFor(definition.type)))
 }
 
 console.log(`generated ${EVENTS.length} EventSub node icons`)

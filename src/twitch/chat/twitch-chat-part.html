@@ -1,0 +1,51 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-part', {
+  category: 'twitch chat (irc)',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '' },
+    connection: { type: 'twitch-chat-connection', required: true },
+    channel: { value: '' },
+  },
+  inputs: 1,
+  outputs: 0,
+  icon: 'twitch-chat-part.svg',
+  paletteLabel: 'chat part',
+  label: function () {
+    if (this.name) return this.name;
+    return this.channel ? 'chat part (' + this.channel + ')' : 'chat part';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-part">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection"><i class="fa fa-plug"></i> Connection</label>
+    <input type="text" id="node-input-connection" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
+    <input type="text" id="node-input-channel" placeholder="Default channel (msg.channel overrides)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-part">
+  <p>Leaves a channel, stopping its chat messages from arriving at <b>chat in</b>. Leaving a channel
+  that is in the connection's configured <b>Channels</b> is temporary — the connection rejoins it on
+  the next connect — so the part does not survive a reconnect or redeploy.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt class="optional">channel <span class="property-type">string</span></dt>
+    <dd>Channel login to leave. Falls back to the channel configured on the node.</dd>
+  </dl>
+</script>

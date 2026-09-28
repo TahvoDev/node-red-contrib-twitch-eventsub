@@ -1,6 +1,6 @@
 import type { NodeAPI } from 'node-red';
 import { AbstractNode } from '../AbstractNode';
-import { RefreshingAuthProvider } from '@twurple/auth';
+import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
 import { MockAuthProvider } from './mock-auth-provider';
@@ -32,7 +32,8 @@ const MOCK_SCOPES = [
   'bits:read', 'channel:moderate', 'channel:read:ads', 'channel:read:charity',
   'channel:read:goals', 'channel:read:guest_star', 'channel:read:hype_train',
   'channel:read:polls', 'channel:read:predictions', 'channel:read:redemptions',
-  'channel:read:subscriptions', 'channel:read:vips', 'chat:read', 'moderation:read',
+  'channel:read:subscriptions', 'channel:read:vips', 'chat:read', 'chat:edit',
+  'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
   'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
   'moderator:manage:unban_requests', 'moderator:read:automod_settings',
   'moderator:read:blocked_terms', 'moderator:read:chat_settings',
@@ -110,13 +111,16 @@ module.exports = function (RED: NodeAPI) {
     config: TwitchApiConfigProps;
     credentials: TwitchApiCredentials;
     apiClient?: ApiClient;
+    private authProvider?: AuthProvider;
     eventsubService?: TwitchEventsubService;
-    nodeListeners: { [key: string]: any } = {};
+    // Null-prototype maps: the keys are node ids, and a plain object would let a
+    // key like "__proto__" resolve to Object.prototype.
+    nodeListeners: { [key: string]: any } = Object.create(null);
     currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
     authReady = false;
     userId?: string;
     mockServerPort?: number;
-    nodeTypes: { [key: string]: string } = {};
+    nodeTypes: { [key: string]: string } = Object.create(null);
     unsupportedNodes: Set<string> = new Set();
 
     private authInitPromise?: Promise<void>;
@@ -165,6 +169,7 @@ module.exports = function (RED: NodeAPI) {
 
         authProvider.onRefreshFailure(() => {
           this.authReady = false;
+          this.authProvider = undefined;
           this.apiClient = undefined;
           this.updateStatus({ fill: 'red', shape: 'ring', text: 'Token refresh failed — re-authenticate' });
         });
@@ -180,6 +185,7 @@ module.exports = function (RED: NodeAPI) {
         );
 
         this.userId = this.config.twitch_user_id;
+        this.authProvider = authProvider;
         this.apiClient = new ApiClient({ authProvider });
         this.authReady = true;
         this.log('Auth ready');
@@ -220,6 +226,7 @@ module.exports = function (RED: NodeAPI) {
 
         this.userId = userId;
         this.mockServerPort = mockPort;
+        this.authProvider = authProvider;
         this.apiClient = new ApiClient({ authProvider, mockServerPort: mockPort });
         this.authReady = true;
         this.log(`Mock server on port ${mockPort} as user ${userId}`);
@@ -279,8 +286,17 @@ module.exports = function (RED: NodeAPI) {
         this.eventsubService = undefined;
       }
       this.apiClient = undefined;
+      this.authProvider = undefined;
       this.authReady = false;
       this.updateStatus({ fill: 'grey', shape: 'ring', text: 'Disconnected' });
+    }
+
+    /**
+     * The token provider built from this node's credentials. Dependent nodes
+     * (e.g. the chat connection) use it instead of reaching into the ApiClient.
+     */
+    getAuthProvider(): AuthProvider | undefined {
+      return this.authProvider;
     }
 
     updateStatus(status: Status) {

@@ -1,0 +1,59 @@
+<script type="text/javascript">
+RED.nodes.registerType('twitch-chat-reply', {
+  category: 'twitch chat (irc)',
+  color: '#b9a3e3',
+  defaults: {
+    name: { value: '' },
+    connection: { type: 'twitch-chat-connection', required: true },
+    channel: { value: '' },
+  },
+  inputs: 1,
+  outputs: 0,
+  icon: 'twitch-chat-reply.svg',
+  paletteLabel: 'chat reply',
+  label: function () {
+    if (this.name) return this.name;
+    return this.channel ? 'chat reply (' + this.channel + ')' : 'chat reply';
+  },
+  labelStyle: function () {
+    return this.name ? 'node_label_italic' : '';
+  },
+});
+</script>
+
+<script type="text/html" data-template-name="twitch-chat-reply">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-connection"><i class="fa fa-plug"></i> Connection</label>
+    <input type="text" id="node-input-connection" />
+  </div>
+
+  <div class="form-row">
+    <label for="node-input-channel"><i class="fa fa-comments"></i> Channel</label>
+    <input type="text" id="node-input-channel" placeholder="Default channel (msg.channel overrides)" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-chat-reply">
+  <p>Sends a chat message as a reply to an existing message.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd>The reply text to send. Carriage returns and line feeds are stripped and the text is capped
+    at 500 characters.</dd>
+
+    <dt>replyTo <span class="property-type">string</span></dt>
+    <dd>The Twitch message ID to reply to. <code>msg.id</code> from <b>chat in</b> is also accepted.</dd>
+
+    <dt class="optional">channel <span class="property-type">string</span></dt>
+    <dd>Overrides the channel configured on the node.</dd>
+  </dl>
+
+  <p>If the message carries neither <code>msg.replyTo</code> nor <code>msg.id</code> the node
+  reports an error.</p>
+</script>
