@@ -289,6 +289,26 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
   assert.deepStrictEqual(walked.data, [1, 2, 3])
   assert.strictEqual(walked.cursor, 'c3')
 
+  // broadcaster/user/channel ids are the same number, so the shared fields
+  // also read msg.channel / msg.channelId and msg.userId.
+  const aliasSpec = defineHelix({
+    ...demoSpec,
+    type: 'twitch-helix-test-alias',
+    fields: [
+      { name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true },
+      { name: 'user', label: 'User', kind: 'user', optional: true },
+    ],
+    run: async ({ input }) => ({ input }),
+  })
+  const aliasHandler = makeHandler(aliasSpec)
+  const viaChannel = await aliasHandler(factoryApi, { channel: 'loginA' }, {}, factoryTwitch)
+  assert.strictEqual(viaChannel.payload.input.broadcaster, 'id-logina')
+  const viaChannelId = await aliasHandler(factoryApi, { channelId: '999' }, {}, factoryTwitch)
+  assert.strictEqual(viaChannelId.payload.input.broadcaster, '999')
+  const viaUserId = await aliasHandler(factoryApi, { userId: 'loginB' }, {}, factoryTwitch)
+  assert.strictEqual(viaUserId.payload.input.user, 'id-loginb')
+  assert.strictEqual(viaUserId.payload.input.broadcaster, undefined, 'userId must not set broadcaster')
+
   /* ----------------------------------------------------- action nodes */
 
   const actionSpec = defineHelix({

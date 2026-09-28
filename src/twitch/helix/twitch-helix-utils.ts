@@ -126,31 +126,6 @@ export async function resolveUserId(apiClient: any, value: unknown): Promise<str
   return user.id;
 }
 
-/**
- * The broadcaster for moderation/channel endpoints. Falls back to the
- * authenticated user when blank, which is the usual case for a broadcaster
- * acting on their own channel.
- */
-export async function resolveBroadcaster(
-  apiClient: any,
-  msg: any,
-  config: any,
-  twitchConfig: any
-): Promise<string> {
-  const value = firstDefined(
-    msg.broadcaster,
-    msg.broadcasterId,
-    config.broadcaster,
-    config.broadcasterId,
-    twitchConfig?.config?.twitch_user_id,
-    twitchConfig?.userId
-  );
-  if (!value) {
-    throw new Error('Broadcaster is required — set it on the node or re-authenticate the config node');
-  }
-  return resolveUserId(apiClient, value);
-}
-
 /** Resolves a game/category name or id to a Twitch game id. */
 export async function resolveGameId(apiClient: any, value: unknown): Promise<string> {
   const raw = toStr(value);

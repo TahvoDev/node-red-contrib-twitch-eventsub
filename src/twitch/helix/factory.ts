@@ -14,6 +14,7 @@ import {
 } from './twitch-helix-utils';
 import {
   effectiveFields,
+  fieldAliases,
   selectValues,
   specTier,
   type HelixAction,
@@ -156,7 +157,7 @@ export function makeHandler(spec: HelixSpec) {
 
     for (const field of call.fields) {
       const payloadOverride = field.primary && msg.payload !== undefined ? msg.payload : undefined;
-      const aliasValue = (field.aliases ?? [])
+      const aliasValue = fieldAliases(field)
         .map((alias) => msg[alias])
         .find((value) => value !== undefined);
       const value = firstDefined(

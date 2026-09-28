@@ -199,3 +199,21 @@ export function selectValues(field: HelixField): string[] {
     typeof option === 'string' ? option : option.value
   );
 }
+
+/**
+ * Twitch's broadcaster, channel and user ids are the same number, and a login
+ * resolves to the same id however it is named. So the shared `broadcaster`
+ * field also reads `msg.channel`/`msg.channelId` (a chat node's message maps
+ * straight in) and any `user` field also reads `msg.userId`. Declared aliases
+ * are kept and merged with these.
+ */
+function impliedAliases(field: HelixField): string[] {
+  if (field.name === 'broadcaster') return ['broadcasterId', 'channel', 'channelId'];
+  if (field.name === 'user') return ['userId'];
+  return [];
+}
+
+/** The declared aliases plus the identity aliases every matching field accepts. */
+export function fieldAliases(field: HelixField): string[] {
+  return [...new Set([...(field.aliases ?? []), ...impliedAliases(field)])];
+}

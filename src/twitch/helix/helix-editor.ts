@@ -1,5 +1,6 @@
 import {
   effectiveFields,
+  fieldAliases,
   selectValues,
   defaultActionName,
   type HelixAction,
@@ -226,7 +227,7 @@ function renderOnEditPrepare(spec: HelixSpec, fields: EditorField[]): string {
 function renderFieldDl(fields: HelixField[]): string {
   return fields
     .map((field) => {
-      const names = [field.name, ...(field.aliases ?? [])].join(' | ');
+      const names = [field.name, ...fieldAliases(field)].join(' | ');
       const required = field.required ? ' Required.' : ' Optional.';
       const hint = field.hint ? ` ${escapeHtml(field.hint)}.` : '';
       const primary = field.primary ? ' <code>msg.payload</code> overrides this.' : '';

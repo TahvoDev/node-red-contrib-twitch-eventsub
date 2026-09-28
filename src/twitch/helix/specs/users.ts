@@ -120,6 +120,7 @@ export const userSpecs = [
             label: 'Target User',
             kind: 'user',
             required: true,
+            aliases: ['userId', 'targetUserId', 'targetUser'],
             hint: 'user ID or username to block',
           },
           {
@@ -164,6 +165,7 @@ export const userSpecs = [
             label: 'Target User',
             kind: 'user',
             required: true,
+            aliases: ['userId', 'targetUserId', 'targetUser'],
             hint: 'user ID or username to unblock',
           },
         ],

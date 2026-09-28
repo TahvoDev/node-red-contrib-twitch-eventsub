@@ -109,6 +109,11 @@ Wherever the API needs a user, channel or game ID, the node also accepts a usern
 and resolves it, so `broadcaster` can be `shroud` or `44322889`. Most channel and moderation nodes
 accept a blank **Broadcaster** and default to the authenticated account.
 
+Twitch's user, channel and broadcaster IDs are the same number, and a login resolves to the same id
+however it is named. So every broadcaster field also reads `msg.channel`/`msg.channelId`, and every
+user field also reads `msg.userId` — a `chat in` message, which carries `msg.channel` and `msg.user`,
+maps straight into the Helix nodes without a function node.
+
 Every node is forgiving about its input: a string, a number, a boolean, a Buffer, an array or null
 is coerced or ignored, and anything missing falls back to the node's config field. `msg.payload` can
 override a node's primary field, and each node also accepts the named overrides documented in its
