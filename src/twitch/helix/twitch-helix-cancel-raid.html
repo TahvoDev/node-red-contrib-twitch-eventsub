@@ -1,0 +1,55 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-cancel-raid', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      broadcaster: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'cancel raid',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'cancel raid' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-cancel-raid">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Channel</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-cancel-raid">
+  <p>Cancels a raid the channel has started. The authenticated account must be the raiding broadcaster.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. The raiding channel, username or ID (defaults to the authenticated user).</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd><code>broadcasterId</code>, <code>cancelled: true</code>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:manage:raids</code></p>
+</script>

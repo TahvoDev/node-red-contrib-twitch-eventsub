@@ -418,6 +418,54 @@ assert.strictEqual(helixErrorMessage(new Error('plain problem')), 'plain problem
   const scopeFailure = await runInput(scopeNode, {})
   assert.match(scopeFailure.err.message, /Missing scope moderator:manage:banned_users/)
 
+  /* ------------------------------------------------- stream & content nodes */
+
+  const streamApiClient = {
+    users: { getUserByName: async (n) => ({ id: `id-${n}` }) },
+    asUser: async (id, fn) => fn({
+      streams: {
+        createStreamMarker: async (broadcaster, description) => ({
+          id: 'marker1', creationDate: new Date(0), description, positionInSeconds: 12,
+        }),
+      },
+      channels: {
+        startChannelCommercial: async (broadcaster, length) => { streamCalls.push({ broadcaster, length }) },
+      },
+    }),
+  }
+  const streamCalls = []
+  const streamRed = {
+    nodes: {
+      createNode() {},
+      getNode: () => ({
+        userId: '1001', config: { twitch_user_id: '1001' }, initAuth: async () => {}, apiClient: streamApiClient,
+        getAuthProvider: () => ({ getCurrentScopesForUser: () => ['channel:manage:broadcast', 'channel:edit:commercial'] }),
+      }),
+    },
+    _types: {},
+  }
+  streamRed.nodes.registerType = (type, ctor) => { streamRed._types[type] = ctor }
+  require(path.join(dist, 'twitch', 'helix', 'twitch-helix-create-stream-marker.js'))(streamRed)
+  require(path.join(dist, 'twitch', 'helix', 'twitch-helix-start-commercial.js'))(streamRed)
+
+  const markerNode = makeNode()
+  streamRed._types['twitch-helix-create-stream-marker'].call(markerNode, { config: 'cfg' })
+  const markerResult = await runInput(markerNode, { payload: 'nice moment' })
+  assert.strictEqual(markerResult.err, undefined)
+  assert.strictEqual(markerResult.sent[0].payload.id, 'marker1')
+  assert.strictEqual(markerResult.sent[0].payload.description, 'nice moment')
+
+  const adNode = makeNode()
+  streamRed._types['twitch-helix-start-commercial'].call(adNode, { config: 'cfg' })
+  const adResult = await runInput(adNode, { length: 60 })
+  assert.strictEqual(adResult.err, undefined)
+  assert.strictEqual(streamCalls[0].length, 60)
+
+  const badAdNode = makeNode()
+  streamRed._types['twitch-helix-start-commercial'].call(badAdNode, { config: 'cfg' })
+  const badAd = await runInput(badAdNode, { length: 45 })
+  assert.match(badAd.err.message, /Commercial length must be one of/)
+
   /* ------------------------------------------------------------ palette */
 
   const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'))
@@ -426,26 +474,42 @@ assert.strictEqual(helixErrorMessage(new Error('plain problem')), 'plain problem
     'twitch-helix-add-moderator',
     'twitch-helix-add-vip',
     'twitch-helix-ban-user',
+    'twitch-helix-cancel-raid',
     'twitch-helix-check-automod-status',
     'twitch-helix-clear-chat',
+    'twitch-helix-create-clip',
+    'twitch-helix-create-stream-marker',
     'twitch-helix-delete-chat-message',
+    'twitch-helix-delete-videos',
+    'twitch-helix-get-ad-schedule',
     'twitch-helix-get-banned-users',
     'twitch-helix-get-blocked-terms',
     'twitch-helix-get-channel-info',
     'twitch-helix-get-chat-badges',
     'twitch-helix-get-chat-settings',
     'twitch-helix-get-chatters',
+    'twitch-helix-get-clips',
     'twitch-helix-get-emotes',
     'twitch-helix-get-followed-channels',
     'twitch-helix-get-followers',
+    'twitch-helix-get-games',
     'twitch-helix-get-moderators',
+    'twitch-helix-get-stream-key',
+    'twitch-helix-get-stream-markers',
+    'twitch-helix-get-top-games',
+    'twitch-helix-get-videos',
     'twitch-helix-get-vips',
     'twitch-helix-remove-blocked-term',
     'twitch-helix-remove-moderator',
     'twitch-helix-remove-vip',
+    'twitch-helix-search-categories',
+    'twitch-helix-search-channels',
     'twitch-helix-send-announcement',
     'twitch-helix-send-chat-message',
     'twitch-helix-send-shoutout',
+    'twitch-helix-snooze-next-ad',
+    'twitch-helix-start-commercial',
+    'twitch-helix-start-raid',
     'twitch-helix-unban-user',
     'twitch-helix-update-channel-info',
     'twitch-helix-update-chat-settings',

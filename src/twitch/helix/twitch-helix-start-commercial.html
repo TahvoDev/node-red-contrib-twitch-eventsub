@@ -1,0 +1,71 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-start-commercial', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      broadcaster: { value: '' },
+      length:      { value: '30' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'start commercial',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'start commercial' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+    oneditprepare: function () {
+      $('#node-input-length').on('change', function () {
+        const value = String($(this).val()).trim();
+        if (value && !/^\d+$/.test(value)) RED.notify('length must be a whole number', 'warning');
+      });
+    },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-start-commercial">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-length"><i class="fa fa-hourglass-half"></i> Length (s)</label>
+    <input type="text" id="node-input-length" placeholder="30, 60, 90, 120, 150 or 180" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-start-commercial">
+  <p>Starts a commercial break on a channel. The authenticated account must be the broadcaster.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID (defaults to the authenticated user).</dd>
+    <dt>length | commercialLength <span class="property-type">number | string</span></dt>
+    <dd>Break length in seconds. <code>msg.payload</code> (when numeric) also works. Defaults to 30.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd><code>broadcasterId</code>, <code>length</code>, <code>started: true</code>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p><code>channel:edit:commercial</code></p>
+
+  <h3>Notes</h3>
+  <p>Twitch only accepts 30, 60, 90, 120, 150 or 180 seconds.</p>
+</script>

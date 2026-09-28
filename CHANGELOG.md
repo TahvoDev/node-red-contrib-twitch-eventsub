@@ -6,6 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+- Helix API nodes under the `twitch api` palette category for streams, clips and content:
+  `create stream marker`, `get stream markers`, `get stream key`, `create clip`, `get clips`,
+  `get videos`, `delete videos`, `get games`, `get top games`, `search categories`,
+  `search channels`, `start raid`, `cancel raid`, `start commercial`, `get ad schedule` and
+  `snooze next ad`
 - Helix API nodes under the `twitch api` palette category for moderation: `ban user` (with an
   optional timeout duration), `unban user`, `get banned users`, `get moderators`, `add moderator`,
   `remove moderator`, `get vips`, `add vip`, `remove vip`, `warn user`, `get blocked terms`,

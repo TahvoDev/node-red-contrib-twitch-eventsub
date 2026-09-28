@@ -146,6 +146,22 @@ help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when
 | add blocked term | Block a term | `moderator:manage:blocked_terms` |
 | remove blocked term | Unblock a term | `moderator:manage:blocked_terms` |
 | check automod status | Ask whether a message would be held | `moderation:read` |
+| create stream marker | Add a marker to the live stream | `channel:manage:broadcast` |
+| get stream markers | A channel's (or one video's) stream markers | `user:read:broadcast` |
+| get stream key | The channel's stream key | `channel:read:stream_key` |
+| create clip | Clip the live stream | `clips:edit` |
+| get clips | Clips by channel, IDs or game | — |
+| get videos | Videos by user or IDs | — |
+| delete videos | Delete videos by ID | `channel:manage:videos` |
+| get games | Look up a game/category | — |
+| get top games | Twitch's top games | — |
+| search categories | Search categories by name | — |
+| search channels | Search channels by name | — |
+| start raid | Raid another channel | `channel:manage:raids` |
+| cancel raid | Cancel the channel's raid | `channel:manage:raids` |
+| start commercial | Start a commercial break | `channel:edit:commercial` |
+| get ad schedule | The channel's ad schedule | `channel:read:ads` |
+| snooze next ad | Snooze the next ad | `channel:manage:ads` |
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again

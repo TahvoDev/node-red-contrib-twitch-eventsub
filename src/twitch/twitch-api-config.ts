@@ -29,12 +29,14 @@ type Status = {
 // token it is given and falls back to the real validate endpoint when the scope
 // list is unknown, so the mock provider has to claim a full set up front.
 const MOCK_SCOPES = [
-  'bits:read', 'channel:manage:broadcast', 'channel:manage:moderators', 'channel:manage:vips',
-  'channel:moderate', 'channel:read:ads',
-  'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
+  'bits:read', 'channel:edit:commercial', 'channel:manage:ads', 'channel:manage:broadcast',
+  'channel:manage:moderators', 'channel:manage:raids', 'channel:manage:videos',
+  'channel:manage:vips', 'channel:moderate',
+  'channel:read:ads', 'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
   'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
-  'channel:read:predictions', 'channel:read:redemptions', 'channel:read:subscriptions',
-  'channel:read:vips', 'chat:read', 'chat:edit',
+  'channel:read:predictions', 'channel:read:redemptions', 'channel:read:stream_key',
+  'channel:read:subscriptions', 'channel:read:vips',
+  'chat:read', 'chat:edit', 'clips:edit',
   'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
   'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
   'moderator:manage:chat_settings', 'moderator:manage:shoutouts',
