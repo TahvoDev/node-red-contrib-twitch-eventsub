@@ -12,15 +12,20 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg) => {
-      runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        // twitch-chat-in emits the message id as msg.id.
-        const messageId = msg.messageId ?? msg.id;
-        if (!messageId) {
-          throw new Error('msg.messageId is required for twitch-chat-delete-message');
-        }
-        await ctx.moderation.deleteChatMessages(broadcasterId, String(messageId));
-      });
+    node.on('input', async (msg, _send, done) => {
+      try {
+        await runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
+          // twitch-chat-in emits the message id as msg.id.
+          const messageId = msg.messageId ?? msg.id;
+          if (!messageId) {
+            throw new Error('msg.messageId is required for twitch-chat-delete-message');
+          }
+          await ctx.moderation.deleteChatMessages(broadcasterId, String(messageId));
+        });
+        done();
+      } catch (err) {
+        done(err as Error);
+      }
     });
   }
 

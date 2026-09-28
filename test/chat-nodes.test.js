@@ -19,6 +19,7 @@ const {
   buildCommandTrigger,
   clampTimeoutDuration,
   matchCommand,
+  messageText,
   normalizeChannel,
   resolveAnnounceColor,
   resolveUserId,
@@ -55,6 +56,15 @@ assert.strictEqual(sanitizeChatText('a'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100)).l
 const emojis = sanitizeChatText('\u{1F600}'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100))
 assert.strictEqual(Array.from(emojis).length, MAX_CHAT_MESSAGE_LENGTH)
 assert.strictEqual([...emojis].some((ch) => /\uFFFD/.test(ch)), false)
+
+// Only string payloads/text are sent; a non-string is not coerced to
+// "[object Object]" on its way to chat.
+assert.strictEqual(messageText({ payload: 'hi' }), 'hi')
+assert.strictEqual(messageText({ text: 'hi' }), 'hi')
+assert.strictEqual(messageText({ payload: { a: 1 }, text: 'fallback' }), 'fallback')
+assert.strictEqual(messageText({ payload: 42 }), '')
+assert.strictEqual(messageText({ payload: null, text: 'x' }), 'x')
+assert.strictEqual(messageText({}), '')
 
 // Timeout duration is clamped to Twitch's two-week cap.
 assert.strictEqual(clampTimeoutDuration(30), 30)

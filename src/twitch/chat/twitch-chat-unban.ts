@@ -17,11 +17,16 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg) => {
-      runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const userId = await resolveUserId(ctx, msg);
-        await ctx.moderation.unbanUser(broadcasterId, userId);
-      });
+    node.on('input', async (msg, _send, done) => {
+      try {
+        await runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
+          const userId = await resolveUserId(ctx, msg);
+          await ctx.moderation.unbanUser(broadcasterId, userId);
+        });
+        done();
+      } catch (err) {
+        done(err as Error);
+      }
     });
   }
 

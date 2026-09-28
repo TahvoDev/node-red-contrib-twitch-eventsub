@@ -12,11 +12,16 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg) => {
-      runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        // Omitting the message ID clears the whole chat.
-        await ctx.moderation.deleteChatMessages(broadcasterId);
-      });
+    node.on('input', async (msg, _send, done) => {
+      try {
+        await runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
+          // Omitting the message ID clears the whole chat.
+          await ctx.moderation.deleteChatMessages(broadcasterId);
+        });
+        done();
+      } catch (err) {
+        done(err as Error);
+      }
     });
   }
 

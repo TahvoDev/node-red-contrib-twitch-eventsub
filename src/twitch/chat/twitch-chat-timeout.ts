@@ -18,16 +18,21 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg) => {
-      runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const duration = clampTimeoutDuration(msg.duration);
-        const userId = await resolveUserId(ctx, msg);
-        await ctx.moderation.banUser(broadcasterId, {
-          user: userId,
-          duration,
-          reason: msg.reason ? String(msg.reason) : '',
+    node.on('input', async (msg, _send, done) => {
+      try {
+        await runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
+          const duration = clampTimeoutDuration(msg.duration);
+          const userId = await resolveUserId(ctx, msg);
+          await ctx.moderation.banUser(broadcasterId, {
+            user: userId,
+            duration,
+            reason: msg.reason ? String(msg.reason) : '',
+          });
         });
-      });
+        done();
+      } catch (err) {
+        done(err as Error);
+      }
     });
   }
 

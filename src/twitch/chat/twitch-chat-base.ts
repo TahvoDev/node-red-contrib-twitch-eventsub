@@ -162,6 +162,17 @@ export function sanitizeChatText(raw: unknown): string {
   return Array.from(cleaned).slice(0, MAX_CHAT_MESSAGE_LENGTH).join('');
 }
 
+/**
+ * The chat text from `msg.payload` or `msg.text`, but only when it really is a
+ * string. A non-string payload is not coerced, so an object cannot reach chat as
+ * "[object Object]".
+ */
+export function messageText(msg: TwitchChatMessage): string {
+  if (typeof msg.payload === 'string') return msg.payload;
+  if (typeof msg.text === 'string') return msg.text;
+  return '';
+}
+
 /** Clamps a timeout to Twitch's accepted range; anything finite above two weeks is capped. */
 export function clampTimeoutDuration(raw: unknown): number {
   const seconds = Number(raw);
@@ -245,9 +256,9 @@ export async function sendChatMessage(
     // twitch-chat-in sets both text and payload; accept either so a message
     // straight off the wire does not have to be reshaped first. Newlines are
     // stripped and the text capped before it reaches the IRC socket.
-    const text = sanitizeChatText(msg.payload ?? msg.text);
+    const text = sanitizeChatText(messageText(msg));
     if (!text.trim()) {
-      node.error('No message text — set msg.payload', msg);
+      node.error('No message text — set msg.payload or msg.text to a string', msg);
       finish();
       return;
     }
@@ -258,8 +269,10 @@ export async function sendChatMessage(
     finish();
   } catch (err) {
     node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+    // node.error already logs and triggers a Catch node; finish() without the
+    // error completes the message without reporting the same error twice.
     node.error(err, msg);
-    finish(err as Error);
+    finish();
   }
 }
 
