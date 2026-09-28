@@ -36,7 +36,12 @@ export interface ChatCommandConfig extends NodeDef {
 export interface TwitchChatMessage extends NodeMessageInFlow {
   channel?: string;
   user?: string;
+  /** Login of the user to moderate. Never inferred from msg.user. */
   targetUser?: string;
+  /** Numeric id of the user to moderate. Takes priority over targetUser. */
+  targetUserId?: string;
+  /** twitch-chat-clear only acts when this is exactly true. */
+  confirm?: boolean;
   displayName?: string;
   userId?: string;
   text?: string;
@@ -109,15 +114,35 @@ export function getChatConnection(
   return (RED.nodes.getNode(config.connection) as unknown as ChatConnection) || undefined;
 }
 
+/** Twitch logins are 1-25 chars of a-z, 0-9 and underscore (logins are lowercase). */
+const TWITCH_LOGIN_RE = /^[a-z0-9_]{1,25}$/;
+
+/** Twitch chat messages are capped at 500 characters. */
+export const MAX_CHAT_MESSAGE_LENGTH = 500;
+
+/** Twitch caps a timeout at two weeks, in seconds. */
+export const MAX_TIMEOUT_SECONDS = 1_209_600;
+
 /**
- * A Twitch user name has to be resolved to an ID before the Helix moderation
- * endpoints will accept it. A numeric input is passed through so callers that
- * already have an ID do not pay for a lookup.
+ * Resolves the moderation target to a numeric user ID. The target must be
+ * explicit: `msg.targetUserId` for a known id, otherwise `msg.targetUser` for a
+ * login. `msg.user` (the chat sender) is deliberately never used as a fallback,
+ * so a mis-wired flow fails loudly instead of moderating the wrong account.
  */
-export async function resolveUserId(ctx: BaseApiClient, user: unknown): Promise<string> {
-  const raw = String(user ?? '').trim();
-  if (!raw) throw new Error('Target user is required — set msg.targetUser or msg.user');
-  if (/^\d+$/.test(raw)) return raw;
+export async function resolveUserId(ctx: BaseApiClient, msg: TwitchChatMessage): Promise<string> {
+  const explicitId = String(msg.targetUserId ?? '').trim();
+  if (explicitId) {
+    if (!/^\d+$/.test(explicitId)) {
+      throw new Error('msg.targetUserId must be a numeric Twitch user ID');
+    }
+    return explicitId;
+  }
+
+  const raw = String(msg.targetUser ?? '').trim().toLowerCase();
+  if (!raw) throw new Error('Target user is required — set msg.targetUser or msg.targetUserId');
+  if (!TWITCH_LOGIN_RE.test(raw)) {
+    throw new Error('msg.targetUser must be a Twitch login: 1-25 letters, digits or underscores');
+  }
 
   const found = await ctx.users.getUserByName(raw);
   if (!found) throw new Error(`Twitch user "${raw}" could not be found`);
@@ -125,16 +150,86 @@ export async function resolveUserId(ctx: BaseApiClient, user: unknown): Promise<
 }
 
 /**
+ * Strips carriage returns and line feeds (which would otherwise become extra IRC
+ * commands on the wire) and caps the message at Twitch's 500-character limit.
+ */
+export function sanitizeChatText(raw: unknown): string {
+  const cleaned = String(raw ?? '').replace(/[\r\n\0]+/g, ' ');
+  // Slice by code point so a cap at 500 cannot split a surrogate pair.
+  return Array.from(cleaned).slice(0, MAX_CHAT_MESSAGE_LENGTH).join('');
+}
+
+/**
+ * The announcement text, from `msg.payload` only. A raw twitch-chat-in message
+ * carries the same string in `text` and `payload`; refusing that shape stops a
+ * viewer's own words being re-announced as the bot.
+ */
+export function announcementText(msg: TwitchChatMessage): string {
+  const message = String(msg.payload ?? '');
+  if (!message.trim()) throw new Error('No announcement text — set msg.payload');
+  if (msg.userId && msg.text !== undefined && message === String(msg.text)) {
+    throw new Error(
+      'Refusing to re-announce a raw chat message — set msg.payload to the announcement text'
+    );
+  }
+  return message;
+}
+
+/** Clamps a timeout to Twitch's accepted range; anything finite above two weeks is capped. */
+export function clampTimeoutDuration(raw: unknown): number {
+  const seconds = Number(raw);
+  if (!Number.isFinite(seconds) || seconds <= 0) {
+    throw new Error('msg.duration (seconds) is required for twitch-chat-timeout');
+  }
+  return Math.min(Math.floor(seconds), MAX_TIMEOUT_SECONDS);
+}
+
+/** Builds the lower-case trigger `!command`; throws when no command is configured. */
+export function buildCommandTrigger(
+  prefix: unknown,
+  command: unknown
+): { name: string; trigger: string } {
+  const name = String(command ?? '').trim();
+  if (!name) throw new Error('twitch-chat-command requires a command name');
+  return { name, trigger: `${String(prefix || '!')}${name}`.toLowerCase() };
+}
+
+/**
+ * Returns the command arguments when `text` starts with `trigger` followed by
+ * whitespace or the end of the string, otherwise undefined. The trailing
+ * boundary stops `!ban` matching `!banned`.
+ */
+export function matchCommand(text: string, trigger: string): string[] | undefined {
+  const lower = text.toLowerCase();
+  if (!lower.startsWith(trigger)) return undefined;
+
+  const next = lower.charAt(trigger.length);
+  if (next && !/\s/.test(next)) return undefined;
+
+  return text
+    .slice(trigger.length)
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean);
+}
+
+/** Optional threading for a send. Only twitch-chat-reply passes this in. */
+export interface SendChatOptions {
+  replyTo?: string;
+}
+
+/**
  * Sends a chat message over the shared ChatClient. The channel can be overridden
- * per message with msg.channel, and the reply parent with msg.replyTo or, since
- * that is what twitch-chat-in emits, msg.id.
+ * per message with msg.channel. Threading is opt-in via `options.replyTo` so a
+ * plain send never silently becomes a reply to whatever msg.id carries.
  */
 export async function sendChatMessage(
   node: Node,
   connection: ChatConnection | undefined,
   config: ChatNodeConfig,
   msg: TwitchChatMessage,
-  done?: (err?: Error) => void
+  done?: (err?: Error) => void,
+  options: SendChatOptions = {}
 ): Promise<void> {
   const finish = done ?? (() => {});
 
@@ -161,16 +256,16 @@ export async function sendChatMessage(
     }
 
     // twitch-chat-in sets both text and payload; accept either so a message
-    // straight off the wire does not have to be reshaped first.
-    const text = String(msg.payload ?? msg.text ?? '');
+    // straight off the wire does not have to be reshaped first. Newlines are
+    // stripped and the text capped before it reaches the IRC socket.
+    const text = sanitizeChatText(msg.payload ?? msg.text);
     if (!text.trim()) {
       node.error('No message text — set msg.payload', msg);
       finish();
       return;
     }
 
-    const parent = msg.replyTo ?? msg.id;
-    const replyTo = parent ? String(parent) : undefined;
+    const replyTo = options.replyTo ? String(options.replyTo) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});
     finish();
@@ -202,7 +297,42 @@ export function resolveAnnounceColor(msg: TwitchChatMessage): HelixChatAnnouncem
 }
 
 /** Broadcaster user ids never change, so one lookup per channel is enough. */
-const broadcasterIds: { [channel: string]: string } = {};
+const broadcasterIds = new Map<string, string>();
+
+/**
+ * Moderator checks are cached briefly to avoid a second Helix call on every
+ * action. The TTL bounds how long a demoted moderator can still act.
+ */
+const MODERATOR_CACHE_TTL_MS = 5 * 60 * 1000;
+const moderatorCache = new Map<string, { expiresAt: number; isMod: boolean }>();
+
+/**
+ * Verifies the chat sender really is a moderator of the channel, rather than
+ * trusting a msg.isMod flag that any upstream node can set. The sender is
+ * msg.userId (set by twitch-chat-in); the broadcaster always passes.
+ */
+export async function assertSenderIsModerator(
+  ctx: BaseApiClient,
+  broadcasterId: string,
+  msg: TwitchChatMessage
+): Promise<void> {
+  const senderId = String(msg.userId ?? '').trim();
+  if (!senderId) {
+    throw new Error('Sender identity required — wire this node from twitch-chat-in or set msg.userId');
+  }
+  if (senderId === broadcasterId) return;
+
+  const key = `${broadcasterId}:${senderId}`;
+  const cached = moderatorCache.get(key);
+  if (cached && cached.expiresAt > Date.now()) {
+    if (cached.isMod) return;
+    throw new Error('Sender is not a moderator of this channel');
+  }
+
+  const isMod = await ctx.moderation.checkUserMod(broadcasterId, senderId);
+  moderatorCache.set(key, { expiresAt: Date.now() + MODERATOR_CACHE_TTL_MS, isMod });
+  if (!isMod) throw new Error('Sender is not a moderator of this channel');
+}
 
 /**
  * Runs one Helix chat/moderation call against the channel and authenticated
@@ -239,11 +369,11 @@ export async function runChatAction(
       return;
     }
 
-    let broadcasterId: string | undefined = broadcasterIds[channel];
+    let broadcasterId = broadcasterIds.get(channel);
     if (!broadcasterId) {
       broadcasterId = (await api.users.getUserByName(channel))?.id;
       if (!broadcasterId) throw new Error(`Unknown Twitch channel: ${channel}`);
-      broadcasterIds[channel] = broadcasterId;
+      broadcasterIds.set(channel, broadcasterId);
     }
 
     await api.asUser(userId, (ctx) => handler(ctx, broadcasterId));

@@ -15,12 +15,13 @@ module.exports = function (RED: NodeAPI) {
     node.on('input', (msg, _send, done) => {
       // twitch-chat-in emits the message id as msg.id, so a reply can be wired
       // straight onto a chat message without a change node in between.
-      if (!msg.replyTo && !msg.id) {
+      const replyTo = msg.replyTo ?? msg.id;
+      if (!replyTo) {
         node.error('No message to reply to — set msg.replyTo, or wire this to a message with msg.id', msg);
         done();
         return;
       }
-      sendChatMessage(node, connection, config, msg, done);
+      sendChatMessage(node, connection, config, msg, done, { replyTo: String(replyTo) });
     });
   }
 

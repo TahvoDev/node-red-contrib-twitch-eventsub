@@ -1,14 +1,21 @@
 import type { Node, NodeAPI } from 'node-red';
-import type { ChatCommandConfig } from './twitch-chat-base';
+import { buildCommandTrigger, matchCommand, type ChatCommandConfig } from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
 
-    const prefix = config.prefix || '!';
-    const command = String(config.command ?? '');
-    const trigger = `${prefix}${command}`.toLowerCase();
+    let command: string;
+    let trigger: string;
+    try {
+      ({ name: command, trigger } = buildCommandTrigger(config.prefix, config.command));
+    } catch (err) {
+      // An unconfigured command would otherwise match every "!" message.
+      node.status({ fill: 'red', shape: 'ring', text: 'no command set' });
+      node.error((err as Error).message);
+      return;
+    }
 
     node.on('input', (msg) => {
       const text =
@@ -18,19 +25,18 @@ module.exports = function (RED: NodeAPI) {
             ? msg.payload
             : '';
 
-      if (!text.toLowerCase().startsWith(trigger)) return;
+      const args = matchCommand(text, trigger);
+      if (!args) return;
 
+      // These flags are advisory filters only; the destructive nodes re-check the
+      // sender against the Twitch API so a forged flag cannot grant authority.
       if (config.requireBroadcaster && !msg.isBroadcaster) return;
       if (config.requireMod && !(msg.isMod || msg.isBroadcaster)) return;
       if (config.requireSub && !msg.isSubscriber) return;
       if (config.requireVip && !msg.isVip) return;
 
       msg.command = command;
-      msg.args = text
-        .slice(trigger.length)
-        .trim()
-        .split(/\s+/)
-        .filter(Boolean);
+      msg.args = args;
       node.send(msg);
     });
   }

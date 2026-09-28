@@ -47,36 +47,50 @@ only use one account, that account must be the broadcaster or a moderator of the
 
 Both config nodes need these OAuth scopes:
 
-- `chat:read`, `chat:edit`, `user:read:chat`, `channel:moderate`
+- `chat:read`, `chat:edit`, `user:read:chat`
+
+The **bot's** `twitch-api-config` node additionally needs the moderation scopes:
+
+- `channel:moderate`, `moderation:read`
 - `moderator:manage:banned_users`, `moderator:manage:chat_messages`, `moderator:manage:announcements`
 
-`chat:read` and `chat:edit` are needed to read and send over IRC. The `moderator:*` scopes are only
-needed for the moderation nodes. If your existing token was created before you added a scope, log the
-account in again so the new scope is granted.
+`chat:read` and `chat:edit` are needed to read and send over IRC. `channel:moderate` and
+`moderation:read` are needed for the moderation nodes (the latter for the per-action sender check
+described below). Keep the `moderator:*` and `moderation:*` scopes **on the bot's config node only**,
+never on the broadcaster's EventSub node: a token that can ban and clear chat is materially worse if
+it leaks, and the chat nodes only ever use the bot account. If your existing token was created before
+you added a scope, log the account in again so the new scope is granted.
 
 ### Nodes
 
 - **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …).
-- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
+- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload. It never
+  threads: use **chat reply** for that.
 - **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
   `msg.id` that **chat in** emits.
 - **chat command** — placed after **chat in**, matches one `!command` and enriches the message with
-  `msg.command` and `msg.args`, with optional mod / sub / VIP / broadcaster checks.
-- **chat ban**, **chat timeout**, **chat unban** — moderation actions.
+  `msg.command` and `msg.args`, with optional mod / sub / VIP / broadcaster checks. The trigger must
+  be a whole word, so `!ban` does not match `!banned`. A command node with no command configured
+  refuses to start.
+- **chat ban**, **chat timeout**, **chat unban** — moderation actions. The target must be set
+  explicitly with `msg.targetUser` (login) or `msg.targetUserId` (id); there is no fallback to the
+  message sender.
 - **chat delete message** — deletes a single message by its ID (`msg.messageId` or `msg.id`).
 - **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
-  colours (`msg.announceColor`, `primary` by default). The sender's hex chat colour from
-  **chat in** is not an announcement colour, so it falls back to `primary` instead of failing.
-- **chat clear** — clears the chat.
+  colours (`msg.announceColor`, `primary` by default) from `msg.payload`. It does not read
+  `msg.text`, so a raw **chat in** message is not re-announced by accident.
+- **chat clear** — clears the whole channel. Requires `msg.confirm === true` and is rate-limited to
+  one clear per channel per minute.
 - **chat join**, **chat part** — join or leave a channel at runtime.
 
 The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no longer accepts the
 moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
 target channel.
 
-`chat in` sets `msg.user` to the **sender** of the message, and the `ban` / `timeout` / `unban` nodes
-fall back to it as the target. Wire `chat in` straight into a moderation node and the sender is
-actioned; set `msg.targetUser` to moderate someone else.
+The `ban` / `timeout` / `unban` / `clear` nodes verify the **sender** against the Twitch API on each
+action, instead of trusting the `msg.isMod` flag: the actor is `msg.userId` (which **chat in** sets),
+and a missing or non-moderator sender is an error. The `requireMod` checkbox on **chat command** is
+only a fast pre-filter, not the security boundary, so a forged flag cannot grant authority.
 
 ### Example: reply to `!hello`
 

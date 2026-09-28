@@ -44,7 +44,10 @@ RED.nodes.registerType('twitch-chat-ban', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>targetUser <span class="property-type">string</span></dt>
-    <dd>Login name (or numeric user ID) of the user to ban. Falls back to <code>msg.user</code> when unset.</dd>
+    <dd>Login name of the user to ban. Required unless <code>msg.targetUserId</code> is set.</dd>
+
+    <dt class="optional">targetUserId <span class="property-type">string</span></dt>
+    <dd>Numeric user ID of the user to ban. Takes priority over <code>msg.targetUser</code>.</dd>
 
     <dt class="optional">reason <span class="property-type">string</span></dt>
     <dd>Reason shown in the moderation log and audit log.</dd>
@@ -53,8 +56,10 @@ RED.nodes.registerType('twitch-chat-ban', {
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
 
-  <p><b>Target vs. sender:</b> <b>chat in</b> sets <code>msg.user</code> to the sender of the message.
-  Set <code>msg.targetUser</code> before this node if the user to ban is not the message sender.</p>
+  <p><b>Target vs. sender:</b> the target is never inferred. A missing target is an error rather than
+  falling back to the message sender, so a mis-wired flow cannot ban the wrong account.</p>
 
-  <p>The authenticated account must be a moderator or the broadcaster of the target channel.</p>
+  <p>The sender (<code>msg.userId</code>, set by <b>chat in</b>) must be a moderator or the
+  broadcaster of the channel; this is checked against the Twitch API, not the <code>msg.isMod</code>
+  flag. The authenticated account must also be a moderator or the broadcaster of the target channel.</p>
 </script>

@@ -41,7 +41,9 @@ RED.nodes.registerType('twitch-chat-in', {
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-in">
-  <p>Emits a message for every chat message received on the joined channels.</p>
+  <p>Emits a message for every chat message received on the joined channels. Messages sent by the
+  connection's own account are dropped, so wiring this node into <b>chat send</b> does not create a
+  self-reply loop.</p>
 
   <h3>Configuration</h3>
   <dl class="message-properties">
@@ -61,12 +63,14 @@ RED.nodes.registerType('twitch-chat-in', {
     <dd>The raw chat message text.</dd>
 
     <dt>user / displayName / userId <span class="property-type">string</span></dt>
-    <dd>The sender's login, display name and numeric user ID. Moderation nodes use this as the
-    target only when <code>msg.targetUser</code> is not set, so set that first to act on someone else.</dd>
+    <dd>The sender's login, display name and numeric user ID. The moderation nodes use
+    <code>msg.userId</code> as the <b>actor</b> to verify against the Twitch API, and require
+    <code>msg.targetUser</code> or <code>msg.targetUserId</code> as the target; the sender is never
+    the target by default.</dd>
 
     <dt>id <span class="property-type">string</span></dt>
-    <dd>The Twitch message ID. <b>chat reply</b>, <b>chat send</b> and <b>chat delete message</b>
-    all accept it, so they can be wired straight onto a chat message.</dd>
+    <dd>The Twitch message ID. <b>chat reply</b> and <b>chat delete message</b> accept it, so they
+    can be wired straight onto a chat message. <b>chat send</b> never threads.</dd>
 
     <dt>emotes / badges <span class="property-type">object[]</span></dt>
     <dd>Emotes used in the message and the sender's chat badges.</dd>
@@ -75,7 +79,8 @@ RED.nodes.registerType('twitch-chat-in', {
     <dd>Bits cheered and whether the message is a cheer.</dd>
 
     <dt>isMod / isSubscriber / isVip / isBroadcaster <span class="property-type">boolean</span></dt>
-    <dd>The sender's status in the channel.</dd>
+    <dd>The sender's status in the channel, for filtering only. The destructive nodes do not trust
+    these: they re-check the sender with the Twitch API.</dd>
 
     <dt>color <span class="property-type">string</span></dt>
     <dd>The sender's chosen chat colour, if set. This is the sender's colour, not an

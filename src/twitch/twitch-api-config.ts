@@ -112,12 +112,14 @@ module.exports = function (RED: NodeAPI) {
     apiClient?: ApiClient;
     private authProvider?: AuthProvider;
     eventsubService?: TwitchEventsubService;
-    nodeListeners: { [key: string]: any } = {};
+    // Null-prototype maps: the keys are node ids, and a plain object would let a
+    // key like "__proto__" resolve to Object.prototype.
+    nodeListeners: { [key: string]: any } = Object.create(null);
     currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
     authReady = false;
     userId?: string;
     mockServerPort?: number;
-    nodeTypes: { [key: string]: string } = {};
+    nodeTypes: { [key: string]: string } = Object.create(null);
     unsupportedNodes: Set<string> = new Set();
 
     private authInitPromise?: Promise<void>;

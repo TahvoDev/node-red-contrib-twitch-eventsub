@@ -70,18 +70,22 @@ RED.nodes.registerType('twitch-chat-command', {
   the following nodes.</p>
 
   <p>The trigger is the configured <b>prefix</b> followed by <b>command</b> and is matched
-  case-insensitively at the start of the message.</p>
+  case-insensitively at the start of the message, up to a word boundary: <code>!ban</code> matches
+  <code>!ban user</code> but not <code>!banned</code>. A node with no command configured refuses to
+  start rather than matching every <code>!</code> message.</p>
 
   <h3>Configuration</h3>
   <dl class="message-properties">
     <dt>command <span class="property-type">string</span></dt>
-    <dd>The command without the prefix. <code>hello</code> matches <code>!hello</code>.</dd>
+    <dd>The command without the prefix. <code>hello</code> matches <code>!hello</code>. Required.</dd>
 
     <dt>prefix <span class="property-type">string</span></dt>
     <dd>The trigger character. Defaults to <code>!</code>.</dd>
 
     <dt>Permission checks</dt>
-    <dd>If any checked requirement is not met, the message is dropped silently.</dd>
+    <dd>If any checked requirement is not met, the message is dropped silently. These are a fast
+    pre-filter only — the destructive nodes re-check the sender against the Twitch API, so the flags
+    are not a security boundary.</dd>
   </dl>
 
   <h3>Outputs</h3>

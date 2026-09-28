@@ -1,5 +1,12 @@
 import type { Node, NodeAPI } from 'node-red';
-import { getChatConnection, resolveUserId, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
+import {
+  assertSenderIsModerator,
+  clampTimeoutDuration,
+  getChatConnection,
+  resolveUserId,
+  runChatAction,
+  type ChatNodeConfig,
+} from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatTimeoutNode(this: Node, config: ChatNodeConfig) {
@@ -14,12 +21,9 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const duration = Number(msg.duration);
-        if (!Number.isFinite(duration) || duration <= 0) {
-          throw new Error('msg.duration (seconds) is required for twitch-chat-timeout');
-        }
-
-        const userId = await resolveUserId(ctx, msg.targetUser ?? msg.user);
+        await assertSenderIsModerator(ctx, broadcasterId, msg);
+        const duration = clampTimeoutDuration(msg.duration);
+        const userId = await resolveUserId(ctx, msg);
         await ctx.moderation.banUser(broadcasterId, {
           user: userId,
           duration,

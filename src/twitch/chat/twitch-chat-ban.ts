@@ -1,5 +1,11 @@
 import type { Node, NodeAPI } from 'node-red';
-import { getChatConnection, resolveUserId, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
+import {
+  assertSenderIsModerator,
+  getChatConnection,
+  resolveUserId,
+  runChatAction,
+  type ChatNodeConfig,
+} from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatBanNode(this: Node, config: ChatNodeConfig) {
@@ -14,7 +20,8 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const userId = await resolveUserId(ctx, msg.targetUser ?? msg.user);
+        await assertSenderIsModerator(ctx, broadcasterId, msg);
+        const userId = await resolveUserId(ctx, msg);
         await ctx.moderation.banUser(broadcasterId, {
           user: userId,
           reason: msg.reason ? String(msg.reason) : '',

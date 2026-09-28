@@ -44,7 +44,8 @@ RED.nodes.registerType('twitch-chat-reply', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>payload <span class="property-type">string</span></dt>
-    <dd>The reply text to send.</dd>
+    <dd>The reply text to send. Carriage returns and line feeds are stripped and the text is capped
+    at 500 characters.</dd>
 
     <dt>replyTo <span class="property-type">string</span></dt>
     <dd>The Twitch message ID to reply to. <b>chat in</b> emits it as <code>msg.id</code>,

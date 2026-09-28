@@ -22,7 +22,7 @@ module.exports = function (RED: NodeAPI) {
     chatClient?: ChatClient;
     currentStatus: ChatStatus = { fill: 'grey', shape: 'ring', text: 'Disconnected' };
 
-    private listeners: { [key: string]: Node } = {};
+    private listeners = new Map<string, Node>();
     private initPromise?: Promise<ChatClient | undefined>;
 
     constructor(config: ChatConnectionConfig) {
@@ -40,7 +40,7 @@ module.exports = function (RED: NodeAPI) {
       this.on('close', (done: () => void) => {
         this.chatClient?.quit();
         this.chatClient = undefined;
-        this.listeners = {};
+        this.listeners.clear();
         this.currentStatus = { fill: 'grey', shape: 'ring', text: 'Disconnected' };
         done();
       });
@@ -108,19 +108,19 @@ module.exports = function (RED: NodeAPI) {
     }
 
     addListener(id: string, node: Node) {
-      this.listeners[id] = node;
+      this.listeners.set(id, node);
       node.status(this.currentStatus);
       this.initChat().catch((e) => this.error(e));
     }
 
     removeListener(id: string) {
-      delete this.listeners[id];
+      this.listeners.delete(id);
     }
 
     updateStatus(status: ChatStatus) {
       this.currentStatus = status;
       this.status(status);
-      Object.values(this.listeners).forEach((node) => node.status(status));
+      this.listeners.forEach((node) => node.status(status));
     }
   }
 

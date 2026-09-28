@@ -39,13 +39,21 @@ RED.nodes.registerType('twitch-chat-clear', {
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-clear">
-  <p>Clears all messages from a channel's chat.</p>
+  <p>Clears all messages from a channel's chat. This deletes the entire channel's chat history for
+  every viewer, so it needs an explicit opt-in and is rate-limited to one clear per channel per
+  minute.</p>
 
   <h3>Inputs</h3>
   <dl class="message-properties">
+    <dt>confirm <span class="property-type">boolean</span></dt>
+    <dd>Must be exactly <code>true</code>, otherwise the node reports an error and sends nothing.
+    Set <code>msg.confirm = true</code> in the flow that should clear chat.</dd>
+
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
 
-  <p>The authenticated account must be a moderator or the broadcaster of the target channel.</p>
+  <p>The sender (<code>msg.userId</code>, set by <b>chat in</b>) must be a moderator or the
+  broadcaster of the channel; this is checked against the Twitch API, not the <code>msg.isMod</code>
+  flag. The authenticated account must also be a moderator or the broadcaster of the target channel.</p>
 </script>
