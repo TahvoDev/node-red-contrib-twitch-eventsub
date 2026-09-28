@@ -563,6 +563,74 @@ export const monetisationSpecs = [
           return { segmentId: input.segmentId, deleted: true };
         },
       },
+      segment: {
+        label: 'get segment',
+        help: 'Gets a single schedule segment by ID.',
+        scopes: [],
+        fields: [segmentId],
+        run: async ({ api, broadcasterId, input }) =>
+          api.schedule.getScheduleSegmentById(broadcasterId, input.segmentId),
+        map: (segment) => (segment ? mapSegment(segment) : null),
+      },
+      ical: {
+        label: 'get ical',
+        help: "Gets the channel's schedule as an iCalendar string.",
+        scopes: [],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.schedule.getScheduleAsIcal(broadcasterId),
+      },
+      settings: {
+        label: 'update settings',
+        help: 'Sets or clears the schedule vacation. Blank dates clear it.',
+        scopes: ['channel:manage:schedule'],
+        fields: [
+          {
+            name: 'startDate',
+            label: 'Vacation start (UTC)',
+            kind: 'string',
+            default: '',
+            aliases: ['vacationStart'],
+            faIcon: 'fa-calendar',
+            hint: 'e.g. 2026-01-01T00:00:00Z',
+          },
+          {
+            name: 'endDate',
+            label: 'Vacation end (UTC)',
+            kind: 'string',
+            default: '',
+            aliases: ['vacationEnd'],
+            faIcon: 'fa-calendar',
+            hint: 'e.g. 2026-01-08T00:00:00Z',
+          },
+          {
+            name: 'timezone',
+            label: 'Timezone',
+            kind: 'string',
+            default: '',
+            aliases: ['vacationTimezone'],
+            faIcon: 'fa-globe',
+            hint: 'e.g. America/New_York',
+          },
+        ],
+        run: async ({ api, broadcasterId, input }) => {
+          const startDate = toStr(input.startDate);
+          const endDate = toStr(input.endDate);
+          const timezone = toStr(input.timezone);
+
+          if (!startDate && !endDate && !timezone) {
+            await api.schedule.updateScheduleSettings(broadcasterId, { vacation: null });
+            return { vacation: null };
+          }
+          if (!startDate || !endDate || !timezone) {
+            throw new Error('A vacation needs a start date, end date and timezone — or leave all blank to clear');
+          }
+
+          await api.schedule.updateScheduleSettings(broadcasterId, {
+            vacation: { startDate, endDate, timezone },
+          });
+          return { vacation: { startDate, endDate, timezone } };
+        },
+      },
     },
   }),
 
@@ -638,26 +706,54 @@ export const monetisationSpecs = [
     type: 'twitch-helix-charity',
     tier: 'advanced',
     resource: 'charity',
-    label: 'get charity campaign',
-    help: 'Gets the charity campaign a channel is currently running, or null when there is no active campaign.',
+    label: 'charity',
+    help: "Reads a channel's active charity campaign and its donations.",
     scopes: ['channel:read:charity'],
     fields: [broadcaster],
-    run: async ({ api, broadcasterId }) => {
-      const campaign = await api.charity.getCharityCampaign(broadcasterId);
-      if (!getRawData(campaign)) return null;
+    defaultAction: 'campaign',
+    actions: {
+      campaign: {
+        label: 'campaign',
+        help: 'Gets the charity campaign a channel is currently running, or null when there is no active campaign.',
+        scopes: ['channel:read:charity'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => {
+          const campaign = await api.charity.getCharityCampaign(broadcasterId);
+          if (!getRawData(campaign)) return null;
 
-      return {
-        id: campaign.id,
-        broadcasterId: campaign.broadcasterId,
-        broadcasterName: campaign.broadcasterName,
-        broadcasterDisplayName: campaign.broadcasterDisplayName,
-        charityName: campaign.charityName,
-        charityDescription: campaign.charityDescription,
-        charityLogo: campaign.charityLogo,
-        charityWebsite: campaign.charityWebsite,
-        currentAmount: mapCharityAmount(campaign.currentAmount),
-        targetAmount: mapCharityAmount(campaign.targetAmount),
-      };
+          return {
+            id: campaign.id,
+            broadcasterId: campaign.broadcasterId,
+            broadcasterName: campaign.broadcasterName,
+            broadcasterDisplayName: campaign.broadcasterDisplayName,
+            charityName: campaign.charityName,
+            charityDescription: campaign.charityDescription,
+            charityLogo: campaign.charityLogo,
+            charityWebsite: campaign.charityWebsite,
+            currentAmount: mapCharityAmount(campaign.currentAmount),
+            targetAmount: mapCharityAmount(campaign.targetAmount),
+          };
+        },
+      },
+      donations: {
+        label: 'donations',
+        help: 'Lists the donations to the channel charity campaign.',
+        scopes: ['channel:read:charity'],
+        paged: { limit: 20, max: 1000 },
+        fields: [],
+        run: async ({ api, broadcasterId, input }) =>
+          api.charity.getCharityCampaignDonations(broadcasterId, {
+            limit: input.limit,
+            after: input.after,
+          }),
+        map: (donation) => ({
+          campaignId: donation.campaignId,
+          donorId: donation.donorId,
+          donorName: donation.donorName,
+          donorDisplayName: donation.donorDisplayName,
+          amount: mapCharityAmount(donation.amount),
+        }),
+      },
     },
   }),
 

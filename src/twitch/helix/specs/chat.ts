@@ -1,3 +1,4 @@
+import { getRawData } from '@twurple/common';
 import { defineHelix, type HelixField } from '../define';
 import {
   firstDefined,
@@ -11,6 +12,28 @@ import {
   toInt,
   toStr,
 } from '../twitch-helix-utils';
+
+function mapUserEmote(emote: any) {
+  return { ...mapEmote(emote), ownerId: emote.ownerId ?? null };
+}
+
+function mapSharedChat(session: any) {
+  if (!session) return null;
+  return {
+    sessionId: session.sessionId,
+    hostBroadcasterId: session.hostBroadcasterId,
+    participants: (session.participants ?? []).map((participant: any) => {
+      const raw = (getRawData(participant) ?? {}) as any;
+      return {
+        broadcasterId: participant.broadcasterId,
+        broadcasterLogin: raw.broadcaster_login ?? null,
+        broadcasterName: raw.broadcaster_name ?? null,
+      };
+    }),
+    createdDate: session.createdDate,
+    updatedDate: session.updatedDate,
+  };
+}
 
 const broadcaster: HelixField = {
   name: 'broadcaster',
@@ -407,5 +430,115 @@ export const chatSpecs = [
       }
       return (await api.chat.getChannelBadges(broadcasterId)).map(mapBadgeSet);
     },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-chat-color',
+    tier: 'extended',
+    resource: 'chat',
+    palette: false,
+    label: 'chat colour',
+    help: "Reads or changes a user's chat colour.",
+    scopes: ['user:manage:chat_color'],
+    fields: [
+      {
+        name: 'user',
+        label: 'User',
+        kind: 'user',
+        optional: true,
+        primary: true,
+        aliases: ['userId'],
+        hint: 'blank = authenticated user',
+        faIcon: 'fa-user',
+      },
+    ],
+    defaultAction: 'get',
+    actions: {
+      get: {
+        label: 'get',
+        help: "Gets a user's chat colour.",
+        scopes: [],
+        fields: [],
+        run: async ({ api, moderatorId, input }) => {
+          const user = input.user ?? moderatorId;
+          const color = await api.chat.getColorForUser(user);
+          return { userId: user, color: color ?? null };
+        },
+      },
+      set: {
+        label: 'set',
+        help: 'Sets a user chat colour; a named Twitch colour or #RRGGBB.',
+        scopes: ['user:manage:chat_color'],
+        fields: [
+          {
+            name: 'color',
+            label: 'Colour',
+            kind: 'string',
+            default: '',
+            required: true,
+            hint: 'e.g. blue, hot_pink or #9147ff',
+            faIcon: 'fa-paint-brush',
+          },
+        ],
+        run: async ({ api, moderatorId, input }) => {
+          const user = input.user ?? moderatorId;
+          const color = toStr(input.color);
+          if (!color) throw new Error('A colour is required — named colour or #RRGGBB');
+          await api.chat.setColorForUser(user, color as any);
+          return { userId: user, color };
+        },
+      },
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-user-emotes',
+    tier: 'extended',
+    resource: 'chat',
+    palette: false,
+    label: 'user emotes',
+    help: "Lists the emotes a user can use, including their channel's emotes.",
+    scopes: ['user:read:emotes'],
+    paged: { limit: 20, max: 1000 },
+    fields: [
+      {
+        name: 'user',
+        label: 'User',
+        kind: 'user',
+        optional: true,
+        aliases: ['userId'],
+        hint: 'blank = authenticated user',
+        faIcon: 'fa-user',
+      },
+    ],
+    run: async ({ api, moderatorId, input }) =>
+      api.chat.getUserEmotes(input.user ?? moderatorId, {
+        limit: input.limit,
+        after: input.after,
+      }),
+    map: (emote) => mapUserEmote(emote),
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-shared-chat',
+    tier: 'extended',
+    resource: 'chat',
+    palette: false,
+    label: 'shared chat',
+    help: 'Gets the shared chat session a channel is currently part of, or null.',
+    scopes: [],
+    fields: [
+      {
+        name: 'broadcaster',
+        label: 'Broadcaster',
+        kind: 'user',
+        optional: true,
+        aliases: ['broadcasterId'],
+        hint: 'blank = authenticated user',
+        faIcon: 'fa-user',
+      },
+    ],
+    run: async ({ api, broadcasterId }) => api.chat.getSharedChatSession(broadcasterId),
+    map: (session) => mapSharedChat(session),
   }),
 ];

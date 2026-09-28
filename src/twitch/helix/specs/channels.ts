@@ -4,7 +4,16 @@ import {
   mapFollowedChannel,
   mapFollower,
   resolveGameId,
+  toBool,
 } from '../twitch-helix-utils';
+
+function mapEditor(editor: any) {
+  return {
+    userId: editor.userId,
+    userDisplayName: editor.userDisplayName,
+    creationDate: editor.creationDate,
+  };
+}
 
 const VALID_COMMERCIAL_LENGTHS = [30, 60, 90, 120, 150, 180];
 
@@ -78,17 +87,50 @@ export const channelSpecs = [
         faIcon: 'fa-language',
         hint: 'e.g. en',
       },
+      {
+        name: 'labels',
+        label: 'Content labels',
+        kind: 'idList',
+        default: '',
+        aliases: ['contentClassificationLabels'],
+        faIcon: 'fa-flag',
+        hint: 'comma separated label IDs, blank = leave unchanged',
+      },
+      {
+        name: 'delay',
+        label: 'Delay (s)',
+        kind: 'int',
+        default: '',
+        faIcon: 'fa-clock-o',
+        hint: 'partners only, blank = leave unchanged',
+      },
+      {
+        name: 'isBrandedContent',
+        label: 'Branded content',
+        kind: 'select',
+        default: '',
+        faIcon: 'fa-briefcase',
+        options: [
+          { value: '', label: 'leave unchanged' },
+          { value: 'true', label: 'on' },
+          { value: 'false', label: 'off' },
+        ],
+      },
     ],
-    run: async ({ api, root, broadcasterId, input }) => {
+    run: async ({ api, root, broadcasterId, input, raw }) => {
       const data: any = {};
 
       if (input.title !== undefined) data.title = input.title;
       if (input.game !== undefined) data.gameId = await resolveGameId(root, input.game);
       if (input.language !== undefined) data.language = input.language;
       if (input.tags.length) data.tags = input.tags;
+      if (input.labels.length) data.contentClassificationLabels = input.labels;
+      if (raw.delay !== undefined && input.delay !== undefined) data.delay = input.delay;
+      const branded = toBool(input.isBrandedContent);
+      if (branded !== undefined) data.isBrandedContent = branded;
 
       if (Object.keys(data).length === 0) {
-        throw new Error('Nothing to update — set a title, game, tags or language');
+        throw new Error('Nothing to update — set a title, game, tags, language, labels or delay');
       }
 
       await api.channels.updateChannelInfo(broadcasterId, data);
@@ -250,5 +292,19 @@ export const channelSpecs = [
       const streamKey = await api.streams.getStreamKey(broadcasterId);
       return { streamKey, broadcasterId };
     },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-channel-editors',
+    tier: 'advanced',
+    resource: 'channels',
+    palette: false,
+    label: 'channel editors',
+    help: 'Lists the editors of a channel.',
+    scopes: ['channel:read:editors'],
+    fields: [broadcaster],
+    run: async ({ api, broadcasterId }) =>
+      (await api.channels.getChannelEditors(broadcasterId)).map(mapEditor),
+    extra: (payload) => ({ pagination: { cursor: null }, total: payload.length }),
   }),
 ];

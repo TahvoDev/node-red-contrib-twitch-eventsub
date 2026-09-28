@@ -643,4 +643,32 @@ export const contentSpecs = [
       return { data: result.data.map(toPlainStream), cursor: result.cursor ?? null };
     },
   }),
+
+  defineHelix({
+    type: 'twitch-helix-followed-streams',
+    tier: 'extended',
+    resource: 'streams',
+    palette: false,
+    label: 'followed streams',
+    help: 'Lists the live streams a user follows.',
+    scopes: ['user:read:follows'],
+    paged: { limit: 20, max: 1000 },
+    fields: [
+      {
+        name: 'user',
+        label: 'User',
+        kind: 'user',
+        optional: true,
+        aliases: ['userId'],
+        hint: 'blank = authenticated user',
+        faIcon: 'fa-user',
+      },
+    ],
+    run: async ({ api, moderatorId, input }) =>
+      api.streams.getFollowedStreams(input.user ?? moderatorId, {
+        limit: input.limit,
+        after: input.after,
+      }),
+    map: (stream) => toPlainStream(stream),
+  }),
 ];

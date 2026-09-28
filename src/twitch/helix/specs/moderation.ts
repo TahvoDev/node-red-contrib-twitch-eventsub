@@ -8,6 +8,7 @@ import {
   mapModerator,
   mapUserRelation,
   mapWarning,
+  toBool,
   toStr,
 } from '../twitch-helix-utils';
 
@@ -40,6 +41,62 @@ const optionalUser: HelixField = {
   hint: 'optional: check one user',
   faIcon: 'fa-search',
 };
+
+function mapAutoModSettings(settings: any) {
+  return {
+    broadcasterId: settings.broadcasterId,
+    moderatorId: settings.moderatorId,
+    overallLevel: settings.overallLevel ?? null,
+    disability: settings.disability,
+    aggression: settings.aggression,
+    sexualitySexOrGender: settings.sexualitySexOrGender,
+    misogyny: settings.misogyny,
+    bullying: settings.bullying,
+    swearing: settings.swearing,
+    raceEthnicityOrReligion: settings.raceEthnicityOrReligion,
+    sexBasedTerms: settings.sexBasedTerms,
+  };
+}
+
+function mapShieldMode(status: any) {
+  return {
+    isActive: status.isActive,
+    moderatorId: status.moderatorId,
+    moderatorName: status.moderatorName,
+    moderatorDisplayName: status.moderatorDisplayName,
+    lastActivationDate: status.lastActivationDate ?? null,
+  };
+}
+
+function mapUnbanRequest(request: any) {
+  return {
+    id: request.id,
+    broadcasterId: request.broadcasterId,
+    userId: request.userId,
+    userName: request.userName,
+    userDisplayName: request.userDisplayName,
+    moderatorId: request.moderatorId ?? null,
+    moderatorDisplayName: request.moderatorDisplayName ?? null,
+    message: request.message,
+    creationDate: request.creationDate,
+    resolutionMessage: request.resolutionMessage ?? null,
+    resolutionDate: request.resolutionDate ?? null,
+  };
+}
+
+function mapModeratedChannel(channel: any) {
+  return { id: channel.id, name: channel.name, displayName: channel.displayName };
+}
+
+/** The AutoMod category levels; 0-4, or blank to leave a category unchanged. */
+const automodLevel = (name: string, label: string): HelixField => ({
+  name,
+  label,
+  kind: 'int',
+  default: '',
+  hint: '0 to 4, blank = leave unchanged',
+  faIcon: 'fa-sliders',
+});
 
 export const moderationSpecs = [
   defineHelix({
@@ -301,6 +358,282 @@ export const moderationSpecs = [
           const mapped = (result ?? []).map(mapAutoModStatus);
           return mapped.length === 1 ? mapped[0] : mapped;
         },
+      },
+      moderated: {
+        label: 'moderated channels',
+        help: 'Lists the channels a user moderates.',
+        scopes: ['user:read:moderated_channels'],
+        paged: { limit: 20, max: 1000 },
+        fields: [
+          {
+            name: 'user',
+            label: 'Moderator',
+            kind: 'user',
+            optional: true,
+            aliases: ['userId'],
+            hint: 'blank = authenticated user',
+          },
+        ],
+        run: async ({ api, moderatorId, input }) =>
+          api.moderation.getModeratedChannels(input.user ?? moderatorId, {
+            limit: input.limit,
+            after: input.after,
+          }),
+        map: (channel) => mapModeratedChannel(channel),
+      },
+      checkBan: {
+        label: 'check ban',
+        help: 'Checks whether a user is banned in the channel.',
+        scopes: ['moderation:read'],
+        fields: [target],
+        run: async ({ api, broadcasterId, input }) => ({
+          userId: input.user,
+          isBanned: await api.moderation.checkUserBan(broadcasterId, input.user),
+        }),
+      },
+      checkMod: {
+        label: 'check moderator',
+        help: 'Checks whether a user is a moderator of the channel.',
+        scopes: ['moderation:read'],
+        fields: [target],
+        run: async ({ api, broadcasterId, input }) => ({
+          userId: input.user,
+          isModerator: await api.moderation.checkUserMod(broadcasterId, input.user),
+        }),
+      },
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-automod',
+    tier: 'extended',
+    resource: 'automod',
+    palette: false,
+    label: 'automod',
+    help: 'Reads or updates AutoMod settings, or approves/denies a held message.',
+    scopes: [
+      'moderator:read:automod_settings',
+      'moderator:manage:automod_settings',
+      'moderator:manage:automod',
+    ],
+    fields: [broadcaster],
+    defaultAction: 'settings',
+    actions: {
+      settings: {
+        label: 'get settings',
+        help: 'Gets the AutoMod category levels for a channel.',
+        scopes: ['moderator:read:automod_settings'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.moderation.getAutoModSettings(broadcasterId),
+        map: (settings) => (settings ?? []).map(mapAutoModSettings),
+      },
+      update: {
+        label: 'update settings',
+        help: 'Changes the AutoMod category levels you set, leaving the rest unchanged.',
+        scopes: ['moderator:manage:automod_settings'],
+        fields: [
+          automodLevel('overallLevel', 'Overall'),
+          automodLevel('disability', 'Disability'),
+          automodLevel('aggression', 'Aggression'),
+          automodLevel('sexualitySexOrGender', 'Sexuality / sex / gender'),
+          automodLevel('misogyny', 'Misogyny'),
+          automodLevel('bullying', 'Bullying'),
+          automodLevel('swearing', 'Swearing'),
+          automodLevel('raceEthnicityOrReligion', 'Race / ethnicity / religion'),
+          automodLevel('sexBasedTerms', 'Sex-based terms'),
+        ],
+        run: async ({ api, broadcasterId, input }) => {
+          const data: any = {};
+          for (const key of [
+            'overallLevel',
+            'disability',
+            'aggression',
+            'sexualitySexOrGender',
+            'misogyny',
+            'bullying',
+            'swearing',
+            'raceEthnicityOrReligion',
+            'sexBasedTerms',
+          ]) {
+            if (input[key] !== undefined) data[key] = input[key];
+          }
+          if (Object.keys(data).length === 0) {
+            throw new Error('Nothing to update — set at least one AutoMod level');
+          }
+          const settings = await api.moderation.updateAutoModSettings(broadcasterId, data);
+          return (settings ?? []).map(mapAutoModSettings);
+        },
+      },
+      held: {
+        label: 'held message',
+        help: 'Approves or denies a message AutoMod is holding.',
+        scopes: ['moderator:manage:automod'],
+        fields: [
+          {
+            name: 'messageId',
+            label: 'Message ID',
+            kind: 'string',
+            default: '',
+            required: true,
+            aliases: ['id'],
+            hint: 'msg.messageId or msg.id overrides this',
+            faIcon: 'fa-comment-o',
+          },
+          {
+            name: 'allow',
+            label: 'Decision',
+            kind: 'select',
+            default: 'true',
+            options: [
+              { value: 'true', label: 'approve' },
+              { value: 'false', label: 'deny' },
+            ],
+          },
+        ],
+        run: async ({ api, moderatorId, input, msg }) => {
+          const messageId = input.messageId ?? toStr(msg.id);
+          if (!messageId) throw new Error('A message ID is required — set msg.messageId or msg.id');
+          const allow = toBool(input.allow, true) === true;
+          await api.moderation.processHeldAutoModMessage(moderatorId, messageId, allow);
+          return { messageId, allow };
+        },
+      },
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-shield-mode',
+    tier: 'extended',
+    resource: 'shield mode',
+    palette: false,
+    label: 'shield mode',
+    help: 'Reads or toggles Shield Mode on a channel.',
+    scopes: ['moderator:read:shield_mode', 'moderator:manage:shield_mode'],
+    fields: [broadcaster],
+    defaultAction: 'get',
+    actions: {
+      get: {
+        label: 'get',
+        help: 'Gets the current Shield Mode status.',
+        scopes: ['moderator:read:shield_mode'],
+        fields: [],
+        run: async ({ api, broadcasterId }) => api.moderation.getShieldModeStatus(broadcasterId),
+        map: (status) => mapShieldMode(status),
+      },
+      update: {
+        label: 'update',
+        help: 'Activates or deactivates Shield Mode.',
+        scopes: ['moderator:manage:shield_mode'],
+        fields: [
+          {
+            name: 'active',
+            label: 'Shield mode',
+            kind: 'select',
+            default: 'true',
+            options: [
+              { value: 'true', label: 'activate' },
+              { value: 'false', label: 'deactivate' },
+            ],
+          },
+        ],
+        run: async ({ api, broadcasterId, input }) =>
+          api.moderation.updateShieldModeStatus(broadcasterId, toBool(input.active, true) === true),
+        map: (status) => mapShieldMode(status),
+      },
+    },
+  }),
+
+  defineHelix({
+    type: 'twitch-helix-unban-requests',
+    tier: 'extended',
+    resource: 'unban requests',
+    palette: false,
+    label: 'unban requests',
+    help: 'Lists or resolves unban requests for a channel.',
+    scopes: ['moderator:read:unban_requests', 'moderator:manage:unban_requests'],
+    fields: [broadcaster],
+    defaultAction: 'list',
+    actions: {
+      list: {
+        label: 'list',
+        help: 'Lists unban requests with a given status.',
+        scopes: ['moderator:read:unban_requests'],
+        paged: { limit: 20, max: 1000 },
+        fields: [
+          {
+            name: 'status',
+            label: 'Status',
+            kind: 'select',
+            default: 'pending',
+            faIcon: 'fa-filter',
+            options: [
+              { value: 'pending', label: 'pending' },
+              { value: 'approved', label: 'approved' },
+              { value: 'denied', label: 'denied' },
+              { value: 'acknowledged', label: 'acknowledged' },
+              { value: 'canceled', label: 'canceled' },
+            ],
+          },
+          {
+            name: 'user',
+            label: 'User',
+            kind: 'user',
+            optional: true,
+            aliases: ['userId'],
+            faIcon: 'fa-search',
+            hint: 'optional: filter to one user',
+          },
+        ],
+        run: async ({ api, broadcasterId, input }) =>
+          api.moderation.getUnbanRequests(broadcasterId, input.status, {
+            userId: input.user,
+            limit: input.limit,
+            after: input.after,
+          }),
+        map: (request) => mapUnbanRequest(request),
+      },
+      resolve: {
+        label: 'resolve',
+        help: 'Approves or denies an unban request, with an optional message.',
+        scopes: ['moderator:manage:unban_requests'],
+        fields: [
+          {
+            name: 'requestId',
+            label: 'Request ID',
+            kind: 'string',
+            default: '',
+            required: true,
+            aliases: ['id'],
+            hint: 'msg.unbanRequestId or msg.id overrides this',
+            faIcon: 'fa-hashtag',
+          },
+          {
+            name: 'approve',
+            label: 'Decision',
+            kind: 'select',
+            default: 'true',
+            options: [
+              { value: 'true', label: 'approve' },
+              { value: 'false', label: 'deny' },
+            ],
+          },
+          {
+            name: 'message',
+            label: 'Resolution message',
+            kind: 'string',
+            default: '',
+            hint: 'optional',
+            faIcon: 'fa-comment',
+          },
+        ],
+        run: async ({ api, broadcasterId, input }) =>
+          api.moderation.resolveUnbanRequest(
+            broadcasterId,
+            input.requestId,
+            toBool(input.approve, true) === true,
+            input.message || undefined
+          ),
+        map: (request) => mapUnbanRequest(request),
       },
     },
   }),

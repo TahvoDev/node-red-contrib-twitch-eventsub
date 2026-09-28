@@ -6,6 +6,7 @@ import { moderationSpecs } from './moderation';
 import { contentSpecs } from './content';
 import { engagementSpecs } from './engagement';
 import { monetisationSpecs } from './monetisation';
+import { platformSpecs } from './platform';
 
 /**
  * Every declarative Helix node. Spec groups are spread in here; the factory
@@ -20,6 +21,7 @@ export const HELIX_SPECS: HelixSpec[] = [
   ...contentSpecs,
   ...engagementSpecs,
   ...monetisationSpecs,
+  ...platformSpecs,
 ];
 
 const seen = new Set<string>();

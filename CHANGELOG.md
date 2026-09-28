@@ -46,6 +46,13 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   than failing
 
 ### Added
+- More Helix coverage, all as the same declarative specs and hidden behind the generic
+  `api request` node so the palette stays at 30: AutoMod settings and held messages, Shield Mode,
+  unban requests, moderated channels, ban/moderator checks, chat colour, user emotes, shared chat,
+  followed streams, channel editors, charity donations, schedule iCal/vacation/single-segment,
+  content classification labels, drops entitlements, extensions (released/live/bits/transactions)
+  and user extensions. `modify channel information` also covers content classification labels,
+  delay and branded content now
 - A **Mock Token** field on the Twitch API config node's mock section. The Twitch CLI mock API
   generates a random client id, access token and user id at startup and 401s anything else, so the
   mock now accepts the token it prints (the Helix e2e reads all three from the mock log)

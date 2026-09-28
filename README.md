@@ -156,6 +156,7 @@ The catalogue below is generated from the Helix specs at build time — do not e
 | get followed channels *(hidden)* | — | core | `user:read:follows` |
 | ads | `get`, `snooze`, `start` | extended | `channel:read:ads`, `channel:manage:ads`, `channel:edit:commercial` |
 | get stream key *(hidden)* | — | advanced | `channel:read:stream_key` |
+| channel editors *(hidden)* | — | advanced | `channel:read:editors` |
 | send chat message | — | core | `user:write:chat` |
 | send announcement | — | core | `moderator:manage:announcements` |
 | send shoutout | — | core | `moderator:manage:shoutouts` |
@@ -163,11 +164,17 @@ The catalogue below is generated from the Helix specs at build time — do not e
 | chat settings | `get`, `update` | extended | `moderator:manage:chat_settings` |
 | get emotes *(hidden)* | — | core | — |
 | get chat badges *(hidden)* | — | core | — |
+| chat colour *(hidden)* | `get`, `set` | extended | `user:manage:chat_color` |
+| user emotes *(hidden)* | — | extended | `user:read:emotes` |
+| shared chat *(hidden)* | — | extended | — |
 | bans | `ban`, `unban`, `list` | core | `moderator:manage:banned_users`, `moderation:read` |
 | moderators | `list`, `add`, `remove` | extended | `moderation:read`, `channel:manage:moderators` |
 | vips | `list`, `add`, `remove` | extended | `channel:read:vips`, `channel:manage:vips` |
 | blocked terms | `list`, `add`, `remove` | extended | `moderator:read:blocked_terms`, `moderator:manage:blocked_terms` |
-| moderation tools *(hidden)* | `warn`, `automod` | extended | `moderator:manage:warnings`, `moderation:read` |
+| moderation tools *(hidden)* | `warn`, `automod`, `moderated`, `checkBan`, `checkMod` | extended | `moderator:manage:warnings`, `moderation:read`, `user:read:moderated_channels` |
+| automod *(hidden)* | `settings`, `update`, `held` | extended | `moderator:read:automod_settings`, `moderator:manage:automod_settings`, `moderator:manage:automod` |
+| shield mode *(hidden)* | `get`, `update` | extended | `moderator:read:shield_mode`, `moderator:manage:shield_mode` |
+| unban requests *(hidden)* | `list`, `resolve` | extended | `moderator:read:unban_requests`, `moderator:manage:unban_requests` |
 | stream markers | `create`, `list` | extended | `channel:manage:broadcast`, `user:read:broadcast` |
 | clips | `create`, `list` | core | `clips:edit` |
 | videos | `list`, `delete` | extended | `channel:manage:videos` |
@@ -175,18 +182,23 @@ The catalogue below is generated from the Helix specs at build time — do not e
 | search channels *(hidden)* | — | advanced | — |
 | raids | `start`, `cancel` | extended | `channel:manage:raids` |
 | get streams | — | core | — |
+| followed streams *(hidden)* | — | extended | `user:read:follows` |
 | channel points | `list`, `create`, `update`, `delete` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
 | redemptions | `list`, `update` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
 | polls | `list`, `create`, `end` | extended | `channel:read:polls`, `channel:manage:polls` |
 | predictions | `list`, `create`, `end` | extended | `channel:read:predictions`, `channel:manage:predictions` |
 | bits | `leaderboard`, `cheermotes` | advanced | `bits:read` |
 | subscriptions | `list`, `check` | advanced | `channel:read:subscriptions`, `user:read:subscriptions` |
-| schedule | `get`, `create`, `update`, `delete` | extended | `channel:manage:schedule` |
+| schedule | `get`, `create`, `update`, `delete`, `segment`, `ical`, `settings` | extended | `channel:manage:schedule` |
 | teams | `get`, `channel` | advanced | — |
-| get charity campaign | — | advanced | `channel:read:charity` |
+| charity | `campaign`, `donations` | advanced | `channel:read:charity` |
 | get hype train | — | advanced | `channel:read:hype_train` |
 | get goals | — | advanced | `channel:read:goals` |
 | send whisper | — | advanced | `user:manage:whispers` |
+| content classification labels *(hidden)* | — | advanced | — |
+| drops *(hidden)* | `list`, `byIds`, `update` | advanced | — |
+| extensions *(hidden)* | `released`, `live`, `bits`, `putBits`, `transactions` | advanced | — |
+| user extensions *(hidden)* | `installed`, `active` | advanced | `user:read:broadcast` |
 <!-- helix-nodes:end -->
 
 ### Generic request node
