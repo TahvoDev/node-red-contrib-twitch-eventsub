@@ -1,5 +1,4 @@
 import type { EventSubWsListener } from '@twurple/eventsub-ws';
-import { iconFor } from './eventsub-icons';
 
 /**
  * A single field of the Node-RED message payload produced for an EventSub event.
@@ -15,13 +14,11 @@ export type EventSubField =
   | { key: string; map: (event: any) => unknown };
 
 export interface EventSubEventDefinition {
-  /** Node-RED node type, e.g. `twitch-eventsub-channel-follow`. */
+  /** Operation id, e.g. `twitch-eventsub-channel-follow`. */
   type: string;
-  /** Palette category, derived from the event's EventSub area by `categoryFor`. */
+  /** Dropdown group in the single node's editor, from `categoryFor`. */
   category: string;
-  /** Generated editor icon filename (see `eventsub-icons.ts`). */
-  icon: string;
-  /** Short label shown in the palette. */
+  /** Short label shown in the editor dropdown. */
   label: string;
   /** One-line description used in the node help. */
   description: string;
@@ -42,7 +39,7 @@ export interface EventSubEventDefinition {
  * layout follows Twitch's own grouping of EventSub subscription types; Node-RED
  * has no nested palette categories, so each name starts with "twitch".
  */
-type EventSubEventInput = Omit<EventSubEventDefinition, 'category' | 'icon'>;
+type EventSubEventInput = Omit<EventSubEventDefinition, 'category'>;
 
 const EVENT_LIST: EventSubEventInput[] = [
   {
@@ -1492,8 +1489,12 @@ function categoryFor(type: string): string {
 export const EVENTS: readonly EventSubEventDefinition[] = EVENT_LIST.map((event) => ({
   ...event,
   category: categoryFor(event.type),
-  icon: iconFor(event.type),
 }));
+
+/** The payload key a field maps to, used to document the event in the editor. */
+export function fieldKey(field: EventSubField): string {
+  return typeof field === 'string' ? field : field.key;
+}
 
 export const EVENTS_BY_TYPE: Record<string, EventSubEventDefinition> =
   Object.fromEntries(EVENTS.map((event) => [event.type, event]));

@@ -17,7 +17,7 @@
  *   CONTAINER_ENGINE   podman (default) or docker
  *   E2E_KEEP=1         leave the temp data and containers in place for debugging
  *   E2E_DELAY          ms between fired events (default 150)
- *   E2E_FLOW           flow file to deploy (default examples/mock-all-nodes.json)
+ *   E2E_FLOW           flow file to deploy (default: built from the EventSub registry)
  *   E2E_NR_IMAGE       override the Node-RED image
  *   E2E_CLI_IMAGE      override the Twitch CLI mock image
  *   E2E_PROXY_IMAGE    override the mock proxy image
@@ -30,7 +30,7 @@ const path = require('path')
 
 const root = path.resolve(__dirname, '..', '..')
 const packageName = require(path.join(root, 'package.json')).name
-const flowPath = process.env.E2E_FLOW || path.join(root, 'examples', 'mock-all-nodes.json')
+let flowPath = process.env.E2E_FLOW || null
 
 const NR_IMAGE = process.env.E2E_NR_IMAGE || 'docker.io/nodered/node-red:latest'
 const CLI_IMAGE = process.env.E2E_CLI_IMAGE || 'localhost/twitch-e2e-cli:1.1.24'
@@ -184,9 +184,9 @@ async function main() {
         console.error('The module itself does not: npm install / npm run build work without one.')
         process.exit(1)
     }
-    if (!fs.existsSync(flowPath)) throw new Error(`flow not found: ${flowPath}`)
-
-    console.log(`==> engine ${engine}, flow ${path.relative(root, flowPath)}`)
+    if (process.env.E2E_FLOW && !fs.existsSync(flowPath)) {
+        throw new Error(`flow not found: ${flowPath}`)
+    }
 
     console.log('==> building the package')
     run('npm', ['run', 'build'], { cwd: root })
@@ -197,6 +197,14 @@ async function main() {
 
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'twitch-e2e-'))
     console.log(`==> temp data ${tmpDir}`)
+
+    // No E2E_FLOW: build the mock flow from the registry so it tracks the single
+    // twitch-eventsub node automatically.
+    if (!flowPath) {
+        flowPath = path.join(tmpDir, 'flows.json')
+        require('./make-flow').writeMockFlow(flowPath)
+    }
+    console.log(`==> engine ${engine}, flow ${flowPath}`)
 
     try {
         const data = prepareData(tmpDir)

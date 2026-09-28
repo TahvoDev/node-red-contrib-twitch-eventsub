@@ -1,9 +1,11 @@
 [
   {
     "id": "93f32cdccc7a8980",
-    "type": "twitch-eventsub-channel-redeem",
+    "type": "twitch-eventsub",
     "z": "5a91292e1414d67f",
+    "name": "channel point redeem",
     "config": "baeb5701833381a7",
+    "event": "twitch-eventsub-channel-redemption-add",
     "x": 200,
     "y": 600,
     "wires": [

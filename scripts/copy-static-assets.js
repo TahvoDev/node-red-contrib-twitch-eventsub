@@ -22,8 +22,8 @@ function copyHtml(srcDir, destDir) {
 
 copyHtml("src", "dist");
 
-// The shared Twitch logo used by the config and Helix nodes. It sits next to the
-// generated per-event icons that scripts/generate-eventsub-icons.js writes here.
+// The shared Twitch logo used by the config, EventSub and Helix nodes. The Chat
+// icons are generated next to it by scripts/generate-chat-icons.js.
 shell.cp("-R", "src/icons/*.svg", "dist/twitch/icons/");
 
 // The composed icons derive from Bootstrap Icons (MIT); ship its notice alongside.

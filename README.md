@@ -4,13 +4,13 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
 
 ## Nodes
 
-- One node per EventSub event: follows, subscriptions and gift subs, channel point
-  redeems, bits, cheers, raids, polls, predictions, hype trains, goals, charity,
-  moderation, AutoMod, chat, warnings, whispers, stream online/offline and more.
-- The palette groups them into `twitch ...` categories that follow Twitch's own
-  EventSub areas: automod, bits & ads, channel, channel points, charity, chat events,
-  goals, hype train, moderation, polls, predictions, raids, stream, subscriptions and user.
-- Every event node has its own icon, drawn from the event at build time.
+- One **twitch eventsub** node covers every EventSub event: follows, subscriptions and
+  gift subs, channel point redeems, bits, cheers, raids, polls, predictions, hype
+  trains, goals, charity, moderation, AutoMod, chat, warnings, whispers, stream
+  online/offline and more. Pick the event in the node's **Event** dropdown; it is
+  grouped by Twitch's own EventSub areas (automod, bits & ads, channel, channel
+  points, charity, chat events, goals, hype train, moderation, polls, predictions,
+  raids, stream, subscriptions and user).
 - The Helix API nodes live under `twitch api`.
 - Twitch Chat (IRC) nodes live under `twitch chat (irc)`: receive and send chat messages,
   run commands, moderate, announce, join and leave channels.
@@ -226,7 +226,8 @@ real broadcaster account:
    port (8080). The Twitch CLI prints a Client ID, an access token and a user ID when it
    starts: put the Client ID in the main **Client ID** field and the token and user ID in
    the mock **Mock Token** and **Mock User ID** fields. Helix endpoints 401 anything else.
-3. Import `examples/mock-all-nodes.json` to get every event node wired to a debug node.
+3. Generate the mock flow (one `twitch-eventsub` node per event, wired to a debug
+   node) with `node test/e2e/make-flow.js`, then import it into Node-RED.
 4. Fire the events:
    ```sh
    node test/e2e/fire-all-events.js
@@ -240,9 +241,9 @@ stay quiet; the script reports exactly which ones it could not trigger.
 ## End-to-end test
 
 `npm run test:e2e` does the whole run above automatically: it builds the package, builds
-the mock images if they are missing, starts Node-RED against the Twitch CLI mock with
-`examples/mock-all-nodes.json`, installs nothing into your normal Node-RED data dir
-(everything is temporary) and fails if any generated event was rejected or never
+the mock images if they are missing, starts Node-RED against the Twitch CLI mock with a
+flow generated from the EventSub registry, installs nothing into your normal Node-RED data
+dir (everything is temporary) and fails if any generated event was rejected or never
 delivered. It needs podman (preferred) or docker. That requirement is isolated to the
 test: `npm install`, `npm run build` and `npm run check` work without a container engine.
 
@@ -253,22 +254,21 @@ the request each one is supposed to make. Same container-engine requirement.
 ## Adding a new event
 
 All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry
-there (type, palette label, description, Twurple `subscribe` call and the payload field
-mapping), then run `npm run build`. The build generates the runtime module and editor
-file for the new node and updates the `node-red` node manifest in `package.json`. To
-regenerate only the manifest, run `npm run sync`; `npm run check` fails if the manifest
-has drifted from the registry. The field mapping supports a plain property name, a
-renamed property, a default value and a `map` function for anything more complex.
+there (type, label, description, Twurple `subscribe` call and the payload field
+mapping) and run `npm run build`. The single `twitch-eventsub` node picks it up
+automatically and the editor's **Event** dropdown is served from the same registry, so
+there is no per-event node, editor file or `package.json` entry to generate.
+`npm run check` runs the unit tests, which fail if the registry is malformed. The
+field mapping supports a plain property name, a renamed property, a default value and a
+`map` function for anything more complex.
 
-The palette category and icon are derived as well. `categoryFor` in the registry maps the
-event area to a `twitch ...` category (the chat events area is `twitch chat events`), and `eventsub-icons.ts` maps the event to a glyph
-that the build renders white on Node-RED's standard 40x60 icon canvas, so it keeps the
-same padding as the stock icons. To use a new glyph, `npm i --no-save bootstrap-icons`,
-add the name in `eventsub-icons.ts`, then run `npx tsc && npm run collect-glyphs` to
-vendor its path into `src/icons/glyphs.json`. The Twitch Chat nodes use the same
-mechanism: their glyphs live in `src/twitch/chat/twitch-chat-icons.ts` and are
-rendered by `scripts/generate-chat-icons.js`, and both generators share
-`scripts/render-glyph-icon.js`.
+`categoryFor` in the registry maps the event area to the dropdown group (the chat
+events area is `twitch chat events`). The single EventSub node ships one icon,
+`src/icons/twitch-icon.svg`. The Twitch Chat nodes still generate a per-node icon from
+the glyphs in `src/twitch/chat/twitch-chat-icons.ts`; to use a new glyph, run
+`npm i --no-save bootstrap-icons`, add the name there, then run
+`npx tsc && npm run collect-glyphs` to vendor its path into `src/icons/glyphs.json`.
+`scripts/generate-chat-icons.js` renders them via `scripts/render-glyph-icon.js`.
 
 ## Credits
 
