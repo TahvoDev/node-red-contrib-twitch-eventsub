@@ -109,7 +109,7 @@ real broadcaster account:
    ```sh
    twitch mock-api start --port 8081
    twitch event websocket start-server --port 8082 --require-subscription
-   node scripts/mock/proxy.js
+   node test/mock/proxy.js
    ```
 2. In the Twitch API config node, open the mock section, set **Mock Port** to the proxy
    port (8080) and **Mock User ID** to the broadcaster the mock should report. Leave the
@@ -117,7 +117,7 @@ real broadcaster account:
 3. Import `examples/mock-all-nodes.json` to get every event node wired to a debug node.
 4. Fire the events:
    ```sh
-   node scripts/mock/fire-all-events.js
+   node test/e2e/fire-all-events.js
    ```
 
 `fire-all-events.js` reads the subscriptions the mock accepted, fires each one through

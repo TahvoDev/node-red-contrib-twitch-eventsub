@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Every event is now its own node, so a flow wires a switch on the event you actually want
 - Optional mock mode on the Twitch API config node: point `mock server port` at a local [Twitch CLI](https://dev.twitch.tv/docs/cli/) mock and the nodes subscribe and receive events without a real Twitch account or app
 - `examples/mock-all-nodes.json`, a flow with every event node wired to a debug node
-- `scripts/mock/fire-all-events.js`, which fires every event the Twitch CLI can generate and reports what the mock delivered and what the client rejected
+- `test/e2e/fire-all-events.js`, which fires every event the Twitch CLI can generate and reports what the mock delivered and what the client rejected
 - `npm run test:e2e`, which runs the built module in a real Node-RED container against the Twitch CLI mock and fails if any generated event was rejected or never delivered. It needs podman or docker; the regular build and install do not
 - Each EventSub node now has its own palette icon: the event's glyph from Bootstrap Icons (MIT), rendered white on Node-RED's standard icon canvas at build time
 - The EventSub palette is grouped into `twitch ...` categories that follow Twitch's EventSub areas (automod, chat events, channel points, subscriptions, moderation, polls, predictions, hype train, goals, charity, raids, bits & ads, stream, user)
@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `npm run check` also asserts the Twitch Chat message-property rules (announcement colour, channel normalisation, user id resolution), so a change to one chat node cannot quietly break the node it is wired to
 
 ### Changed
+- Moved the test-only tooling under `test/`: the unit test to `test/unit/`, the e2e runner, event firer and mock images to `test/e2e/`, and the mock proxy to `test/mock/`. `scripts/` now holds build tooling only. No behaviour change
 - The Twitch Chat connection node no longer has a **Bot** checkbox. It always identifies as a bot so Twitch applies its bot rate limits instead of the tighter anonymous-user ones. Existing connections keep working; the field is simply ignored if a saved config still carries it
 - **Breaking:** the combined `poll events`, `prediction events` and `hype train events` nodes are replaced by one node per event (`poll begin`/`poll progress`/`poll end`, `prediction begin`/`progress`/`lock`/`end`, `hype train begin`/`progress`/`end`). The `eventType` dropdown is gone, re-add the nodes to existing flows.
 - **Breaking:** the duplicate `-v2` nodes were merged into a single node per event that always uses the latest EventSub subscription version. `automod message hold`, `automod message update`, `auto redeem` and the three Hype Train nodes now use their V2 subscriptions (Hype Train V1 is deprecated by Twitch; AutoMod and automatic reward redemption V2 have different payloads, so use the `rawEvent` field for anything the mapped fields do not cover). Re-add any `-v2` nodes in existing flows under the same name without the suffix.
