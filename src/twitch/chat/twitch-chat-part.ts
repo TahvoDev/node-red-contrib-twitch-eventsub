@@ -33,8 +33,10 @@ module.exports = function (RED: NodeAPI) {
         done();
       } catch (err) {
         node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+        // node.error reports (and triggers Catch); done(err) would report again
+        // because Node-RED's _complete delegates to node.error.
         node.error(err, msg);
-        done(err as Error);
+        done();
       }
     });
   }

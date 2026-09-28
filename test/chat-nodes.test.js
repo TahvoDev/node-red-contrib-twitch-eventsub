@@ -21,6 +21,7 @@ const {
   matchCommand,
   messageText,
   normalizeChannel,
+  parseChannels,
   resolveAnnounceColor,
   resolveUserId,
   sanitizeChatText,
@@ -43,6 +44,16 @@ assert.strictEqual(normalizeChannel('  other  '), 'other')
 assert.strictEqual(normalizeChannel(undefined), '')
 // Must never be confused with an Object.prototype key by a cache lookup.
 assert.strictEqual(normalizeChannel('__proto__'), '__proto__')
+
+// The config channel list is comma-separated, with or without '#' and spaces.
+assert.deepStrictEqual(parseChannels('Channel1, #channel2 ,, channel3'), [
+  'channel1',
+  'channel2',
+  'channel3',
+])
+assert.deepStrictEqual(parseChannels(''), [])
+assert.deepStrictEqual(parseChannels(undefined), [])
+assert.deepStrictEqual(parseChannels('__proto__'), ['__proto__'])
 
 // IRC line injection: CR/LF/ NUL must not survive into the socket, and Twitch
 // rejects anything past 500 characters.

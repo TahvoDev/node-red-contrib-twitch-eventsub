@@ -22,7 +22,7 @@ module.exports = function (RED: NodeAPI) {
     chatClient?: ChatClient;
     currentStatus: ChatStatus = { fill: 'grey', shape: 'ring', text: 'Disconnected' };
 
-    private listeners = new Map<string, Node>();
+    private listeners = new Map<string, { node: Node; onClient?: (client: ChatClient) => void }>();
     private initPromise?: Promise<ChatClient | undefined>;
 
     constructor(config: ChatConnectionConfig) {
@@ -91,8 +91,15 @@ module.exports = function (RED: NodeAPI) {
       );
 
       this.chatClient = client;
+      // A client built after auth completed (the flow may be deployed before the
+      // account is logged in) still has to reach listeners that registered early.
+      this.notifyListeners(client);
       client.connect();
       return client;
+    }
+
+    private notifyListeners(client: ChatClient) {
+      this.listeners.forEach((entry) => entry.onClient?.(client));
     }
 
     getChatClient(): ChatClient | undefined {
@@ -107,9 +114,14 @@ module.exports = function (RED: NodeAPI) {
       return this.account?.userId ?? this.account?.config?.twitch_user_id;
     }
 
-    addListener(id: string, node: Node) {
-      this.listeners.set(id, node);
+    addListener(id: string, node: Node, onClient?: (client: ChatClient) => void) {
+      this.listeners.set(id, { node, onClient });
       node.status(this.currentStatus);
+
+      if (this.chatClient) {
+        onClient?.(this.chatClient);
+        return;
+      }
       this.initChat().catch((e) => this.error(e));
     }
 
@@ -120,7 +132,7 @@ module.exports = function (RED: NodeAPI) {
     updateStatus(status: ChatStatus) {
       this.currentStatus = status;
       this.status(status);
-      this.listeners.forEach((node) => node.status(status));
+      this.listeners.forEach((entry) => entry.node.status(status));
     }
   }
 

@@ -80,7 +80,13 @@ export interface ChatConnection {
   getChatClient(): ChatClient | undefined;
   getApiClient(): ApiClient | undefined;
   getUserId(): string | undefined;
-  addListener(id: string, node: Node): void;
+  /**
+   * Registers a node for status updates and, when a ChatClient exists, calls
+   * `onClient` with it. If the client is not ready yet — auth can complete after
+   * the flow is deployed — the connection calls `onClient` as soon as it is, so
+   * the listener does not have to be wired on a single early promise.
+   */
+  addListener(id: string, node: Node, onClient?: (client: ChatClient) => void): void;
   removeListener(id: string): void;
 }
 
@@ -296,7 +302,12 @@ export function resolveAnnounceColor(msg: TwitchChatMessage): HelixChatAnnouncem
     : 'primary';
 }
 
-/** Broadcaster user ids never change, so one lookup per channel is enough. */
+/**
+ * Broadcaster user ids never change, so one lookup per channel is enough. The
+ * map is never pruned; it only caches a channel after a successful lookup, so it
+ * is bounded by the distinct channels a flow actually moderates. A flow that can
+ * feed unbounded, flow-controlled channel names would need an LRU or size cap.
+ */
 const broadcasterIds = new Map<string, string>();
 
 /**
