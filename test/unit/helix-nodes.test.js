@@ -263,15 +263,16 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
   })
   await assert.rejects(() => makeHandler(requiredSpec)(factoryApi, {}, {}, factoryTwitch), /User is required/)
 
-  // Paging: single page and get-all with cap.
+  // Paging: one page by default, get-all follows every page, allMax caps it.
   const pagedSpec = defineHelix({
     ...demoSpec,
     type: 'twitch-helix-test-paged',
     fields: [{ name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true }],
-    paged: { limit: 20, max: 4 },
+    paged: { limit: 20 },
     run: async ({ input }) => {
       const start = input.after ? Number(input.after) : 1
-      return { data: [start, start + 1], cursor: String(start + 2), total: 10 }
+      const next = start + 2
+      return { data: [start, start + 1], cursor: next > 10 ? null : String(next), total: 10 }
     },
     map: (item) => ({ n: item }),
   })
@@ -281,7 +282,12 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
   assert.deepStrictEqual(pageOne.extra.pagination, { cursor: '3' })
   assert.strictEqual(pageOne.extra.total, 10)
   const pageAll = await pagedHandler(factoryApi, { all: true }, {}, factoryTwitch)
-  assert.deepStrictEqual(pageAll.payload.map((p) => p.n), [1, 2, 3, 4])
+  assert.deepStrictEqual(pageAll.payload.map((p) => p.n), [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+  assert.strictEqual(pageAll.extra.truncated, undefined, 'a full get-all is not truncated')
+  const pageCapped = await pagedHandler(factoryApi, { all: true, allMax: 4 }, {}, factoryTwitch)
+  assert.deepStrictEqual(pageCapped.payload.map((p) => p.n), [1, 2, 3, 4])
+  assert.strictEqual(pageCapped.extra.truncated, true)
+  assert.deepStrictEqual(pageCapped.extra.pagination, { cursor: '5' })
 
   // fetchAllPages stops at the cap and keeps the continuation cursor.
   let page = 0

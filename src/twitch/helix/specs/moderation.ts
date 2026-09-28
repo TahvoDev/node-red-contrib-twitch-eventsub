@@ -143,7 +143,7 @@ export const moderationSpecs = [
         label: 'list',
         help: "Lists a channel's banned and timed-out users, optionally filtered to one user.",
         scopes: ['moderation:read'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [optionalUser],
         run: async ({ api, broadcasterId, input }) =>
           api.moderation.getBannedUsers(broadcasterId, {
@@ -169,7 +169,7 @@ export const moderationSpecs = [
         label: 'list',
         help: "Lists a channel's moderators, optionally filtered to one user.",
         scopes: ['moderation:read'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [optionalUser],
         run: async ({ api, broadcasterId, input }) =>
           api.moderation.getModerators(broadcasterId, {
@@ -215,7 +215,7 @@ export const moderationSpecs = [
         label: 'list',
         help: "Lists a channel's VIPs.",
         scopes: ['channel:read:vips'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [],
         run: async ({ api, broadcasterId, input }) =>
           api.channels.getVips(broadcasterId, { limit: input.limit, after: input.after }),
@@ -257,7 +257,7 @@ export const moderationSpecs = [
         label: 'list',
         help: "Lists the terms blocked in a channel's chat.",
         scopes: ['moderator:read:blocked_terms'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [],
         run: async ({ api, broadcasterId, input }) =>
           api.moderation.getBlockedTerms(broadcasterId, { limit: input.limit, after: input.after }),
@@ -348,7 +348,7 @@ export const moderationSpecs = [
         label: 'moderated channels',
         help: 'Lists the channels a user moderates.',
         scopes: ['user:read:moderated_channels'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'user',
@@ -537,7 +537,7 @@ export const moderationSpecs = [
         label: 'list',
         help: 'Lists unban requests with a given status.',
         scopes: ['moderator:read:unban_requests'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'status',

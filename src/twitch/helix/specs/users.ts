@@ -94,7 +94,7 @@ export const userSpecs = [
         label: 'list',
         help: 'Lists the users the channel has blocked.',
         scopes: ['user:read:blocked_users'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'user',

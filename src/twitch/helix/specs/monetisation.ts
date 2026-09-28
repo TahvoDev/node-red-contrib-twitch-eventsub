@@ -273,7 +273,7 @@ export const monetisationSpecs = [
         label: 'list',
         help: "Lists a channel's subscribers. Set User to check a single user instead, which returns that user's subscription if they have one.",
         scopes: ['channel:read:subscriptions'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'user',
@@ -344,7 +344,7 @@ export const monetisationSpecs = [
         label: 'get',
         help: "Gets a channel's streaming schedule as a list of segments.",
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'startDate',
@@ -725,7 +725,7 @@ export const monetisationSpecs = [
         label: 'donations',
         help: 'Lists the donations to the channel charity campaign.',
         scopes: ['channel:read:charity'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [],
         run: async ({ api, broadcasterId, input }) =>
           api.charity.getCharityCampaignDonations(broadcasterId, {
@@ -749,7 +749,7 @@ export const monetisationSpecs = [
     label: 'get hype train',
     help: 'Gets Hype Train events for a channel. Twitch exposes no REST endpoint for the current Hype Train, so this returns the recorded events of the current or latest train (paginated), not a live snapshot.',
     scopes: ['channel:read:hype_train'],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [broadcaster],
     run: async ({ api, broadcasterId, input }) =>
       api.hypeTrain.getHypeTrainEventsForBroadcaster(broadcasterId, {

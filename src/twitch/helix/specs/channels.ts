@@ -138,7 +138,7 @@ export const channelSpecs = [
     label: 'get followers',
     help: "Lists a channel's followers, most recent first. Set User to a single login to just confirm whether that user follows. The authenticated account must be a moderator or the broadcaster.",
     scopes: ['moderator:read:followers'],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [
       broadcaster,
       {
@@ -164,7 +164,7 @@ export const channelSpecs = [
     label: 'get followed channels',
     help: 'Lists the channels a user follows. Set Channel to a single login to just confirm whether the user follows it. Defaults to the authenticated account.',
     scopes: ['user:read:follows'],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [
       {
         name: 'user',

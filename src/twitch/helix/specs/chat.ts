@@ -163,7 +163,7 @@ export const chatSpecs = [
         label: 'chatters',
         help: "Lists the users currently in a channel's chat.",
         scopes: ['moderator:read:chatters'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [],
         run: async ({ api, broadcasterId, input }) =>
           api.chat.getChatters(broadcasterId, { limit: input.limit, after: input.after }),
@@ -477,7 +477,7 @@ export const chatSpecs = [
     label: 'user emotes',
     help: "Lists the emotes a user can use, including their channel's emotes.",
     scopes: ['user:read:emotes'],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [
       {
         name: 'user',

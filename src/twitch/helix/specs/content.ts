@@ -4,6 +4,7 @@ import {
   clampLimit,
   fetchAllPages,
   firstDefined,
+  resolveAllMax,
   resolveGameId,
   resolveUserId,
   toBool,
@@ -144,7 +145,7 @@ export const contentSpecs = [
         label: 'list',
         help: 'Lists the stream markers of a channel, optionally limited to a single video.',
         scopes: ['user:read:broadcast'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'video',
@@ -228,7 +229,7 @@ export const contentSpecs = [
           },
           { name: 'limit', label: 'Limit', kind: 'int', default: 20, faIcon: 'fa-list-ol', hint: '1-100' },
           { name: 'all', label: 'Get all', kind: 'bool', default: false, faIcon: 'fa-download', hint: 'follows pages up to the maximum' },
-          { name: 'allMax', label: 'Max', kind: 'int', default: 1000, faIcon: 'fa-arrow-up', hint: 'cap when Get all is set' },
+          { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
         run: async ({ api, root, broadcasterId, input, msg }) => {
           const limit = clampLimit(input.limit, 20);
@@ -255,11 +256,11 @@ export const contentSpecs = [
           }
 
           const result =
-            input.all === true ? await fetchAllPages(fetchPage, input.allMax ?? 1000) : await fetchPage();
-          return { payload: result.data.map(mapClip), cursor: result.cursor ?? null, total: result.total };
+            input.all === true ? await fetchAllPages(fetchPage, resolveAllMax(input.allMax)) : await fetchPage();
+          return { payload: result.data.map(mapClip), cursor: result.cursor ?? null, total: result.total, truncated: input.all === true && result.cursor != null };
         },
         map: (result) => result.payload,
-        extra: (result) => ({ pagination: { cursor: result.cursor ?? null }, total: result.total }),
+        extra: (result) => ({ pagination: { cursor: result.cursor ?? null }, total: result.total, ...(result.truncated ? { truncated: true } : {}) }),
       },
     },
   }),
@@ -345,7 +346,7 @@ export const contentSpecs = [
           { name: 'language', label: 'Language', kind: 'string', default: '', faIcon: 'fa-language', hint: 'optional, e.g. en' },
           { name: 'limit', label: 'Limit', kind: 'int', default: 20, faIcon: 'fa-list-ol', hint: '1-100' },
           { name: 'all', label: 'Get all', kind: 'bool', default: false, faIcon: 'fa-download', hint: 'follows pages up to the maximum' },
-          { name: 'allMax', label: 'Max', kind: 'int', default: 1000, faIcon: 'fa-arrow-up', hint: 'cap when Get all is set' },
+          { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
         run: async ({ api, root, input, msg, config, moderatorId }) => {
           const limit = clampLimit(input.limit, 20);
@@ -374,11 +375,11 @@ export const contentSpecs = [
           };
 
           const result =
-            input.all === true ? await fetchAllPages(fetchPage, input.allMax ?? 1000) : await fetchPage();
-          return { payload: result.data.map(mapVideo), cursor: result.cursor ?? null, total: result.total };
+            input.all === true ? await fetchAllPages(fetchPage, resolveAllMax(input.allMax)) : await fetchPage();
+          return { payload: result.data.map(mapVideo), cursor: result.cursor ?? null, total: result.total, truncated: input.all === true && result.cursor != null };
         },
         map: (result) => result.payload,
-        extra: (result) => ({ pagination: { cursor: result.cursor ?? null }, total: result.total }),
+        extra: (result) => ({ pagination: { cursor: result.cursor ?? null }, total: result.total, ...(result.truncated ? { truncated: true } : {}) }),
       },
       delete: {
         label: 'delete',
@@ -451,7 +452,7 @@ export const contentSpecs = [
         label: 'top',
         help: 'Lists the most viewed games/categories on Twitch right now.',
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [],
         run: async ({ api, input }) =>
           api.games.getTopGames({ limit: input.limit, after: input.after }),
@@ -461,7 +462,7 @@ export const contentSpecs = [
         label: 'search',
         help: 'Searches games/categories by a partial or exact query.',
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'query',
@@ -489,7 +490,7 @@ export const contentSpecs = [
     label: 'search channels',
     help: 'Searches channels by a partial or exact query, optionally limited to live channels.',
     scopes: [],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [
       {
         name: 'query',
@@ -632,7 +633,7 @@ export const contentSpecs = [
     label: 'followed streams',
     help: 'Lists the live streams a user follows.',
     scopes: ['user:read:follows'],
-    paged: { limit: 20, max: 1000 },
+    paged: { limit: 20 },
     fields: [
       {
         name: 'user',

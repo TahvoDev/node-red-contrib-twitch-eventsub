@@ -5,6 +5,7 @@ import {
   fetchAllPages,
   firstDefined,
   toBool,
+  resolveAllMax,
   toIdList,
   toInt,
   toStr,
@@ -172,12 +173,12 @@ export const engagementSpecs = [
           { name: 'onlyManageable', label: 'Manageable only', kind: 'bool', default: false, faIcon: 'fa-lock' },
           { name: 'limit', label: 'Limit', kind: 'int', default: 20, hint: '1-100', faIcon: 'fa-list-ol' },
           { name: 'all', label: 'Get all', kind: 'bool', default: false, hint: 'raise the cap to Max', faIcon: 'fa-download' },
-          { name: 'allMax', label: 'Max', kind: 'int', default: 1000, faIcon: 'fa-arrow-up' },
+          { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
         run: async ({ api, broadcasterId, msg, config }) => {
           const limit = clampLimit(firstDefined(msg.limit, config.limit), 20);
           const getAll = toBool(firstDefined(msg.all, config.all), false) === true;
-          const maxAll = toInt(firstDefined(msg.allMax, config.allMax), 1000) ?? 1000;
+          const maxAll = resolveAllMax(firstDefined(msg.allMax, config.allMax));
 
           const rewardIds = toIdList(firstDefined(msg.rewardIds, msg.ids, config.rewardIds));
           if (rewardIds.length) {
@@ -189,10 +190,10 @@ export const engagementSpecs = [
             toBool(firstDefined(msg.onlyManageable, config.onlyManageable), false) === true;
           const rewards = await api.channelPoints.getCustomRewards(broadcasterId, onlyManageable);
           const out = getAll ? rewards.slice(0, maxAll) : rewards.slice(0, limit);
-          return { data: out, cursor: null, total: rewards.length };
+          return { data: out, cursor: null, total: rewards.length, truncated: getAll && rewards.length > out.length };
         },
         map: (result) => result.data.map(mapReward),
-        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total }),
+        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total, ...(result.truncated ? { truncated: true } : {}) }),
       },
       create: {
         label: 'create',
@@ -374,7 +375,7 @@ export const engagementSpecs = [
         label: 'list',
         help: 'Lists redemptions of a custom Channel Points reward, newest first by default.',
         scopes: ['channel:read:redemptions'],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           rewardIdField,
           {
@@ -473,7 +474,7 @@ export const engagementSpecs = [
           { name: 'pollIds', label: 'Poll IDs', kind: 'idList', default: '', aliases: ['ids', 'pollId', 'id'], hint: 'optional: comma separated poll IDs', faIcon: 'fa-bar-chart' },
           { name: 'limit', label: 'Limit', kind: 'int', default: 20, hint: '1-100', faIcon: 'fa-list-ol' },
           { name: 'all', label: 'Get all', kind: 'bool', default: false, hint: 'follows pages up to the maximum', faIcon: 'fa-download' },
-          { name: 'allMax', label: 'Max', kind: 'int', default: 1000, faIcon: 'fa-arrow-up' },
+          { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
         run: async ({ api, broadcasterId, msg, config }) => {
           const pollIds = toIdList(firstDefined(msg.pollIds, msg.ids, msg.pollId, msg.id, config.pollIds));
@@ -490,13 +491,13 @@ export const engagementSpecs = [
           };
 
           const getAll = toBool(firstDefined(msg.all, config.all), false) === true;
-          const maxAll = toInt(firstDefined(msg.allMax, config.allMax), 1000) ?? 1000;
+          const maxAll = resolveAllMax(firstDefined(msg.allMax, config.allMax));
           const result = getAll ? await fetchAllPages(fetchPage, maxAll) : await fetchPage();
 
-          return { data: result.data, cursor: result.cursor ?? null, total: result.total };
+          return { data: result.data, cursor: result.cursor ?? null, total: result.total, truncated: getAll && !!result.cursor };
         },
         map: (result) => result.data.map(mapPoll),
-        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total }),
+        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total, ...(result.truncated ? { truncated: true } : {}) }),
       },
       create: {
         label: 'create',
@@ -578,7 +579,7 @@ export const engagementSpecs = [
           { name: 'predictionIds', label: 'Prediction IDs', kind: 'idList', default: '', aliases: ['ids', 'predictionId', 'id'], hint: 'optional: comma separated prediction IDs', faIcon: 'fa-trophy' },
           { name: 'limit', label: 'Limit', kind: 'int', default: 20, hint: '1-100', faIcon: 'fa-list-ol' },
           { name: 'all', label: 'Get all', kind: 'bool', default: false, hint: 'follows pages up to the maximum', faIcon: 'fa-download' },
-          { name: 'allMax', label: 'Max', kind: 'int', default: 1000, faIcon: 'fa-arrow-up' },
+          { name: 'allMax', label: 'Max', kind: 'int', default: '', faIcon: 'fa-arrow-up', hint: 'blank = every row, up to 50000' },
         ],
         run: async ({ api, broadcasterId, msg, config }) => {
           const predictionIds = toIdList(
@@ -597,13 +598,13 @@ export const engagementSpecs = [
           };
 
           const getAll = toBool(firstDefined(msg.all, config.all), false) === true;
-          const maxAll = toInt(firstDefined(msg.allMax, config.allMax), 1000) ?? 1000;
+          const maxAll = resolveAllMax(firstDefined(msg.allMax, config.allMax));
           const result = getAll ? await fetchAllPages(fetchPage, maxAll) : await fetchPage();
 
-          return { data: result.data, cursor: result.cursor ?? null, total: result.total };
+          return { data: result.data, cursor: result.cursor ?? null, total: result.total, truncated: getAll && !!result.cursor };
         },
         map: (result) => result.data.map(mapPrediction),
-        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total }),
+        extra: (result) => ({ pagination: { cursor: result.cursor }, total: result.total, ...(result.truncated ? { truncated: true } : {}) }),
       },
       create: {
         label: 'create',

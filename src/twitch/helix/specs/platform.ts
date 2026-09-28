@@ -90,7 +90,7 @@ export const platformSpecs = [
         label: 'list',
         help: 'Lists drops entitlements by user, game or fulfilment status.',
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'user',
@@ -231,7 +231,7 @@ export const platformSpecs = [
         label: 'live channels',
         help: 'Lists the live channels running an extension.',
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'extensionId',
@@ -294,7 +294,7 @@ export const platformSpecs = [
         label: 'transactions',
         help: 'Lists the Bits transactions of an extension.',
         scopes: [],
-        paged: { limit: 20, max: 1000 },
+        paged: { limit: 20 },
         fields: [
           {
             name: 'extensionId',

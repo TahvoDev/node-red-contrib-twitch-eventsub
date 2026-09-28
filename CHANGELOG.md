@@ -14,6 +14,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Every spec now declares a `tier` (`core` | `extended` | `advanced`). Only enabled tiers register;
   configure `twitchApi.tiers` in `settings.js` (default `['core']`). OAuth scopes stay the fixed
   build-time union, so changing tiers never forces users to re-authenticate.
+- **Paging:** **Get all** now follows every page by default instead of stopping at a 1000-row cap, so
+  flows no longer need a manual pagination loop. **Max** is a blank-by-default safety ceiling (hard
+  limit 50000); when it is reached the node sets `msg.truncated: true` and leaves the cursor so a flow
+  can continue if it really needs to.
 - **Breaking (unreleased branch, no aliases kept):** the one-endpoint Helix types are renamed or
   removed. `ban-user`/`unban-user`/`get-banned-users` → `bans`; `create-clip`/`get-clips` → `clips`;
   `get-videos`/`delete-videos` → `videos`; `get-custom-rewards`/`create|update|delete-custom-reward`

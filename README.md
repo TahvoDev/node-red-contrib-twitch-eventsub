@@ -117,7 +117,22 @@ maps straight into the Helix nodes without a function node.
 Every node is forgiving about its input: a string, a number, a boolean, a Buffer, an array or null
 is coerced or ignored, and anything missing falls back to the node's config field. `msg.payload` can
 override a node's primary field, and each node also accepts the named overrides documented in its
-help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when Twitch reports it.
+help panel.
+
+### Paging
+
+List nodes have **Limit**, **Get all** and **Max** fields:
+
+- **Limit** — rows fetched per Twitch request (Twitch caps a page at 100; the node clamps to 1–100).
+- **Get all** — off: one request, one page. On: the node follows every page for you and returns one
+  `msg.payload` array, so a flow never has to loop pagination by hand.
+- **Max** — a safety ceiling on the total when **Get all** is on. Leave it blank for every row (up to
+  the built-in ceiling of 50,000); set it lower to stop early.
+
+Every list node sets `msg.pagination` (`{ cursor }`), `msg.total` when Twitch reports it, and
+`msg.truncated: true` when **Get all** stopped at the ceiling with pages still remaining — the cursor
+is there if you want to continue. Without **Get all**, feed `msg.pagination.cursor` back as
+`msg.after` to fetch the next page yourself.
 
 ### Tiers
 
@@ -240,8 +255,8 @@ defineHelix({
 })
 ```
 
-For a list endpoint add `paged: { limit: 20, max: 1000 }` instead of declaring `limit`/`all`/`allMax`:
-the factory walks the pages and sets `msg.pagination`/`msg.total`.
+For a list endpoint add `paged: { limit: 20 }` instead of declaring `limit`/`all`/`allMax`: the
+factory adds those fields, walks the pages for **Get all** and sets `msg.pagination`/`msg.total`.
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again

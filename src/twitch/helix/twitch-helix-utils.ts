@@ -169,6 +169,23 @@ export function requireScopes(twitchConfig: any, scopes: string[]): void {
 /** Twitch caps a timeout at two weeks, in seconds. */
 export const MAX_TIMEOUT_SECONDS = 1_209_600;
 
+/**
+ * The hard ceiling for "Get all": how many rows the node will collect before it
+ * stops and reports `msg.truncated`. It protects a flow from an unbounded fetch
+ * (time and memory) while still being far above what most endpoints return.
+ */
+export const MAX_FETCH_ALL = 50_000;
+
+/**
+ * The effective "Get all" cap: the node's Max field when set, otherwise the
+ * hard ceiling. A value above the ceiling is clamped.
+ */
+export function resolveAllMax(value: unknown): number {
+  const requested = toInt(value, 0) ?? 0;
+  if (requested <= 0) return MAX_FETCH_ALL;
+  return Math.min(requested, MAX_FETCH_ALL);
+}
+
 /** Twitch paged endpoints default to 20 and cap at 100. */
 export function clampLimit(value: unknown, fallback = 20): number {
   const n = toInt(value, fallback) ?? fallback;

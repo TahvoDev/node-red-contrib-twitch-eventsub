@@ -6,6 +6,7 @@ import {
   fetchAllPages,
   firstDefined,
   requireScopes,
+  resolveAllMax,
   resolveUserId,
   toBool,
   toIdList,
@@ -222,17 +223,19 @@ export function makeHandler(spec: HelixSpec) {
       return { data: res?.data ?? [], cursor: res?.cursor ?? null, total: res?.total };
     };
 
-    const max = toInt(firstDefined(input.allMax, call.paged.max), call.paged.max ?? 1000) ?? 1000;
-    const result =
-      input.all === true || toBool(input.all) === true
-        ? await fetchAllPages(fetchPage, max)
-        : await fetchPage();
+    const getAll = input.all === true || toBool(input.all) === true;
+    const result = getAll
+      ? await fetchAllPages(fetchPage, resolveAllMax(input.allMax))
+      : await fetchPage();
 
     const mapped = result.data.map((item) => (call.map ? call.map(item, ctx) : item));
-    return {
-      payload: mapped,
-      extra: { pagination: { cursor: result.cursor ?? null }, total: result.total },
+    const extra: Record<string, any> = {
+      pagination: { cursor: result.cursor ?? null },
+      total: result.total,
     };
+    // Stopped at the safety ceiling with pages left: say so, and leave the cursor.
+    if (getAll && result.cursor) extra.truncated = true;
+    return { payload: mapped, extra };
   };
 }
 

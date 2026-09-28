@@ -64,8 +64,6 @@ export interface HelixRunContext {
 export interface HelixPagedSpec {
   /** Default page size (Twitch caps at 100). */
   limit?: number;
-  /** Default cap for the "get all" option. */
-  max?: number;
 }
 
 /** One entry in an action node's dropdown. Carries the whole call for that verb. */
@@ -180,9 +178,9 @@ export function effectiveFields(
   const all: HelixField[] = paged
     ? [
         ...base,
-        { name: 'limit', label: 'Limit', kind: 'int', default: paged.limit ?? 20, hint: '1-100', optional: true } as HelixField,
-        { name: 'all', label: 'Get all', kind: 'bool', default: false, optional: true } as HelixField,
-        { name: 'allMax', label: 'Max', kind: 'int', default: paged.max ?? 1000, optional: true } as HelixField,
+        { name: 'limit', label: 'Limit', kind: 'int', default: paged.limit ?? 20, hint: 'rows per request (1-100)', optional: true } as HelixField,
+        { name: 'all', label: 'Get all', kind: 'bool', default: false, hint: 'follow every page', optional: true } as HelixField,
+        { name: 'allMax', label: 'Max', kind: 'int', default: '', hint: 'blank = every row, up to 50000', optional: true } as HelixField,
       ]
     : base;
 
