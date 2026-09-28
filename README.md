@@ -75,8 +75,7 @@ the account in again so the new scope is granted.
 - **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
   colours (`msg.announceColor`, `primary` by default) from `msg.payload`, or `msg.text` when there
   is no payload.
-- **chat clear** — clears the whole channel. Requires `msg.confirm === true` and is rate-limited to
-  one clear per channel per minute.
+- **chat clear** — clears the whole channel.
 - **chat join**, **chat part** — join or leave a channel at runtime.
 
 The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no longer accepts the

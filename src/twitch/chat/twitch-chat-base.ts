@@ -40,8 +40,6 @@ export interface TwitchChatMessage extends NodeMessageInFlow {
   targetUser?: string;
   /** Numeric id of the user to moderate. Takes priority over targetUser. */
   targetUserId?: string;
-  /** twitch-chat-clear only acts when this is exactly true. */
-  confirm?: boolean;
   displayName?: string;
   userId?: string;
   text?: string;

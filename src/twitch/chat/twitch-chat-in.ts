@@ -24,10 +24,6 @@ module.exports = function (RED: NodeAPI) {
           if (channelFilter && channelFilter !== channel.toLowerCase()) return;
 
           const userInfo = message.userInfo;
-          // Twitch echoes the bot's own messages back over IRC. Dropping them here
-          // stops a `chat in → chat send` wire from becoming a self-reply loop.
-          if (userInfo.userId === connection.getUserId()) return;
-
           node.send({
             topic: `twitch/chat/${channel}/${userInfo.userName}`,
             channel,

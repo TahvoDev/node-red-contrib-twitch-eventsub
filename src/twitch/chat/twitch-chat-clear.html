@@ -39,13 +39,10 @@ RED.nodes.registerType('twitch-chat-clear', {
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-clear">
-  <p>Clears all messages from a channel's chat. Sends at most one clear per channel per minute.</p>
+  <p>Clears all messages from a channel's chat.</p>
 
   <h3>Inputs</h3>
   <dl class="message-properties">
-    <dt>confirm <span class="property-type">boolean</span></dt>
-    <dd>Must be exactly <code>true</code> for the node to act.</dd>
-
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
