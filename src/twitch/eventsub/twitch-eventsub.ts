@@ -19,7 +19,7 @@ interface TwitchApiConfig {
  * owns the one WebSocket listener and fans every event out to all of its nodes,
  * which is why `triggerTwitchEvent` filters on this node's own event.
  */
-export class TwitchEventsubNode extends AbstractNode {
+class TwitchEventsubNode extends AbstractNode {
   twitchConfig?: TwitchApiConfig;
   private definition?: EventSubEventDefinition;
   private nodeUuid: string;
@@ -34,12 +34,17 @@ export class TwitchEventsubNode extends AbstractNode {
       return;
     }
 
-    const definition = EVENTS_BY_TYPE[config.event];
-    if (!definition) {
+    // hasOwnProperty, not `EVENTS_BY_TYPE[config.event]`: the config is a trust
+    // boundary and an inherited key like "constructor" would otherwise pass the
+    // guard and degrade into the service's "unknown type" warning.
+    if (!Object.prototype.hasOwnProperty.call(EVENTS_BY_TYPE, config.event)) {
       this.error(`Unknown EventSub event: ${config.event || '(none)'} — pick one in the node`);
       return;
     }
+    const definition = EVENTS_BY_TYPE[config.event];
     this.definition = definition;
+    // Node-RED's editor `label` is what names the node on the canvas; this only
+    // defaults the runtime name (used by the debug sidebar / logs) to the event.
     this.name = this.name || definition.label;
 
     this.on('close', (_removed: boolean, done: () => void) => {

@@ -79,9 +79,15 @@ function parseArgs(argv) {
 }
 
 function loadFlow(flowPath) {
-    const flow = flowPath && fs.existsSync(flowPath)
-        ? JSON.parse(fs.readFileSync(flowPath, 'utf8'))
-        : require('./make-flow').buildFlow()
+    let flow
+    if (flowPath) {
+        // An explicitly named flow that is missing is a typo, not a reason to
+        // silently test a different flow.
+        if (!fs.existsSync(flowPath)) throw new Error(`flow not found: ${flowPath}`)
+        flow = JSON.parse(fs.readFileSync(flowPath, 'utf8'))
+    } else {
+        flow = require('./make-flow').buildFlow()
+    }
     const config = flow.find((n) => n.type === 'twitch-api-config') || {}
     const nodes = []
     for (const node of flow) {

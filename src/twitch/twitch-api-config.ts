@@ -3,7 +3,6 @@ import { AbstractNode } from '../AbstractNode';
 import { RefreshingAuthProvider, type AuthProvider } from '@twurple/auth';
 import { ApiClient } from '@twurple/api';
 import { TwitchEventsubService } from './eventsub/twitch-eventsub-service';
-import { EVENTS, fieldKey } from './eventsub/eventsub-registry';
 import { MockAuthProvider } from './mock-auth-provider';
 import { HELIX_SPECS } from './helix/specs';
 import {
@@ -138,21 +137,6 @@ module.exports = function (RED: NodeAPI) {
       serializeEndpoint
     );
     res.json({ tiers, endpoints });
-  });
-
-  // The Event picker for the single twitch-eventsub node: every registry entry,
-  // grouped in the editor by Category and annotated with its payload fields.
-  RED.httpAdmin.get('/twitch-eventsub/eventsub/events', (_req: any, res: any) => {
-    res.json({
-      events: EVENTS.map((event) => ({
-        type: event.type,
-        label: event.label,
-        category: event.category,
-        description: event.description,
-        unsupportedReason: event.unsupportedReason,
-        fields: event.fields.map(fieldKey),
-      })),
-    });
   });
 
   // --- Auth endpoints for Device Code Flow ---

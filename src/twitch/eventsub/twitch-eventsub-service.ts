@@ -14,6 +14,10 @@ class TwitchEventsubService {
   started = false;
 
   private subscriptionCounts: Map<string, number> = new Map();
+  // The live Twurple subscription per type, so removing the last node for a type
+  // actually unsubscribes instead of leaving a dead topic registered. In-place
+  // event switches and delete/recreate both route through here.
+  private activeSubscriptions: Map<string, { stop(): void }> = new Map();
   private reconnectingUsers: Set<string> = new Set();
   private pendingSubscriptions: Set<string> = new Set();
   private warnedUnsupported: Set<string> = new Set();
@@ -42,8 +46,21 @@ class TwitchEventsubService {
     const count = this.subscriptionCounts.get(type) ?? 0;
     if (count <= 1) {
       this.subscriptionCounts.delete(type);
+      this.unsubscribe(type);
     } else {
       this.subscriptionCounts.set(type, count - 1);
+    }
+  }
+
+  private unsubscribe(type: string) {
+    const subscription = this.activeSubscriptions.get(type);
+    if (!subscription) return;
+
+    this.activeSubscriptions.delete(type);
+    try {
+      subscription.stop();
+    } catch (error) {
+      this.node.warn(`Failed to unsubscribe from ${type}: ${(error as Error).message}`);
     }
   }
 
@@ -67,9 +84,15 @@ class TwitchEventsubService {
     }
 
     try {
-      definition.subscribe(this.listener, this.userId, (event) => {
+      const subscription = definition.subscribe(this.listener, this.userId, (event) => {
         if (this.onEventCb) this.onEventCb(event, type);
-      });
+      }) as unknown as { stop(): void } | undefined;
+
+      // A resubscribe after a socket reconnect would otherwise leave the previous
+      // subscription — and its Twitch topic — registered under this type.
+      this.unsubscribe(type);
+      if (subscription) this.activeSubscriptions.set(type, subscription);
+
       this.pendingSubscriptions.delete(type);
       this.node.log(`Subscribed to ${type}`);
     } catch (error) {
@@ -149,6 +172,7 @@ class TwitchEventsubService {
     }
     this.started = false;
     this.subscriptionCounts.clear();
+    this.activeSubscriptions.clear();
     this.reconnectingUsers.clear();
     this.pendingSubscriptions.clear();
     this.warnedUnsupported.clear();

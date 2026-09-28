@@ -1,8 +1,14 @@
 <script type="text/javascript">
 (function () {
-  var catalog = [];
+  // Injected at build time by scripts/generate-eventsub-editor.js. Keeping it
+  // inline means the dropdown is populated synchronously (no admin-route fetch,
+  // no race, no shadow field) and the editor fails loudly at build if it is not
+  // replaced.
+  var catalog = __EVENT_CATALOG__;
 
-  function esc(value) { return $('<div>').text(String(value)).html(); }
+  function entryFor(type) {
+    return catalog.find(function (candidate) { return candidate.type === type; });
+  }
 
   RED.nodes.registerType('twitch-eventsub', {
     category: 'twitch',
@@ -10,10 +16,7 @@
     defaults: {
       name: { value: '' },
       config: { type: 'twitch-api-config', required: true },
-      event: { value: '' },
-      // The friendly event name, cached from the catalog so label() can render it
-      // without a lookup. Hidden: there is no input for it in the template.
-      eventLabel: { value: '' }
+      event: { value: '', required: true }
     },
     inputs: 0,
     outputs: 1,
@@ -21,8 +24,9 @@
     paletteLabel: 'twitch events',
     label: function () {
       if (this.name) return this.name;
-      if (this.eventLabel) return this.eventLabel;
-      // Older flows saved before eventLabel existed: fall back to the event id.
+      var found = entryFor(this.event);
+      if (found) return found.label;
+      // An event id that predates the current catalog.
       return this.event ? String(this.event).replace(/^twitch-eventsub-/, '').replace(/-/g, ' ') : 'twitch events';
     },
     labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
@@ -31,13 +35,8 @@
       var $event = $('#node-input-event');
       var $info = $('#twitch-eventsub-info');
 
-      function entry() {
-        return catalog.find(function (candidate) { return candidate.type === $event.val(); });
-      }
-
       function renderInfo() {
-        var found = entry();
-        node.eventLabel = found ? found.label : '';
+        var found = entryFor($event.val());
         $info.empty();
         if (!found) return;
         $info.append($('<p>').text(found.description || ''));
@@ -52,27 +51,27 @@
         }
       }
 
-      $.getJSON('twitch-eventsub/eventsub/events', function (data) {
-        catalog = (data && data.events) || [];
-        var groups = {};
-        catalog.forEach(function (item) {
-          (groups[item.category] = groups[item.category] || []).push(item);
-        });
-        $event.empty().append('<option value=""></option>');
-        Object.keys(groups).sort().forEach(function (category) {
-          var $group = $('<optgroup>').attr('label', category);
-          groups[category]
-            .slice()
-            .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
-            .forEach(function (item) {
-              $group.append($('<option>').attr('value', item.type).text(item.label));
-            });
-          $event.append($group);
-        });
-        $event.val(node.event || '');
-        renderInfo();
+      var groups = {};
+      catalog.forEach(function (item) {
+        (groups[item.category] = groups[item.category] || []).push(item);
       });
-
+      $event.empty().append('<option value=""></option>');
+      Object.keys(groups).sort().forEach(function (category) {
+        var $group = $('<optgroup>').attr('label', category);
+        groups[category]
+          .slice()
+          .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
+          .forEach(function (item) {
+            // Say up front which events Twitch never delivers over the WebSocket.
+            var text = item.unsupportedReason
+              ? item.label + ' (not available over WebSocket)'
+              : item.label;
+            $group.append($('<option>').attr('value', item.type).text(text));
+          });
+        $event.append($group);
+      });
+      $event.val(node.event || '');
+      renderInfo();
       $event.on('change', renderInfo);
     }
   });

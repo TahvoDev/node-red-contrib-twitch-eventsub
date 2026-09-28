@@ -257,14 +257,15 @@ the request each one is supposed to make. Same container-engine requirement.
 All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry
 there (type, label, description, Twurple `subscribe` call and the payload field
 mapping) and run `npm run build`. The single `twitch-eventsub` node picks it up
-automatically and the editor's **Event** dropdown is served from the same registry, so
-there is no per-event node, editor file or `package.json` entry to generate.
+automatically: `scripts/generate-eventsub-editor.js` inlines the registry into the
+editor so the **Event** dropdown is built synchronously, and there is no per-event
+node or `package.json` entry to generate.
 `npm run check` runs the unit tests, which fail if the registry is malformed. The
 field mapping supports a plain property name, a renamed property, a default value and a
 `map` function for anything more complex.
 
 `categoryFor` in the registry maps the event area to the dropdown group (the chat
-events area is `twitch chat events`). The single EventSub node ships one icon,
+events area is `chat events`). The single EventSub node ships one icon,
 `src/icons/twitch-icon.svg`. The Twitch Chat nodes still generate a per-node icon from
 the glyphs in `src/twitch/chat/twitch-chat-icons.ts`; to use a new glyph, run
 `npm i --no-save bootstrap-icons`, add the name there, then run
