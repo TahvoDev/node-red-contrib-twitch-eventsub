@@ -36,8 +36,8 @@ export interface EventSubEventDefinition {
 /**
  * The entries are declared without a category and get one attached below, so the
  * grouping lives in one place instead of being repeated on every entry. The
- * layout follows Twitch's own grouping of EventSub subscription types; Node-RED
- * has no nested palette categories, so each name starts with "twitch".
+ * layout follows Twitch's own grouping of EventSub subscription types; the names
+ * are used as the Event dropdown's optgroups inside the `twitch events` node.
  */
 type EventSubEventInput = Omit<EventSubEventDefinition, 'category'>;
 
@@ -1467,23 +1467,22 @@ const EVENT_LIST: EventSubEventInput[] = [
 
 function categoryFor(type: string): string {
   const name = type.replace(/^twitch-eventsub-/, '');
-  if (/^automod-/.test(name)) return 'twitch automod';
-  // Only this area is clarified (as "twitch chat events") so it cannot be
-  // mistaken for the IRC nodes in the `twitch chat (irc)` category.
-  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'twitch chat events';
-  if (/^channel-subscription/.test(name)) return 'twitch subscriptions';
-  if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'twitch channel points';
-  if (/^channel-poll-/.test(name)) return 'twitch polls';
-  if (/^channel-prediction-/.test(name)) return 'twitch predictions';
-  if (/^channel-hype-train-/.test(name)) return 'twitch hype train';
-  if (/^channel-goal-/.test(name)) return 'twitch goals';
-  if (/^channel-charity-/.test(name)) return 'twitch charity';
-  if (/^channel-(ban|unban|moderator|vip|warning|shield-mode|moderation)/.test(name)) return 'twitch moderation';
-  if (/^channel-raid-/.test(name)) return 'twitch raids';
-  if (/^channel-(cheer|bits-use|ad-break)/.test(name)) return 'twitch bits & ads';
-  if (/^channel-stream-/.test(name)) return 'twitch stream';
-  if (/^user-/.test(name)) return 'twitch user';
-  return 'twitch channel';
+  if (/^automod-/.test(name)) return 'automod';
+  // The IRC nodes have their own palette entry, so no need to disambiguate here.
+  if (/^channel-chat-/.test(name) || /^channel-suspicious-user-/.test(name)) return 'chat events';
+  if (/^channel-subscription/.test(name)) return 'subscriptions';
+  if (/^channel-(redemption|reward|automatic-reward)/.test(name)) return 'channel points';
+  if (/^channel-poll-/.test(name)) return 'polls';
+  if (/^channel-prediction-/.test(name)) return 'predictions';
+  if (/^channel-hype-train-/.test(name)) return 'hype train';
+  if (/^channel-goal-/.test(name)) return 'goals';
+  if (/^channel-charity-/.test(name)) return 'charity';
+  if (/^channel-(ban|unban|moderator|vip|warning|shield-mode|moderation)/.test(name)) return 'moderation';
+  if (/^channel-raid-/.test(name)) return 'raids';
+  if (/^channel-(cheer|bits-use|ad-break)/.test(name)) return 'bits & ads';
+  if (/^channel-stream-/.test(name)) return 'stream';
+  if (/^user-/.test(name)) return 'user';
+  return 'channel';
 }
 
 export const EVENTS: readonly EventSubEventDefinition[] = EVENT_LIST.map((event) => ({
