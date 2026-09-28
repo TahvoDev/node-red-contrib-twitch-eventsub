@@ -6,6 +6,22 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Added
+- Helix API nodes under the `twitch api` palette category for channel & chat: `get channel info`,
+  `update channel info`, `send chat message`, `send announcement`, `send shoutout`, `get chatters`,
+  `get chat settings`, `update chat settings`, `clear chat`, `delete chat message`, `get emotes`,
+  `get chat badges`, `get followers` and `get followed channels`.
+  They accept a username or an ID (resolved automatically), default the broadcaster to the
+  authenticated account, coerce string/number/boolean/Buffer/array/null input, document every
+  `msg` override and set `msg.pagination`/`msg.total` on paged results
+- `twitch-helix-utils.ts`: shared coercion, id/game resolution, scope checks, paging, error mapping
+  and plain-object mappers, so every Helix node behaves and outputs the same way
+- `twitch-helix-base.ts` now passes the resolved config node to handlers and merges a handler's
+  `{ payload, extra }` result onto the message; existing nodes are unchanged
+- The config node requests the scopes the new nodes need (`channel:manage:broadcast`,
+  `moderator:read:chatters`, `moderator:manage:chat_settings`, `moderator:manage:shoutouts`,
+  `user:write:chat`, `user:read:follows`) in one login
+- `examples/helix-channel-chat.json` and a `test/unit/helix-nodes.test.js` unit test
+
 - 52 new event nodes covering goals, moderation, VIPs, warnings, unban requests, suspicious users, chat clearing/holds/settings, AutoMod, shared chat, subscription end, channel rewards, redemption update, automatic reward redemption, Hype Train v2, charity, bits use, ad breaks, whispers and user updates
 - Every event is now its own node, so a flow wires a switch on the event you actually want
 - Optional mock mode on the Twitch API config node: point `mock server port` at a local [Twitch CLI](https://dev.twitch.tv/docs/cli/) mock and the nodes subscribe and receive events without a real Twitch account or app

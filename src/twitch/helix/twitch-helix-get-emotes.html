@@ -1,0 +1,66 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-emotes', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      source:      { value: 'channel' },
+      broadcaster: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'get emotes',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get emotes' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-emotes">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-source"><i class="fa fa-list"></i> Emotes</label>
+    <select id="node-input-source">
+      <option value="channel">channel</option>
+      <option value="global">global</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-emotes">
+  <p>Lists a channel's emotes or Twitch's global emotes. The broadcaster field is ignored for global emotes.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>source <span class="property-type">string</span></dt>
+    <dd>Optional. <code>channel</code> or <code>global</code>.</dd>
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. Channel username or ID for the channel source.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">array</span></dt>
+    <dd>Objects with <code>id</code>, <code>name</code>, <code>type</code>, <code>tier</code>,
+      <code>emoteSetId</code> and <code>images</code> (<code>url1x</code>, <code>url2x</code>, <code>url4x</code>).</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p>None.</p>
+</script>

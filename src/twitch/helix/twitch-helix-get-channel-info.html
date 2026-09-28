@@ -1,0 +1,57 @@
+<script type="text/javascript">
+  RED.nodes.registerType('twitch-helix-get-channel-info', {
+    category: 'twitch api',
+    color: '#b9a3e3',
+    defaults: {
+      name:        { value: '' },
+      config:      { type: 'twitch-api-config', required: true },
+      broadcaster: { value: '' },
+    },
+    inputs: 1,
+    outputs: 1,
+    icon: 'twitch-icon.svg',
+    paletteLabel: 'get channel info',
+    label: function () {
+      if (this.name) return this.name;
+      const config = RED.nodes.node(this.config);
+      return 'get channel info' + (config ? ' (' + (config.name || '') + ')' : '');
+    },
+    labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
+  });
+</script>
+
+<script type="text/html" data-template-name="twitch-helix-get-channel-info">
+  <div class="form-row">
+    <label for="node-input-name"><i class="fa fa-tag"></i> Name</label>
+    <input type="text" id="node-input-name" placeholder="Name" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-config"><i class="fa fa-cog"></i> Config</label>
+    <input type="text" id="node-input-config" />
+  </div>
+  <div class="form-row">
+    <label for="node-input-broadcaster"><i class="fa fa-user"></i> Broadcaster</label>
+    <input type="text" id="node-input-broadcaster" placeholder="blank = authenticated user" />
+  </div>
+</script>
+
+<script type="text/html" data-help-name="twitch-helix-get-channel-info">
+  <p>Gets a channel's title, game, language and tags. Leave <b>Broadcaster</b> blank to use the authenticated account.</p>
+
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>broadcaster <span class="property-type">string</span></dt>
+    <dd>Optional. A Twitch username or numeric user ID. Overrides the node field.</dd>
+  </dl>
+
+  <h3>Outputs</h3>
+  <dl class="message-properties">
+    <dt>payload <span class="property-type">object</span></dt>
+    <dd>Channel fields: <code>id</code>, <code>name</code>, <code>displayName</code>, <code>gameId</code>,
+      <code>gameName</code>, <code>title</code>, <code>language</code>, <code>delay</code>,
+      <code>tags</code>, <code>contentClassificationLabels</code>, <code>isBrandedContent</code>.</dd>
+  </dl>
+
+  <h3>Scopes</h3>
+  <p>None.</p>
+</script>

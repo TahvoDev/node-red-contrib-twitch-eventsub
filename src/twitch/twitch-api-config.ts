@@ -29,20 +29,23 @@ type Status = {
 // token it is given and falls back to the real validate endpoint when the scope
 // list is unknown, so the mock provider has to claim a full set up front.
 const MOCK_SCOPES = [
-  'bits:read', 'channel:moderate', 'channel:read:ads', 'channel:read:charity',
-  'channel:read:goals', 'channel:read:guest_star', 'channel:read:hype_train',
-  'channel:read:polls', 'channel:read:predictions', 'channel:read:redemptions',
-  'channel:read:subscriptions', 'channel:read:vips', 'chat:read', 'chat:edit',
+  'bits:read', 'channel:manage:broadcast', 'channel:moderate', 'channel:read:ads',
+  'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
+  'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
+  'channel:read:predictions', 'channel:read:redemptions', 'channel:read:subscriptions',
+  'channel:read:vips', 'chat:read', 'chat:edit',
   'moderation:read', 'moderator:manage:announcements', 'moderator:manage:banned_users',
   'moderator:manage:blocked_terms', 'moderator:manage:chat_messages',
+  'moderator:manage:chat_settings', 'moderator:manage:shoutouts',
   'moderator:manage:unban_requests', 'moderator:read:automod_settings',
   'moderator:read:blocked_terms', 'moderator:read:chat_settings',
-  'moderator:read:followers', 'moderator:read:guest_star', 'moderator:read:shield_mode',
-  'moderator:read:shoutouts', 'moderator:read:suspicious_users',
-  'moderator:read:unban_requests', 'moderator:read:whispers',
+  'moderator:read:chatters', 'moderator:read:followers', 'moderator:read:guest_star',
+  'moderator:read:shield_mode', 'moderator:read:shoutouts',
+  'moderator:read:suspicious_users', 'moderator:read:unban_requests',
+  'moderator:read:whispers',
   'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
-  'user:read:broadcast', 'user:read:chat', 'user:read:email',
-  'user:manage:blocked_users',
+  'user:read:broadcast', 'user:read:chat', 'user:read:email', 'user:read:follows',
+  'user:write:chat', 'user:manage:blocked_users',
 ];
 
 module.exports = function (RED: NodeAPI) {

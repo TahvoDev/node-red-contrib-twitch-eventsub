@@ -98,6 +98,49 @@ return msg;
 Leave **chat send**'s channel blank so it uses the channel from `msg.channel`, and set **chat in**'s
 channel to the same channel (or leave it blank to listen to every joined channel).
 
+## Helix API nodes
+
+The `twitch api` nodes call Twitch's Helix REST API. Every node has one input and one output, so it
+fits at the start, middle or end of a flow, and every node needs a `twitch-api-config` in its
+**Config** dropdown. Results land on `msg.payload` as plain objects — no Twurple class instances — so
+they can be fed straight into a debug node, a template or a function node.
+
+Wherever the API needs a user, channel or game ID, the node also accepts a username or category name
+and resolves it, so `broadcaster` can be `shroud` or `44322889`. Most channel and moderation nodes
+accept a blank **Broadcaster** and default to the authenticated account.
+
+Every node is forgiving about its input: a string, a number, a boolean, a Buffer, an array or null
+is coerced or ignored, and anything missing falls back to the node's config field. `msg.payload` can
+override a node's primary field, and each node also accepts the named overrides documented in its
+help panel. Paged nodes set `msg.pagination` (`{ cursor }`) and `msg.total` when Twitch reports it.
+
+### Nodes
+
+| Node | Purpose | Scopes |
+| --- | --- | --- |
+| get channel info | A channel's title, game, language and tags | — |
+| update channel info | Change title, game, tags or language | `channel:manage:broadcast` |
+| send chat message | Send a chat message as the authenticated user | `user:write:chat` |
+| send announcement | Highlighted announcement in a channel | `moderator:manage:announcements` |
+| send shoutout | Shout out another channel | `moderator:manage:shoutouts` |
+| get chatters | Users currently in chat | `moderator:read:chatters` |
+| get chat settings | Chat mode and delay settings | — |
+| update chat settings | Turn chat modes and delays on or off | `moderator:manage:chat_settings` |
+| clear chat | Remove every chat message | `moderator:manage:chat_messages` |
+| delete chat message | Remove one chat message | `moderator:manage:chat_messages` |
+| get emotes | A channel's emotes or the global emotes | — |
+| get chat badges | A channel's badges or the global badges | — |
+| get followers | A channel's followers (or check one user) | `moderator:read:followers` |
+| get followed channels | The channels a user follows (or check one) | `user:read:follows` |
+
+The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
+covers the whole `twitch api` palette. If you created your token before a node existed, log in again
+to grant the new scope; the node reports `Missing scope … — re-authenticate the config node` rather
+than failing with an opaque error.
+
+See `examples/helix-channel-chat.json` for a starting flow that updates the channel title, reads the
+followers and posts a chat message.
+
 ## Testing without a Twitch account
 
 The Twitch API config node has an optional mock mode, so a flow can be developed and
