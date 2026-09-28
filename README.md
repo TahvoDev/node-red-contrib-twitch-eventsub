@@ -64,22 +64,18 @@ you added a scope, log the account in again so the new scope is granted.
 ### Nodes
 
 - **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …).
-- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload. It never
-  threads: use **chat reply** for that.
+- **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
 - **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
   `msg.id` that **chat in** emits.
-- **chat command** — placed after **chat in**, matches one `!command` and enriches the message with
-  `msg.command` and `msg.args`, with optional mod / sub / VIP / broadcaster checks. The trigger must
-  be a whole word, so `!ban` does not match `!banned`. A command node with no command configured
-  refuses to start.
-- **chat ban**, **chat timeout**, **chat unban** — moderation actions. The target must be set
-  explicitly with `msg.targetUser` (login) or `msg.targetUserId` (id); there is no fallback to the
-  message sender.
+- **chat command** — placed after **chat in**, matches one `!command` up to a word boundary and
+  enriches the message with `msg.command` and `msg.args`, with optional mod / sub / VIP /
+  broadcaster checks.
+- **chat ban**, **chat timeout**, **chat unban** — moderation actions. The target is
+  `msg.targetUser` (login) or `msg.targetUserId` (id).
 - **chat delete message** — deletes a single message by its ID (`msg.messageId` or `msg.id`).
 - **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
   colours (`msg.announceColor`, `primary` by default) from `msg.payload`, or `msg.text` when there
-  is no payload. Wiring **chat in** straight here re-announces the viewer's own message, so build
-  the text in a function node for an authored announcement.
+  is no payload.
 - **chat clear** — clears the whole channel. Requires `msg.confirm === true` and is rate-limited to
   one clear per channel per minute.
 - **chat join**, **chat part** — join or leave a channel at runtime.
@@ -88,10 +84,8 @@ The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no lo
 moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
 target channel.
 
-The `ban` / `timeout` / `unban` / `clear` nodes verify the **sender** against the Twitch API on each
-action, instead of trusting the `msg.isMod` flag: the actor is `msg.userId` (which **chat in** sets),
-and a missing or non-moderator sender is an error. The `requireMod` checkbox on **chat command** is
-only a fast pre-filter, not the security boundary, so a forged flag cannot grant authority.
+The `ban` / `timeout` / `unban` / `clear` nodes verify the **sender** (`msg.userId`, set by
+**chat in**) is a moderator of the channel before they act.
 
 ### Example: reply to `!hello`
 

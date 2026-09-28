@@ -48,8 +48,7 @@ RED.nodes.registerType('twitch-chat-reply', {
     at 500 characters.</dd>
 
     <dt>replyTo <span class="property-type">string</span></dt>
-    <dd>The Twitch message ID to reply to. <b>chat in</b> emits it as <code>msg.id</code>,
-    which this node also accepts, so the node can be wired straight onto a chat message.</dd>
+    <dd>The Twitch message ID to reply to. <code>msg.id</code> from <b>chat in</b> is also accepted.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>

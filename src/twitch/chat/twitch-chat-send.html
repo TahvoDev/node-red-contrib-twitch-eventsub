@@ -44,15 +44,12 @@ RED.nodes.registerType('twitch-chat-send', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>payload <span class="property-type">string</span></dt>
-    <dd>The message text to send. <b>chat in</b> sets it, so this node can be wired
-    straight onto a chat message; <code>msg.text</code> is used when there is no payload.
+    <dd>The message text to send. <code>msg.text</code> is used when there is no payload.
     Carriage returns and line feeds are stripped and the text is capped at 500 characters.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
-
-  <p>This node never threads. To post a reply, use <b>chat reply</b>.</p>
 
   <p>If neither the node's channel nor <code>msg.channel</code> is set, or the message text is
   empty, the node reports an error instead of sending.</p>

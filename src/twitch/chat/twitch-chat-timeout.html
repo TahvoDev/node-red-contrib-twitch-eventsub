@@ -59,10 +59,6 @@ RED.nodes.registerType('twitch-chat-timeout', {
     <dd>Overrides the channel configured on the node.</dd>
   </dl>
 
-  <p><b>Target vs. sender:</b> the target is never inferred. A missing target is an error rather than
-  falling back to the message sender, so a mis-wired flow cannot time out the wrong account.</p>
-
-  <p>The sender (<code>msg.userId</code>, set by <b>chat in</b>) must be a moderator or the
-  broadcaster of the channel; this is checked against the Twitch API, not the <code>msg.isMod</code>
-  flag. The authenticated account must also be a moderator or the broadcaster of the target channel.</p>
+  <p>The sender (<code>msg.userId</code>) must be a moderator or the broadcaster of the channel, and
+  the authenticated account must be a moderator or the broadcaster of the target channel.</p>
 </script>
