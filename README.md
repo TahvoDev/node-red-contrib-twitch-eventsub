@@ -51,15 +51,14 @@ Both config nodes need these OAuth scopes:
 
 The **bot's** `twitch-api-config` node additionally needs the moderation scopes:
 
-- `channel:moderate`, `moderation:read`
+- `channel:moderate`
 - `moderator:manage:banned_users`, `moderator:manage:chat_messages`, `moderator:manage:announcements`
 
-`chat:read` and `chat:edit` are needed to read and send over IRC. `channel:moderate` and
-`moderation:read` are needed for the moderation nodes (the latter for the per-action sender check
-described below). Keep the `moderator:*` and `moderation:*` scopes **on the bot's config node only**,
-never on the broadcaster's EventSub node: a token that can ban and clear chat is materially worse if
-it leaks, and the chat nodes only ever use the bot account. If your existing token was created before
-you added a scope, log the account in again so the new scope is granted.
+`chat:read` and `chat:edit` are needed to read and send over IRC; the `moderator:*` scopes are needed
+for the moderation nodes. Keep them **on the bot's config node only**, never on the broadcaster's
+EventSub node: a token that can ban and clear chat is materially worse if it leaks, and the chat
+nodes only ever use the bot account. If your existing token was created before you added a scope, log
+the account in again so the new scope is granted.
 
 ### Nodes
 
@@ -82,10 +81,8 @@ you added a scope, log the account in again so the new scope is granted.
 
 The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no longer accepts the
 moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
-target channel.
-
-The `ban` / `timeout` / `unban` / `clear` nodes verify the **sender** (`msg.userId`, set by
-**chat in**) is a moderator of the channel before they act.
+target channel. Which account triggered the action is not sent: Twitch requires the ban/clear/announce
+request to be made by the token's own user, so the bot is what Twitch logs.
 
 ### Example: reply to `!hello`
 

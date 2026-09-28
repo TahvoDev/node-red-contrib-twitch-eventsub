@@ -1,6 +1,5 @@
 import type { Node, NodeAPI } from 'node-red';
 import {
-  assertSenderIsModerator,
   getChatConnection,
   resolveUserId,
   runChatAction,
@@ -20,7 +19,6 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        await assertSenderIsModerator(ctx, broadcasterId, msg);
         const userId = await resolveUserId(ctx, msg);
         await ctx.moderation.banUser(broadcasterId, {
           user: userId,

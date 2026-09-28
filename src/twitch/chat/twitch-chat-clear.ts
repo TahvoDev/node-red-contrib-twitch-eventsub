@@ -1,10 +1,5 @@
 import type { Node, NodeAPI } from 'node-red';
-import {
-  assertSenderIsModerator,
-  getChatConnection,
-  runChatAction,
-  type ChatNodeConfig,
-} from './twitch-chat-base';
+import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
 
 /** Clearing the whole channel is rate-limited to one action per channel per minute. */
 const CLEAR_COOLDOWN_MS = 60 * 1000;
@@ -31,8 +26,6 @@ module.exports = function (RED: NodeAPI) {
       }
 
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        await assertSenderIsModerator(ctx, broadcasterId, msg);
-
         const now = Date.now();
         const previous = lastClear.get(broadcasterId) ?? 0;
         if (now - previous < CLEAR_COOLDOWN_MS) {

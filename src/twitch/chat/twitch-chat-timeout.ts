@@ -1,6 +1,5 @@
 import type { Node, NodeAPI } from 'node-red';
 import {
-  assertSenderIsModerator,
   clampTimeoutDuration,
   getChatConnection,
   resolveUserId,
@@ -21,7 +20,6 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        await assertSenderIsModerator(ctx, broadcasterId, msg);
         const duration = clampTimeoutDuration(msg.duration);
         const userId = await resolveUserId(ctx, msg);
         await ctx.moderation.banUser(broadcasterId, {

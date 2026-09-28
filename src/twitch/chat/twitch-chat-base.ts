@@ -284,41 +284,6 @@ export function resolveAnnounceColor(msg: TwitchChatMessage): HelixChatAnnouncem
 const broadcasterIds = new Map<string, string>();
 
 /**
- * Moderator checks are cached briefly to avoid a second Helix call on every
- * action. The TTL bounds how long a demoted moderator can still act.
- */
-const MODERATOR_CACHE_TTL_MS = 5 * 60 * 1000;
-const moderatorCache = new Map<string, { expiresAt: number; isMod: boolean }>();
-
-/**
- * Verifies the chat sender really is a moderator of the channel, rather than
- * trusting a msg.isMod flag that any upstream node can set. The sender is
- * msg.userId (set by twitch-chat-in); the broadcaster always passes.
- */
-export async function assertSenderIsModerator(
-  ctx: BaseApiClient,
-  broadcasterId: string,
-  msg: TwitchChatMessage
-): Promise<void> {
-  const senderId = String(msg.userId ?? '').trim();
-  if (!senderId) {
-    throw new Error('Sender identity required — wire this node from twitch-chat-in or set msg.userId');
-  }
-  if (senderId === broadcasterId) return;
-
-  const key = `${broadcasterId}:${senderId}`;
-  const cached = moderatorCache.get(key);
-  if (cached && cached.expiresAt > Date.now()) {
-    if (cached.isMod) return;
-    throw new Error('Sender is not a moderator of this channel');
-  }
-
-  const isMod = await ctx.moderation.checkUserMod(broadcasterId, senderId);
-  moderatorCache.set(key, { expiresAt: Date.now() + MODERATOR_CACHE_TTL_MS, isMod });
-  if (!isMod) throw new Error('Sender is not a moderator of this channel');
-}
-
-/**
  * Runs one Helix chat/moderation call against the channel and authenticated
  * account from the connection node. Twitch removed the old chat-command helpers
  * from ChatClient, so ban/timeout/delete/announce/clear go through Helix now.

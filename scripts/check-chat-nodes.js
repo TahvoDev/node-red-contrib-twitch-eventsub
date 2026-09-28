@@ -11,7 +11,6 @@ const path = require('path')
 
 const base = require(path.join(__dirname, '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 const {
-  assertSenderIsModerator,
   buildCommandTrigger,
   clampTimeoutDuration,
   matchCommand,
@@ -93,32 +92,6 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   await assert.rejects(
     () => resolveUserId({ users: { getUserByName: async () => null } }, { targetUser: 'ghost' }),
     /could not be found/
-  )
-
-  // The sender is verified against the API, not trusted from a msg flag.
-  let checks = 0
-  const modCtx = {
-    moderation: {
-      checkUserMod: async () => {
-        checks += 1
-        return true
-      },
-    },
-  }
-  await assertSenderIsModerator(modCtx, 'broadcaster', { userId: 'sender' })
-  assert.strictEqual(checks, 1)
-  // The broadcaster is allowed without spending an API call.
-  await assertSenderIsModerator(modCtx, 'broadcaster', { userId: 'broadcaster' })
-  assert.strictEqual(checks, 1)
-  await assert.rejects(
-    () => assertSenderIsModerator(modCtx, 'broadcaster', {}),
-    /Sender identity required/
-  )
-  await assert.rejects(
-    () => assertSenderIsModerator({ moderation: { checkUserMod: async () => false } }, 'channel-b', {
-      userId: 'viewer',
-    }),
-    /not a moderator/
   )
 
   console.log('chat node message properties: ok')
