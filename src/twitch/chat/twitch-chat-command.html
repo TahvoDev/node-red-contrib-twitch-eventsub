@@ -67,15 +67,21 @@ RED.nodes.registerType('twitch-chat-command', {
 
 <script type="text/html" data-help-name="twitch-chat-command">
   <p>Filters the messages from <b>chat in</b> down to one command, and enriches the message for
-  the following nodes.</p>
+  the following nodes. Messages that do not match, or that fail a checked requirement, are dropped.</p>
 
-  <p>The trigger is the configured <b>prefix</b> followed by <b>command</b> and is matched
-  case-insensitively at the start of the message, up to a word boundary.</p>
+  <h3>Inputs</h3>
+  <dl class="message-properties">
+    <dt>text / payload <span class="property-type">string</span></dt>
+    <dd>The message to match. <code>msg.text</code> is read first, then <code>msg.payload</code>.</dd>
+
+    <dt class="optional">isBroadcaster / isMod / isSubscriber / isVip <span class="property-type">boolean</span></dt>
+    <dd>The sender's status, read by the matching permission check.</dd>
+  </dl>
 
   <h3>Configuration</h3>
   <dl class="message-properties">
     <dt>command <span class="property-type">string</span></dt>
-    <dd>The command without the prefix. <code>hello</code> matches <code>!hello</code>. Required.</dd>
+    <dd>The command without the prefix. Required.</dd>
 
     <dt>prefix <span class="property-type">string</span></dt>
     <dd>The trigger character. Defaults to <code>!</code>.</dd>
@@ -93,6 +99,8 @@ RED.nodes.registerType('twitch-chat-command', {
     <dd>The space-separated words that followed the command.</dd>
   </dl>
 
-  <p>The full <b>chat in</b> message is passed through, so <code>msg.user</code>,
-  <code>msg.channel</code>, <code>msg.id</code> and the rest remain available.</p>
+  <p>The full incoming message is passed through, so <code>msg.user</code>, <code>msg.channel</code>,
+  <code>msg.id</code> and the rest remain available.</p>
+
+  <p>The trigger is matched case-insensitively at the start of the message, up to a word boundary.</p>
 </script>
