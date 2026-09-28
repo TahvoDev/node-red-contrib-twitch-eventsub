@@ -18,6 +18,7 @@ const path = require('path')
 const eventsubDist = path.join(__dirname, '..', '..', 'dist', 'twitch', 'eventsub')
 const { EVENTS, EVENTS_BY_TYPE, fieldKey } = require(path.join(eventsubDist, 'eventsub-registry.js'))
 const { mapEvent } = require(path.join(eventsubDist, 'eventsub-mapper.js'))
+const { rawDataSymbol } = require('@twurple/common')
 
 /* ------------------------------------------------------------- registry */
 
@@ -79,5 +80,15 @@ assert.deepStrictEqual(
   mapEvent({ fields: [{ key: 'n', default: 5, defaultOn: 'falsy' }] }, { n: 0 }),
   { n: 5 }
 )
+
+// rawEvent must be the plain payload, not the Twurple event instance: the data
+// lives behind rawDataSymbol, so returning `e` itself serialises to {} in debug.
+// getRawData() unwraps (and deep-clones) it.
+const rawPayload = { id: 'abc', nested: { x: 1 } }
+const withRaw = EVENTS.find((event) => event.fields.some((field) => fieldKey(field) === 'rawEvent'))
+assert.ok(withRaw, 'no event declares a rawEvent field')
+const mapped = mapEvent(withRaw, { [rawDataSymbol]: rawPayload })
+assert.deepStrictEqual(mapped.rawEvent, rawPayload)
+assert.notStrictEqual(mapped.rawEvent, rawPayload)
 
 console.log(`eventsub nodes ok: ${EVENTS.length} events`)

@@ -1,4 +1,5 @@
 import type { EventSubWsListener } from '@twurple/eventsub-ws';
+import { getRawData } from '@twurple/common';
 
 /**
  * A single field of the Node-RED message payload produced for an EventSub event.
@@ -61,7 +62,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "autoMod",
       "blockedTerms",
       "holdDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -87,7 +88,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "blockedTerms",
       "status",
       "holdDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -111,7 +112,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "sexBasedTerms",
       "sexualitySexOrGender",
       "swearing",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -129,7 +130,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "action",
       "fromAutoMod",
       "terms",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -147,7 +148,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "durationSeconds",
       "startDate",
       "isAutomatic",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -167,7 +168,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageText",
       "messageParts",
       "redemptionDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -189,7 +190,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "isPermanent",
       "startDate",
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -209,7 +210,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageText",
       "messageParts",
       "powerUp",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -228,7 +229,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityWebsite",
       "currentAmount",
       "targetAmount",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -248,7 +249,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "currentAmount",
       "targetAmount",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -268,7 +269,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "currentAmount",
       "targetAmount",
       "endDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -289,7 +290,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityLogo",
       "charityWebsite",
       "amount",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -304,7 +305,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterId",
       "broadcasterName",
       "broadcasterDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -316,7 +317,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterId",
       "broadcasterName",
       "broadcasterDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -332,7 +333,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterName",
       "broadcasterDisplayName",
       "messageId",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -421,7 +422,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "charityName", default: null },
       { key: "amount", default: null },
       { key: "newTier", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -440,7 +441,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "slowModeDelay",
       "subscriberOnlyModeEnabled",
       "uniqueChatModeEnabled",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -458,7 +459,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageId",
       "messageText",
       "messageParts",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -477,7 +478,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageText",
       "messageParts",
       "status",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -500,7 +501,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "rewardPrompt",
       "rewardTitle",
       "status",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -533,7 +534,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "currentAmount",
       "targetAmount",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -553,7 +554,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "targetAmount",
       "startDate",
       "endDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -571,7 +572,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "currentAmount",
       "targetAmount",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -596,7 +597,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "allTimeHighTotal",
       "startDate",
       "expiryDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -618,7 +619,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "startDate",
       "endDate",
       "cooldownEndDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -641,7 +642,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "sharedTrainParticipants",
       "startDate",
       "expiryDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -672,7 +673,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "chatRulesCited", default: [] },
       { key: "terms", default: [] },
       { key: "fromAutoMod", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -687,7 +688,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -702,7 +703,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -722,7 +723,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "status", default: null },
       { key: "startDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -742,7 +743,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "status", default: null },
       { key: "startDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -762,7 +763,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "status", default: null },
       { key: "startDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -782,7 +783,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "startDate", default: null },
       { key: "lockDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -802,7 +803,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "startDate", default: null },
       { key: "lockDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -822,7 +823,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "startDate", default: null },
       { key: "lockDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -842,7 +843,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "startDate", default: null },
       { key: "lockDate", default: null },
       { key: "endDate", default: null },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -858,7 +859,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "toBroadcasterName",
       "toBroadcasterDisplayName",
       "viewers",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -874,7 +875,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "toBroadcasterName", map: (e: any) => e.raidedBroadcasterName || e.toBroadcasterName || e.broadcasterName },
       { key: "toBroadcasterDisplayName", map: (e: any) => e.raidedBroadcasterDisplayName || e.toBroadcasterDisplayName || e.broadcasterDisplayName },
       "viewers",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -897,7 +898,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "rewardPrompt",
       "rewardTitle",
       "status",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -920,7 +921,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "rewardCost",
       "rewardPrompt",
       "redemptionDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -947,7 +948,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "maxRedemptionsPerUserPerStream",
       "globalCooldown",
       "backgroundColor",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -974,7 +975,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "maxRedemptionsPerUserPerStream",
       "globalCooldown",
       "backgroundColor",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1001,7 +1002,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "maxRedemptionsPerUserPerStream",
       "globalCooldown",
       "backgroundColor",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1018,7 +1019,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "hostBroadcasterName",
       "hostBroadcasterDisplayName",
       "participants",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1034,7 +1035,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "hostBroadcasterId",
       "hostBroadcasterName",
       "hostBroadcasterDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1051,7 +1052,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "hostBroadcasterName",
       "hostBroadcasterDisplayName",
       "participants",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1067,7 +1068,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "moderatorName",
       "moderatorDisplayName",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1083,7 +1084,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "moderatorName",
       "moderatorDisplayName",
       "endDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1103,7 +1104,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "shoutedOutBroadcasterDisplayName",
       "viewerCount",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1120,7 +1121,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "sendingBroadcasterDisplayName",
       "viewerCount",
       "startDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1134,7 +1135,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterDisplayName",
       "startDate",
       "type",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1165,7 +1166,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterDisplayName",
       "tier",
       "isGift",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1184,7 +1185,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "amount",
       "cumulativeAmount",
       "isAnonymous",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1204,7 +1205,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       { key: "cumulativeMonths", default: 1 },
       { key: "streakMonths", default: null },
       { key: "durationMonths", default: 1 },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1221,7 +1222,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "broadcasterDisplayName",
       "tier",
       { key: "isGift", default: false },
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1243,7 +1244,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageId",
       "messageText",
       "messageParts",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1262,7 +1263,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userName",
       "userDisplayName",
       "lowTrustStatus",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1280,7 +1281,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userDisplayName",
       "message",
       "creationDate",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1301,7 +1302,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userDisplayName",
       "resolutionMessage",
       "status",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1319,7 +1320,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "moderatorId",
       "moderatorName",
       "moderatorDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1335,7 +1336,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "categoryId",
       "categoryName",
       "isMature",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1350,7 +1351,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1365,7 +1366,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1380,7 +1381,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1400,7 +1401,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userDisplayName",
       "reason",
       "chatRulesCited",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1414,7 +1415,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userName",
       "userDisplayName",
       "clientId",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1428,7 +1429,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userName",
       "userDisplayName",
       "clientId",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1443,7 +1444,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userDescription",
       "userEmail",
       "userEmailIsVerified",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
   {
@@ -1460,7 +1461,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "senderUserName",
       "senderUserDisplayName",
       "messageText",
-      { key: 'rawEvent', map: (e: any) => e },
+      { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
 ];
