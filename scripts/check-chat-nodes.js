@@ -11,7 +11,6 @@ const path = require('path')
 
 const base = require(path.join(__dirname, '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 const {
-  announcementText,
   assertSenderIsModerator,
   buildCommandTrigger,
   clampTimeoutDuration,
@@ -52,16 +51,6 @@ assert.strictEqual(sanitizeChatText('a'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100)).l
 const emojis = sanitizeChatText('\u{1F600}'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100))
 assert.strictEqual(Array.from(emojis).length, MAX_CHAT_MESSAGE_LENGTH)
 assert.strictEqual([...emojis].some((ch) => /\uFFFD/.test(ch)), false)
-
-// Announcements read payload only, and refuse the raw chat-in shape.
-assert.strictEqual(announcementText({ payload: 'Welcome!' }), 'Welcome!')
-assert.strictEqual(announcementText({ payload: 'Welcome!', text: '!hello', userId: '1' }), 'Welcome!')
-assert.throws(() => announcementText({}), /No announcement text/)
-assert.throws(() => announcementText({ text: 'viewer words', userId: '1' }), /No announcement text/)
-assert.throws(
-  () => announcementText({ payload: 'viewer words', text: 'viewer words', userId: '1' }),
-  /Refusing to re-announce/
-)
 
 // Timeout duration is clamped to Twitch's two-week cap.
 assert.strictEqual(clampTimeoutDuration(30), 30)

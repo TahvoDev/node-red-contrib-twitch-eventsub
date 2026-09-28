@@ -77,8 +77,9 @@ you added a scope, log the account in again so the new scope is granted.
   message sender.
 - **chat delete message** — deletes a single message by its ID (`msg.messageId` or `msg.id`).
 - **chat announce** — sends a highlighted announcement in one of Twitch's five announcement
-  colours (`msg.announceColor`, `primary` by default) from `msg.payload`. It does not read
-  `msg.text`, so a raw **chat in** message is not re-announced by accident.
+  colours (`msg.announceColor`, `primary` by default) from `msg.payload`, or `msg.text` when there
+  is no payload. Wiring **chat in** straight here re-announces the viewer's own message, so build
+  the text in a function node for an authored announcement.
 - **chat clear** — clears the whole channel. Requires `msg.confirm === true` and is rate-limited to
   one clear per channel per minute.
 - **chat join**, **chat part** — join or leave a channel at runtime.

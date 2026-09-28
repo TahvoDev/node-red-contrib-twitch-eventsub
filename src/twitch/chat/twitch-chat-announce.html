@@ -44,16 +44,15 @@ RED.nodes.registerType('twitch-chat-announce', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>payload <span class="property-type">string</span></dt>
-    <dd>The announcement text (Twitch truncates past 500 characters). Only <code>msg.payload</code>
-    is read, and a raw <b>chat in</b> message (where <code>msg.payload</code> equals
-    <code>msg.text</code>) is refused, so a viewer's own words are not re-announced as the bot.
-    Build the announcement text in a function node first.</dd>
+    <dd>The announcement text; <code>msg.text</code> is used when there is no payload. Wiring
+    <b>chat in</b> straight onto this node re-announces the viewer's own message, so build the text
+    in a function node first if you want an authored announcement.</dd>
 
     <dt class="optional">announceColor <span class="property-type">string</span></dt>
     <dd>One of <code>primary</code> (default), <code>blue</code>, <code>green</code>,
     <code>orange</code> or <code>purple</code> — the only colours Twitch accepts for an
-    announcement. The sender's hex chat colour in <code>msg.color</code> is not one of these and
-    falls back to <code>primary</code>.</dd>
+    announcement. <code>msg.color</code> is also read; the sender's hex chat colour is not one of
+    these and falls back to <code>primary</code>.</dd>
 
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>

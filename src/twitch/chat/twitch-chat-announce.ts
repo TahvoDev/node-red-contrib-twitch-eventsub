@@ -1,6 +1,5 @@
 import type { Node, NodeAPI } from 'node-red';
 import {
-  announcementText,
   getChatConnection,
   resolveAnnounceColor,
   runChatAction,
@@ -20,7 +19,8 @@ module.exports = function (RED: NodeAPI) {
 
     node.on('input', (msg) => {
       runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-        const message = announcementText(msg);
+        const message = String(msg.payload ?? msg.text ?? '');
+        if (!message.trim()) throw new Error('No announcement text — set msg.payload');
 
         await ctx.chat.sendAnnouncement(broadcasterId, {
           message,

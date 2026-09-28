@@ -159,22 +159,6 @@ export function sanitizeChatText(raw: unknown): string {
   return Array.from(cleaned).slice(0, MAX_CHAT_MESSAGE_LENGTH).join('');
 }
 
-/**
- * The announcement text, from `msg.payload` only. A raw twitch-chat-in message
- * carries the same string in `text` and `payload`; refusing that shape stops a
- * viewer's own words being re-announced as the bot.
- */
-export function announcementText(msg: TwitchChatMessage): string {
-  const message = String(msg.payload ?? '');
-  if (!message.trim()) throw new Error('No announcement text — set msg.payload');
-  if (msg.userId && msg.text !== undefined && message === String(msg.text)) {
-    throw new Error(
-      'Refusing to re-announce a raw chat message — set msg.payload to the announcement text'
-    );
-  }
-  return message;
-}
-
 /** Clamps a timeout to Twitch's accepted range; anything finite above two weeks is capped. */
 export function clampTimeoutDuration(raw: unknown): number {
   const seconds = Number(raw);
