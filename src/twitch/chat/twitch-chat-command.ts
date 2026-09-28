@@ -28,8 +28,10 @@ module.exports = function (RED: NodeAPI) {
       const args = matchCommand(text, trigger);
       if (!args) return;
 
-      // These flags are advisory filters only; the destructive nodes re-check the
-      // sender against the Twitch API so a forged flag cannot grant authority.
+      // These permission checks are the only authorization for the destructive
+      // nodes: they act as the configured account and do not re-check the sender.
+      // The flags come from the badges twitch-chat-in reads from Twitch, so do
+      // not feed this node from a source where untrusted input can set them.
       if (config.requireBroadcaster && !msg.isBroadcaster) return;
       if (config.requireMod && !(msg.isMod || msg.isBroadcaster)) return;
       if (config.requireSub && !msg.isSubscriber) return;
