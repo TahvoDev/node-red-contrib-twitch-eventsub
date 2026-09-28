@@ -14,7 +14,7 @@
 const assert = require('assert')
 const path = require('path')
 
-const base = require(path.join(__dirname, '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
+const base = require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 const {
   buildCommandTrigger,
   clampTimeoutDuration,

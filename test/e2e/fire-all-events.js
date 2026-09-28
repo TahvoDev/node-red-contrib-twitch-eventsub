@@ -20,7 +20,7 @@
  * additionally read the editor's debug sidebar for exact per-node confirmations.
  *
  * Usage:
- *   node scripts/mock/fire-all-events.js [options]
+ *   node test/e2e/fire-all-events.js [options]
  *
  * Options:
  *   --node-red <url>     Node-RED base URL (default http://127.0.0.1:1880)
