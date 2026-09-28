@@ -123,7 +123,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-stream-markers',
     tier: 'extended',
-    resource: 'stream markers',
     label: 'stream markers',
     help: 'Creates or lists stream markers. Creating needs a live stream and the broadcaster account.',
     scopes: ['channel:manage:broadcast', 'user:read:broadcast'],
@@ -184,7 +183,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-clips',
     tier: 'core',
-    resource: 'clips',
     label: 'clips',
     help: 'Creates a clip of a live stream or lists clips.',
     scopes: ['clips:edit'],
@@ -278,7 +276,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-videos',
     tier: 'extended',
-    resource: 'videos',
     label: 'videos',
     help: 'Lists videos or deletes one or more videos by ID.',
     scopes: ['channel:manage:videos'],
@@ -425,7 +422,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-games',
     tier: 'advanced',
-    resource: 'games',
     label: 'games',
     help: 'Looks up a game/category, lists the top games or searches categories.',
     scopes: [],
@@ -499,7 +495,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-search',
     tier: 'advanced',
-    resource: 'search',
     label: 'search channels',
     help: 'Searches channels by a partial or exact query, optionally limited to live channels.',
     scopes: [],
@@ -541,7 +536,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-raids',
     tier: 'extended',
-    resource: 'raids',
     label: 'raids',
     help: 'Starts or cancels a raid.',
     scopes: ['channel:manage:raids'],
@@ -591,7 +585,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-get-streams',
     tier: 'core',
-    resource: 'streams',
     label: 'get streams',
     help: 'Fetches a list of active Twitch streams based on your configuration parameters.',
     scopes: [],
@@ -645,7 +638,6 @@ export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-followed-streams',
     tier: 'extended',
-    resource: 'streams',
     label: 'followed streams',
     help: 'Lists the live streams a user follows.',
     scopes: ['user:read:follows'],

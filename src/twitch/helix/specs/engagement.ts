@@ -166,7 +166,6 @@ export const engagementSpecs = [
   defineHelix({
     type: 'twitch-helix-channel-points',
     tier: 'extended',
-    resource: 'channel points',
     label: 'channel points',
     help: 'Lists, creates, updates or deletes custom Channel Points rewards.',
     scopes: ['channel:read:redemptions', 'channel:manage:redemptions'],
@@ -374,7 +373,6 @@ export const engagementSpecs = [
   defineHelix({
     type: 'twitch-helix-redemptions',
     tier: 'extended',
-    resource: 'redemptions',
     label: 'redemptions',
     help: 'Lists custom Channel Points redemptions or updates their status.',
     scopes: ['channel:read:redemptions', 'channel:manage:redemptions'],
@@ -470,7 +468,6 @@ export const engagementSpecs = [
   defineHelix({
     type: 'twitch-helix-polls',
     tier: 'extended',
-    resource: 'polls',
     label: 'polls',
     help: 'Lists, creates or ends a channel poll.',
     scopes: ['channel:read:polls', 'channel:manage:polls'],
@@ -576,7 +573,6 @@ export const engagementSpecs = [
   defineHelix({
     type: 'twitch-helix-predictions',
     tier: 'extended',
-    resource: 'predictions',
     label: 'predictions',
     help: 'Lists, creates or ends a channel prediction.',
     scopes: ['channel:read:predictions', 'channel:manage:predictions'],

@@ -31,7 +31,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-get-channel-info',
     tier: 'core',
-    resource: 'channels',
     label: 'get channel info',
     help: "Gets a channel's title, game, language and tags. Leave Broadcaster blank to use the authenticated account.",
     scopes: [],
@@ -47,7 +46,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-update-channel-info',
     tier: 'core',
-    resource: 'channels',
     label: 'update channel info',
     help: "Updates a channel's title, game, tags or language. Only the fields you fill in are changed; the node fetches and returns the channel afterwards. The authenticated account must be the broadcaster.",
     scopes: ['channel:manage:broadcast'],
@@ -146,7 +144,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-get-followers',
     tier: 'core',
-    resource: 'followers',
     label: 'get followers',
     help: "Lists a channel's followers, most recent first. Set User to a single login to just confirm whether that user follows. The authenticated account must be a moderator or the broadcaster.",
     scopes: ['moderator:read:followers'],
@@ -173,7 +170,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-get-followed-channels',
     tier: 'core',
-    resource: 'followers',
     label: 'get followed channels',
     help: 'Lists the channels a user follows. Set Channel to a single login to just confirm whether the user follows it. Defaults to the authenticated account.',
     scopes: ['user:read:follows'],
@@ -210,7 +206,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-ads',
     tier: 'extended',
-    resource: 'ads',
     label: 'ads',
     help: 'Reads the ad schedule, snoozes the next ad or starts a commercial break.',
     scopes: ['channel:read:ads', 'channel:manage:ads', 'channel:edit:commercial'],
@@ -281,7 +276,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-get-stream-key',
     tier: 'advanced',
-    resource: 'channels',
     label: 'get stream key',
     help: "Gets the channel's stream key. Treat the result as a secret. The authenticated account must be the broadcaster.",
     scopes: ['channel:read:stream_key'],
@@ -295,7 +289,6 @@ export const channelSpecs = [
   defineHelix({
     type: 'twitch-helix-channel-editors',
     tier: 'advanced',
-    resource: 'channels',
     label: 'channel editors',
     help: 'Lists the editors of a channel.',
     scopes: ['channel:read:editors'],

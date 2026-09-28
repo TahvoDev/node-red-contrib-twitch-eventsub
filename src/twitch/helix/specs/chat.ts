@@ -48,7 +48,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-send-chat-message',
     tier: 'core',
-    resource: 'chat',
     label: 'send chat message',
     help: 'Sends a chat message to a channel as the authenticated account.',
     scopes: ['user:write:chat'],
@@ -80,7 +79,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-send-announcement',
     tier: 'core',
-    resource: 'chat',
     label: 'send announcement',
     help: "Sends a highlighted announcement in a channel, falling back to primary for any other colour.",
     scopes: ['moderator:manage:announcements'],
@@ -122,7 +120,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-send-shoutout',
     tier: 'core',
-    resource: 'chat',
     label: 'send shoutout',
     help: 'Sends a shoutout from one channel to another.',
     scopes: ['moderator:manage:shoutouts'],
@@ -164,7 +161,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-chat',
     tier: 'core',
-    resource: 'chat',
     label: 'chat moderation',
     help: 'Lists the chatters in a channel, clears the chat or deletes a single message.',
     scopes: ['moderator:read:chatters', 'moderator:manage:chat_messages'],
@@ -220,7 +216,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-chat-settings',
     tier: 'extended',
-    resource: 'chat',
     label: 'chat settings',
     help: "Reads or changes a channel's chat settings.",
     scopes: ['moderator:manage:chat_settings'],
@@ -372,7 +367,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-emotes',
     tier: 'core',
-    resource: 'chat',
     label: 'get emotes',
     help: "Lists a channel's emotes or Twitch's global emotes.",
     scopes: [],
@@ -402,7 +396,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-chat-badges',
     tier: 'core',
-    resource: 'chat',
     label: 'get chat badges',
     help: "Lists a channel's custom chat badges or Twitch's global badges.",
     scopes: [],
@@ -432,7 +425,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-chat-color',
     tier: 'extended',
-    resource: 'chat',
     label: 'chat colour',
     help: "Reads or changes a user's chat colour.",
     scopes: ['user:manage:chat_color'],
@@ -490,7 +482,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-user-emotes',
     tier: 'extended',
-    resource: 'chat',
     label: 'user emotes',
     help: "Lists the emotes a user can use, including their channel's emotes.",
     scopes: ['user:read:emotes'],
@@ -517,7 +508,6 @@ export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-shared-chat',
     tier: 'extended',
-    resource: 'chat',
     label: 'shared chat',
     help: 'Gets the shared chat session a channel is currently part of, or null.',
     scopes: [],

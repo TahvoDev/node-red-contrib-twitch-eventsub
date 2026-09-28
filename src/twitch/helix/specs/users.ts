@@ -23,7 +23,6 @@ export const userSpecs = [
   defineHelix({
     type: 'twitch-helix-get-users',
     tier: 'core',
-    resource: 'users',
     label: 'get users',
     help: 'Looks up Twitch profiles using explicit fields for IDs and Usernames. If both inputs are used simultaneously, the node merges and de-duplicates the results automatically.',
     scopes: [],
@@ -94,7 +93,6 @@ export const userSpecs = [
   defineHelix({
     type: 'twitch-helix-blocks',
     tier: 'core',
-    resource: 'users',
     label: 'blocks',
     help: 'Blocks, unblocks or lists the users a channel has blocked.',
     scopes: ['user:read:blocked_users', 'user:manage:blocked_users'],
@@ -189,7 +187,6 @@ export const userSpecs = [
   defineHelix({
     type: 'twitch-helix-get-authenticated-user',
     tier: 'core',
-    resource: 'users',
     label: 'get auth user',
     help: 'Fetches the profile of the currently authenticated Twitch user.',
     scopes: [],
@@ -215,7 +212,6 @@ export const userSpecs = [
   defineHelix({
     type: 'twitch-helix-update-user-description',
     tier: 'core',
-    resource: 'users',
     label: 'update bio',
     help: 'Updates the channel description of the authenticated Twitch user.',
     scopes: ['user:edit'],

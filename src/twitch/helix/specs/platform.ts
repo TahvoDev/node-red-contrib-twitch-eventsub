@@ -2,11 +2,7 @@ import { getRawData } from '@twurple/common';
 import { defineHelix, type HelixField } from '../define';
 import { toBool, toIdList, toStr } from '../twitch-helix-utils';
 
-/**
- * The platform/integration long tail: drops entitlements, extensions and
- * content classification labels. These are hidden specs reached through the
- * generic `api request` node, so they do not grow the palette.
- */
+/** The platform/integration specs: drops entitlements, extensions and content classification labels. */
 
 const broadcaster: HelixField = {
   name: 'broadcaster',
@@ -70,7 +66,6 @@ export const platformSpecs = [
   defineHelix({
     type: 'twitch-helix-content-classification-labels',
     tier: 'advanced',
-    resource: 'content classification labels',
     label: 'content classification labels',
     help: "Lists Twitch's content classification labels.",
     scopes: [],
@@ -93,7 +88,6 @@ export const platformSpecs = [
   defineHelix({
     type: 'twitch-helix-drops',
     tier: 'advanced',
-    resource: 'drops',
     label: 'drops',
     help: 'Lists or updates drops entitlements.',
     scopes: [],
@@ -216,7 +210,6 @@ export const platformSpecs = [
   defineHelix({
     type: 'twitch-helix-extensions',
     tier: 'advanced',
-    resource: 'extensions',
     label: 'extensions',
     help: 'Reads released extensions, live channels, bits products and transactions.',
     scopes: [],
@@ -344,7 +337,6 @@ export const platformSpecs = [
   defineHelix({
     type: 'twitch-helix-user-extensions',
     tier: 'advanced',
-    resource: 'extensions',
     label: 'user extensions',
     help: "Lists the extensions a user has installed or activated.",
     scopes: ['user:read:broadcast'],

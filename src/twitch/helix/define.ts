@@ -98,8 +98,6 @@ export interface HelixSpec {
   help: string;
   /** Palette tier; defaults to `core`. Only enabled tiers register. */
   tier?: HelixTier;
-  /** Resource grouping, used by docs and the generated catalogue. */
-  resource?: string;
   /**
    * OAuth scopes the node needs. For an action node this is the union shown in
    * the docs; the per-action scopes are checked at runtime.
@@ -124,8 +122,6 @@ export interface HelixSpec {
    * authenticated user), which is right for almost every endpoint.
    */
   context?: 'moderator' | 'broadcaster' | 'app';
-  /** Escape hatch for a node whose editor cannot be generated from fields. */
-  customHtml?: string;
   /** Icon filename; defaults to the shared Twitch icon. */
   icon?: string;
   /** Inline `oneditprepare` JS, appended to the generated action handler. */
@@ -166,7 +162,7 @@ export function specScopes(spec: HelixSpec): string[] {
 }
 
 /** The paged config used for one action (falls back to the node's `paged`). */
-export function actionPaged(spec: HelixSpec, action?: HelixAction): HelixPagedSpec | undefined {
+function actionPaged(spec: HelixSpec, action?: HelixAction): HelixPagedSpec | undefined {
   return action?.paged ?? spec.paged;
 }
 

@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   (`bans`, `moderators`, `vips`, `blocked terms`, `chat settings`, `channel points`, `redemptions`,
   `polls`, `predictions`, `schedule`, `raids`, `ads`, `stream markers`, `clips`, `videos`, `bits`,
   `subscriptions`, `teams`); the editor shows only the selected action's fields and scopes are
-  checked per action. Clutter is handled by tiers instead of hidden nodes.
+  checked per action. Palette clutter is handled by tiers.
 - Every spec now declares a `tier` (`core` | `extended` | `advanced`). Only enabled tiers register;
   configure `twitchApi.tiers` in `settings.js` (default `['core']`). OAuth scopes stay the fixed
   build-time union, so changing tiers never forces users to re-authenticate.

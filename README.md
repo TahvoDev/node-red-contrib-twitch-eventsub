@@ -236,8 +236,7 @@ defineHelix({
 ```
 
 For a list endpoint add `paged: { limit: 20, max: 1000 }` instead of declaring `limit`/`all`/`allMax`:
-the factory walks the pages and sets `msg.pagination`/`msg.total`. If an editor cannot be generated
-from the fields, `customHtml` is the escape hatch.
+the factory walks the pages and sets `msg.pagination`/`msg.total`.
 
 The **Login with Twitch** button on the config node requests all of these scopes, so authorising once
 covers the whole `twitch api` palette. If you created your token before a node existed, log in again
@@ -286,8 +285,7 @@ test: `npm install`, `npm run build` and `npm run check` work without a containe
 
 `npm run test:e2e:helix` is the Helix counterpart: it deploys a flow with the generated
 Helix nodes, reads the credentials the Twitch CLI mock generates, and asserts the mock
-received the request each node is supposed to make (including the generic `api request`
-node). Same container-engine requirement.
+received the request each node is supposed to make. Same container-engine requirement.
 
 ## Adding a new event
 

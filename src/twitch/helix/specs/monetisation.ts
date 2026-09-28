@@ -142,7 +142,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-bits',
     tier: 'advanced',
-    resource: 'bits',
     label: 'bits',
     help: 'Gets the Bits leaderboard or the Bits cheermotes.',
     scopes: ['bits:read'],
@@ -273,7 +272,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-subscriptions',
     tier: 'advanced',
-    resource: 'subscriptions',
     label: 'subscriptions',
     help: "Lists a channel's subscribers or checks one user's subscription.",
     scopes: ['channel:read:subscriptions', 'user:read:subscriptions'],
@@ -345,7 +343,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-schedule',
     tier: 'extended',
-    resource: 'schedule',
     label: 'schedule',
     help: "Reads or changes a channel's streaming schedule segments.",
     scopes: ['channel:manage:schedule'],
@@ -637,7 +634,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-teams',
     tier: 'advanced',
-    resource: 'teams',
     label: 'teams',
     help: 'Looks up a Twitch team by ID or name, or lists the teams a channel belongs to.',
     scopes: [],
@@ -705,7 +701,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-charity',
     tier: 'advanced',
-    resource: 'charity',
     label: 'charity',
     help: "Reads a channel's active charity campaign and its donations.",
     scopes: ['channel:read:charity'],
@@ -760,7 +755,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-hype-train',
     tier: 'advanced',
-    resource: 'hype train',
     label: 'get hype train',
     help: 'Gets Hype Train events for a channel. Twitch exposes no REST endpoint for the current Hype Train, so this returns the recorded events of the current or latest train (paginated), not a live snapshot.',
     scopes: ['channel:read:hype_train'],
@@ -777,7 +771,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-goals',
     tier: 'advanced',
-    resource: 'goals',
     label: 'get goals',
     help: "Gets a channel's active creator goals (follower and subscription targets).",
     scopes: ['channel:read:goals'],
@@ -792,7 +785,6 @@ export const monetisationSpecs = [
   defineHelix({
     type: 'twitch-helix-whispers',
     tier: 'advanced',
-    resource: 'whispers',
     label: 'send whisper',
     help: 'Sends a whisper from the authenticated account to another user. Twitch may silently drop whispers it considers abusive, so a success only means the request was accepted.',
     scopes: ['user:manage:whispers'],

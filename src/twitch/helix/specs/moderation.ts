@@ -102,7 +102,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-bans',
     tier: 'core',
-    resource: 'bans',
     label: 'bans',
     help: 'Bans, times out, unbans or lists banned users in a channel. Leave Duration blank for a permanent ban.',
     scopes: ['moderator:manage:banned_users', 'moderation:read'],
@@ -169,7 +168,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-moderators',
     tier: 'extended',
-    resource: 'moderators',
     label: 'moderators',
     help: 'Lists, adds or removes a channel moderator.',
     scopes: ['moderation:read', 'channel:manage:moderators'],
@@ -216,7 +214,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-vips',
     tier: 'extended',
-    resource: 'vips',
     label: 'vips',
     help: 'Lists, adds or removes a channel VIP.',
     scopes: ['channel:read:vips', 'channel:manage:vips'],
@@ -259,7 +256,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-blocked-terms',
     tier: 'extended',
-    resource: 'blocked terms',
     label: 'blocked terms',
     help: "Lists, adds or removes terms blocked in a channel's chat.",
     scopes: ['moderator:read:blocked_terms', 'moderator:manage:blocked_terms'],
@@ -309,7 +305,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-moderation',
     tier: 'extended',
-    resource: 'moderation',
     label: 'moderation tools',
     help: 'Warns a user or checks messages against AutoMod.',
     scopes: ['moderator:manage:warnings', 'moderation:read'],
@@ -406,7 +401,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-automod',
     tier: 'extended',
-    resource: 'automod',
     label: 'automod',
     help: 'Reads or updates AutoMod settings, or approves/denies a held message.',
     scopes: [
@@ -502,7 +496,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-shield-mode',
     tier: 'extended',
-    resource: 'shield mode',
     label: 'shield mode',
     help: 'Reads or toggles Shield Mode on a channel.',
     scopes: ['moderator:read:shield_mode', 'moderator:manage:shield_mode'],
@@ -543,7 +536,6 @@ export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-unban-requests',
     tier: 'extended',
-    resource: 'unban requests',
     label: 'unban requests',
     help: 'Lists or resolves unban requests for a channel.',
     scopes: ['moderator:read:unban_requests', 'moderator:manage:unban_requests'],
