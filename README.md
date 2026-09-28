@@ -166,15 +166,14 @@ Pick an endpoint; the node renders that endpoint's fields, and when the endpoint
 its action dropdown. List endpoints add Limit / Get all / Max. `msg.endpoint` and `msg.action` override
 the selection at runtime.
 
-Endpoints live in the registry under `src/twitch/helix/specs/`, split by area: `users`, `channels`,
-`chat`, `moderation`, `content`, `monetisation` and `platform` (plus `fields.ts` builders and
-`mappers.ts` result shapers).
+Every endpoint is an entry in one registry file, `src/twitch/helix/specs/index.ts` (with `fields.ts`
+for shared field builders and `mappers.ts` for result shaping).
 
 ### Adding an endpoint
 
-Add a spec to the matching file under `src/twitch/helix/specs/` (for example `specs/chat.ts`), then run
-`npm run build`; it appears in the **twitch api** node's picker. No node, editor html or manifest entry
-is generated — the one `twitch-api` node drives every registry entry.
+Add a `defineHelix({...})` entry to `src/twitch/helix/specs/index.ts`, then run `npm run build`; it
+appears in the **twitch api** node's picker. No node, editor html or manifest entry is generated — the
+one `twitch-api` node drives every registry entry.
 
 A spec declares its `tier` (`core` | `extended` | `advanced`), `scopes`, `fields` and the twurple
 call. Give a spec `actions` + `defaultAction` to group several verbs behind one endpoint's Action
