@@ -51,21 +51,13 @@
       }
 
       function renderEndpoints() {
-        var order = [];
-        var byGroup = {};
-        registry.forEach(function (entry) {
-          var group = entry.group || 'other';
-          if (!byGroup[group]) { byGroup[group] = []; order.push(group); }
-          byGroup[group].push(entry);
-        });
         $endpoint.empty().append('<option value=""></option>');
-        order.forEach(function (group) {
-          var $group = $('<optgroup label="' + esc(group) + '"></optgroup>');
-          byGroup[group].forEach(function (entry) {
-            $group.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
+        registry
+          .slice()
+          .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
+          .forEach(function (entry) {
+            $endpoint.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
           });
-          $endpoint.append($group);
-        });
         $endpoint.val(node.endpoint || '');
       }
 
