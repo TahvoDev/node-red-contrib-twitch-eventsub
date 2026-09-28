@@ -4,7 +4,7 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
 
 ## Nodes
 
-- One **twitch eventsub** node covers every EventSub event: follows, subscriptions and
+- One **twitch events** node covers every EventSub event: follows, subscriptions and
   gift subs, channel point redeems, bits, cheers, raids, polls, predictions, hype
   trains, goals, charity, moderation, AutoMod, chat, warnings, whispers, stream
   online/offline and more. Pick the event in the node's **Event** dropdown; it is

@@ -5,20 +5,25 @@
   function esc(value) { return $('<div>').text(String(value)).html(); }
 
   RED.nodes.registerType('twitch-eventsub', {
-    category: 'twitch eventsub',
+    category: 'twitch events',
     color: '#b9a3e3',
     defaults: {
       name: { value: '' },
       config: { type: 'twitch-api-config', required: true },
-      event: { value: '' }
+      event: { value: '' },
+      // The friendly event name, cached from the catalog so label() can render it
+      // without a lookup. Hidden: there is no input for it in the template.
+      eventLabel: { value: '' }
     },
     inputs: 0,
     outputs: 1,
     icon: 'twitch-icon.svg',
-    paletteLabel: 'twitch eventsub',
+    paletteLabel: 'twitch events',
     label: function () {
       if (this.name) return this.name;
-      return this.event ? String(this.event).replace(/^twitch-eventsub-/, '') : 'twitch eventsub';
+      if (this.eventLabel) return this.eventLabel;
+      // Older flows saved before eventLabel existed: fall back to the event id.
+      return this.event ? String(this.event).replace(/^twitch-eventsub-/, '').replace(/-/g, ' ') : 'twitch events';
     },
     labelStyle: function () { return this.name ? 'node_label_italic' : ''; },
     oneditprepare: function () {
@@ -32,6 +37,7 @@
 
       function renderInfo() {
         var found = entry();
+        node.eventLabel = found ? found.label : '';
         $info.empty();
         if (!found) return;
         $info.append($('<p>').text(found.description || ''));
