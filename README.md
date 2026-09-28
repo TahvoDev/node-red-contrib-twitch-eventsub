@@ -11,9 +11,10 @@ Easy Node-RED nodes for Twitch creators. This project is still in early developm
   grouped by Twitch's own EventSub areas (automod, bits & ads, channel, channel
   points, charity, chat events, goals, hype train, moderation, polls, predictions,
   raids, stream, subscriptions and user).
-- The Helix API nodes live under `twitch api`.
-- Twitch Chat (IRC) nodes live under `twitch chat (irc)`: receive and send chat messages,
-  run commands, moderate, announce, join and leave channels.
+- The Helix API node (**twitch api**) shares the `twitch` palette category with the
+  EventSub node.
+- Twitch Chat (IRC) nodes live under a separate `twitch chat (irc)` category: receive and send
+  chat messages, run commands, moderate, announce, join and leave channels.
 
 ## Twitch Chat
 
