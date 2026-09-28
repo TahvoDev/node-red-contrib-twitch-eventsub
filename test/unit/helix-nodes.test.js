@@ -145,7 +145,7 @@ const baseConfig = { config: 'cfg' }
   const bothScopes = { ...factoryTwitch, getAuthProvider: () => ({ getCurrentScopesForUser: () => ['test:scope', 'other:scope'] }) }
 
   const demoSpec = defineHelix({
-    type: 'twitch-helix-test-demo', tier: 'core', group: 'test', label: 'test demo', help: 'test',
+    type: 'twitch-helix-test-demo', tier: 'core', label: 'test demo', help: 'test',
     scopes: ['test:scope'],
     fields: [
       { name: 'text', label: 'Text', kind: 'string', default: 'dflt' },
@@ -219,7 +219,7 @@ const baseConfig = { config: 'cfg' }
   /* --------------------------------------------------------- actions */
 
   const actionSpec = defineHelix({
-    type: 'twitch-helix-test-actions', tier: 'extended', group: 'test', label: 'test actions', help: 'test', scopes: ['test:scope'],
+    type: 'twitch-helix-test-actions', tier: 'extended', label: 'test actions', help: 'test', scopes: ['test:scope'],
     fields: [{ name: 'broadcaster', label: 'Broadcaster', kind: 'user', optional: true }],
     defaultAction: 'first',
     actions: {
@@ -251,7 +251,6 @@ const baseConfig = { config: 'cfg' }
     assert.ok(!types.has(spec.type), `duplicate registry type ${spec.type}`)
     types.add(spec.type)
     assert.ok(['core', 'extended', 'advanced'].includes(specTier(spec)), `${spec.type}: bad tier`)
-    assert.ok(spec.group, `${spec.type}: missing group`)
     // Smoke: every entry runs to a done() (resolve or reject), never a raw throw.
     await Promise.resolve()
       .then(() => callEndpoint(spec, successTwitch.apiClient, {}, {}, { ...successTwitch, apiClient: successTwitch.apiClient }))

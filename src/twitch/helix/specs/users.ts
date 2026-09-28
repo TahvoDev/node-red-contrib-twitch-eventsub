@@ -1,19 +1,11 @@
 import { defineHelix } from '../define';
-import { broadcaster } from './common';
+import { broadcaster } from './fields';
+import { mapBlock } from './mappers';
 import { mapUser } from '../twitch-helix-utils';
-
-function mapBlock(block: any) {
-  return {
-    userId: block.userId,
-    userLogin: block.userLogin,
-    displayName: block.displayName,
-  };
-}
 
 export const userSpecs = [
   defineHelix({
     type: 'twitch-helix-get-users',
-    group: 'users',
     tier: 'core',
     label: 'get users',
     help: 'Looks up Twitch profiles using explicit fields for IDs and Usernames. If both inputs are used simultaneously, the node merges and de-duplicates the results automatically.',
@@ -84,7 +76,6 @@ export const userSpecs = [
 
   defineHelix({
     type: 'twitch-helix-blocks',
-    group: 'users',
     tier: 'core',
     label: 'blocks',
     help: 'Blocks, unblocks or lists the users a channel has blocked.',
@@ -181,7 +172,6 @@ export const userSpecs = [
 
   defineHelix({
     type: 'twitch-helix-get-authenticated-user',
-    group: 'users',
     tier: 'core',
     label: 'get auth user',
     help: 'Fetches the profile of the currently authenticated Twitch user.',
@@ -207,7 +197,6 @@ export const userSpecs = [
 
   defineHelix({
     type: 'twitch-helix-update-user-description',
-    group: 'users',
     tier: 'core',
     label: 'update bio',
     help: 'Updates the channel description of the authenticated Twitch user.',

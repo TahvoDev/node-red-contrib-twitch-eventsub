@@ -1,6 +1,6 @@
-import { getRawData } from '@twurple/common';
 import { defineHelix } from '../define';
-import { broadcaster, selfUser, triState } from './common';
+import { broadcaster, selfUser, triState } from './fields';
+import { mapUserEmote, mapSharedChat } from './mappers';
 import {
   firstDefined,
   mapBadgeSet,
@@ -14,32 +14,9 @@ import {
   toStr,
 } from '../twitch-helix-utils';
 
-function mapUserEmote(emote: any) {
-  return { ...mapEmote(emote), ownerId: emote.ownerId ?? null };
-}
-
-function mapSharedChat(session: any) {
-  if (!session) return null;
-  return {
-    sessionId: session.sessionId,
-    hostBroadcasterId: session.hostBroadcasterId,
-    participants: (session.participants ?? []).map((participant: any) => {
-      const raw = (getRawData(participant) ?? {}) as any;
-      return {
-        broadcasterId: participant.broadcasterId,
-        broadcasterLogin: raw.broadcaster_login ?? null,
-        broadcasterName: raw.broadcaster_name ?? null,
-      };
-    }),
-    createdDate: session.createdDate,
-    updatedDate: session.updatedDate,
-  };
-}
-
 export const chatSpecs = [
   defineHelix({
     type: 'twitch-helix-send-chat-message',
-    group: 'chat',
     tier: 'core',
     label: 'send chat message',
     help: 'Sends a chat message to a channel as the authenticated account.',
@@ -71,7 +48,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-send-announcement',
-    group: 'chat',
     tier: 'core',
     label: 'send announcement',
     help: "Sends a highlighted announcement in a channel, falling back to primary for any other colour.",
@@ -113,7 +89,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-send-shoutout',
-    group: 'chat',
     tier: 'core',
     label: 'send shoutout',
     help: 'Sends a shoutout from the authenticated channel to another.',
@@ -147,7 +122,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-chat',
-    group: 'chat',
     tier: 'core',
     label: 'chat moderation',
     help: 'Lists the chatters in a channel, clears the chat or deletes a single message.',
@@ -203,7 +177,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-chat-settings',
-    group: 'chat',
     tier: 'extended',
     label: 'chat settings',
     help: "Reads or changes a channel's chat settings.",
@@ -331,7 +304,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-emotes',
-    group: 'chat',
     tier: 'core',
     label: 'get emotes',
     help: "Lists a channel's emotes or Twitch's global emotes.",
@@ -361,7 +333,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-chat-badges',
-    group: 'chat',
     tier: 'core',
     label: 'get chat badges',
     help: "Lists a channel's custom chat badges or Twitch's global badges.",
@@ -391,7 +362,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-chat-color',
-    group: 'chat',
     tier: 'extended',
     label: 'chat colour',
     help: "Reads or changes a user's chat colour.",
@@ -449,7 +419,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-user-emotes',
-    group: 'chat',
     tier: 'extended',
     label: 'user emotes',
     help: "Lists the emotes a user can use, including their channel's emotes.",
@@ -468,7 +437,6 @@ export const chatSpecs = [
 
   defineHelix({
     type: 'twitch-helix-shared-chat',
-    group: 'chat',
     tier: 'extended',
     label: 'shared chat',
     help: 'Gets the shared chat session a channel is currently part of, or null.',

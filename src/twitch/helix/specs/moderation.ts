@@ -1,5 +1,6 @@
 import { defineHelix, type HelixField } from '../define';
-import { broadcaster } from './common';
+import { broadcaster } from './fields';
+import { mapAutoModSettings, mapShieldMode, mapUnbanRequest, mapModeratedChannel } from './mappers';
 import {
   firstDefined,
   MAX_TIMEOUT_SECONDS,
@@ -34,52 +35,6 @@ const optionalUser: HelixField = {
   faIcon: 'fa-search',
 };
 
-function mapAutoModSettings(settings: any) {
-  return {
-    broadcasterId: settings.broadcasterId,
-    moderatorId: settings.moderatorId,
-    overallLevel: settings.overallLevel ?? null,
-    disability: settings.disability,
-    aggression: settings.aggression,
-    sexualitySexOrGender: settings.sexualitySexOrGender,
-    misogyny: settings.misogyny,
-    bullying: settings.bullying,
-    swearing: settings.swearing,
-    raceEthnicityOrReligion: settings.raceEthnicityOrReligion,
-    sexBasedTerms: settings.sexBasedTerms,
-  };
-}
-
-function mapShieldMode(status: any) {
-  return {
-    isActive: status.isActive,
-    moderatorId: status.moderatorId,
-    moderatorName: status.moderatorName,
-    moderatorDisplayName: status.moderatorDisplayName,
-    lastActivationDate: status.lastActivationDate ?? null,
-  };
-}
-
-function mapUnbanRequest(request: any) {
-  return {
-    id: request.id,
-    broadcasterId: request.broadcasterId,
-    userId: request.userId,
-    userName: request.userName,
-    userDisplayName: request.userDisplayName,
-    moderatorId: request.moderatorId ?? null,
-    moderatorDisplayName: request.moderatorDisplayName ?? null,
-    message: request.message,
-    creationDate: request.creationDate,
-    resolutionMessage: request.resolutionMessage ?? null,
-    resolutionDate: request.resolutionDate ?? null,
-  };
-}
-
-function mapModeratedChannel(channel: any) {
-  return { id: channel.id, name: channel.name, displayName: channel.displayName };
-}
-
 const AUTOMOD_LEVELS = [
   { value: '', label: 'leave unchanged' },
   { value: '0', label: 'Level 0 — no filtering' },
@@ -102,7 +57,6 @@ const automodLevel = (name: string, label: string): HelixField => ({
 export const moderationSpecs = [
   defineHelix({
     type: 'twitch-helix-bans',
-    group: 'bans',
     tier: 'core',
     label: 'bans',
     help: 'Bans, times out, unbans or lists banned users in a channel. Leave Duration blank for a permanent ban.',
@@ -169,7 +123,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-moderators',
-    group: 'moderators',
     tier: 'extended',
     label: 'moderators',
     help: 'Lists, adds or removes a channel moderator.',
@@ -216,7 +169,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-vips',
-    group: 'vips',
     tier: 'extended',
     label: 'vips',
     help: 'Lists, adds or removes a channel VIP.',
@@ -259,7 +211,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-blocked-terms',
-    group: 'blocked terms',
     tier: 'extended',
     label: 'blocked terms',
     help: "Lists, adds or removes terms blocked in a channel's chat.",
@@ -309,7 +260,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-moderation',
-    group: 'moderation',
     tier: 'extended',
     label: 'moderation tools',
     help: 'Warns a user or checks messages against AutoMod.',
@@ -406,7 +356,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-automod',
-    group: 'automod',
     tier: 'extended',
     label: 'automod',
     help: 'Reads or updates AutoMod settings, or approves/denies a held message.',
@@ -502,7 +451,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-shield-mode',
-    group: 'shield mode',
     tier: 'extended',
     label: 'shield mode',
     help: 'Reads or toggles Shield Mode on a channel.',
@@ -543,7 +491,6 @@ export const moderationSpecs = [
 
   defineHelix({
     type: 'twitch-helix-unban-requests',
-    group: 'unban requests',
     tier: 'extended',
     label: 'unban requests',
     help: 'Lists or resolves unban requests for a channel.',

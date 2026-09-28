@@ -4,7 +4,6 @@ import { channelSpecs } from './channels';
 import { chatSpecs } from './chat';
 import { moderationSpecs } from './moderation';
 import { contentSpecs } from './content';
-import { engagementSpecs } from './engagement';
 import { monetisationSpecs } from './monetisation';
 import { platformSpecs } from './platform';
 
@@ -19,7 +18,6 @@ export const HELIX_SPECS: HelixSpec[] = [
   ...chatSpecs,
   ...moderationSpecs,
   ...contentSpecs,
-  ...engagementSpecs,
   ...monetisationSpecs,
   ...platformSpecs,
 ];

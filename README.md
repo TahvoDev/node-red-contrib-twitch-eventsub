@@ -162,15 +162,13 @@ re-authenticate.
 ### The twitch-api node
 
 There is one Helix node, **twitch api** (`twitch-api`), plus the **twitch-api-config** account node.
-Pick a group and an endpoint; the node renders that endpoint's fields, and when the endpoint groups
-several verbs, its action dropdown. List endpoints add Limit / Get all / Max. `msg.endpoint` and
-`msg.action` override the selection at runtime.
+Pick an endpoint; the node renders that endpoint's fields, and when the endpoint groups several verbs,
+its action dropdown. List endpoints add Limit / Get all / Max. `msg.endpoint` and `msg.action` override
+the selection at runtime.
 
-Endpoints live in the registry under `src/twitch/helix/specs/`, grouped as: users, channels, followers,
-ads, chat, bans, moderators, vips, blocked terms, moderation, automod, shield mode, unban requests,
-stream markers, clips, videos, games, search, raids, streams, channel points, redemptions, polls,
-predictions, bits, subscriptions, schedule, teams, charity, hype train, goals, whispers, content
-classification labels, drops and extensions.
+Endpoints live in the registry under `src/twitch/helix/specs/`, split by area: `users`, `channels`,
+`chat`, `moderation`, `content`, `monetisation` and `platform` (plus `fields.ts` builders and
+`mappers.ts` result shapers).
 
 ### Adding an endpoint
 
@@ -178,15 +176,14 @@ Add a spec to the matching file under `src/twitch/helix/specs/` (for example `sp
 `npm run build`; it appears in the **twitch api** node's picker. No node, editor html or manifest entry
 is generated — the one `twitch-api` node drives every registry entry.
 
-A spec declares its `group`, `tier` (`core` | `extended` | `advanced`), `scopes`, `fields` and the
-twurple call. Give a spec `actions` + `defaultAction` to group several verbs behind one endpoint's
-Action dropdown; field names and message shapes stay constant across actions. Every spec also needs a
-`tier`: only enabled tiers appear in the picker, which is what keeps the default list short.
+A spec declares its `tier` (`core` | `extended` | `advanced`), `scopes`, `fields` and the twurple
+call. Give a spec `actions` + `defaultAction` to group several verbs behind one endpoint's Action
+dropdown; field names and message shapes stay constant across actions. Only enabled tiers appear in
+the picker, which is what keeps the default list short.
 
 ```ts
 defineHelix({
   type: 'twitch-helix-get-something',
-  group: 'channels',
   tier: 'core',
   label: 'get something',
   help: 'One line shown in the picker and help.',

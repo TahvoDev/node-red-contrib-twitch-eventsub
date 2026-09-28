@@ -1,5 +1,6 @@
 import { defineHelix } from '../define';
-import { broadcaster, selfUser } from './common';
+import { broadcaster, selfUser } from './fields';
+import { mapMarker, mapGame, mapClip, mapVideo, mapSearchResult, toPlainStream } from './mappers';
 import {
   clampLimit,
   fetchAllPages,
@@ -11,110 +12,11 @@ import {
   toStr,
 } from '../twitch-helix-utils';
 
-function mapMarker(marker: any) {
-  return {
-    id: marker.id,
-    creationDate: marker.creationDate,
-    description: marker.description ?? '',
-    positionInSeconds: marker.positionInSeconds,
-    url: marker.url ?? null,
-    videoId: marker.videoId ?? null,
-  };
-}
-
-function mapGame(game: any) {
-  return {
-    id: game.id,
-    name: game.name,
-    boxArtUrl: game.boxArtUrl,
-    igdbId: game.igdbId ?? null,
-  };
-}
-
-function mapClip(clip: any) {
-  return {
-    id: clip.id,
-    url: clip.url,
-    embedUrl: clip.embedUrl,
-    broadcasterId: clip.broadcasterId,
-    broadcasterDisplayName: clip.broadcasterDisplayName,
-    creatorId: clip.creatorId,
-    creatorDisplayName: clip.creatorDisplayName,
-    videoId: clip.videoId,
-    gameId: clip.gameId,
-    language: clip.language,
-    title: clip.title,
-    views: clip.views,
-    createdAt: clip.creationDate,
-    thumbnailUrl: clip.thumbnailUrl,
-    duration: clip.duration,
-    vodOffset: clip.vodOffset ?? null,
-    isFeatured: clip.isFeatured,
-  };
-}
-
-function mapVideo(video: any) {
-  return {
-    id: video.id,
-    userId: video.userId,
-    userName: video.userName,
-    userDisplayName: video.userDisplayName,
-    title: video.title,
-    description: video.description,
-    creationDate: video.creationDate,
-    publishDate: video.publishDate,
-    url: video.url,
-    thumbnailUrl: video.thumbnailUrl,
-    isPublic: video.isPublic,
-    views: video.views,
-    language: video.language,
-    type: video.type,
-    duration: video.duration,
-    durationInSeconds: video.durationInSeconds,
-    streamId: video.streamId ?? null,
-    mutedSegmentData: video.mutedSegmentData ?? [],
-  };
-}
-
-function mapSearchResult(result: any) {
-  return {
-    id: result.id,
-    name: result.name,
-    displayName: result.displayName,
-    language: result.language,
-    gameId: result.gameId,
-    gameName: result.gameName,
-    isLive: result.isLive,
-    tags: result.tags ?? [],
-    thumbnailUrl: result.thumbnailUrl,
-    startDate: result.startDate ?? null,
-  };
-}
-
-function toPlainStream(stream: any) {
-  return {
-    id: stream.id,
-    userId: stream.userId,
-    userName: stream.userName,
-    userDisplayName: stream.userDisplayName,
-    gameId: stream.gameId,
-    gameName: stream.gameName,
-    type: stream.type,
-    title: stream.title,
-    viewerCount: stream.viewers,
-    startedAt: stream.startDate,
-    language: stream.language,
-    thumbnailUrl: stream.thumbnailUrl,
-    isMature: stream.isMature,
-  };
-}
-
 type Page = (cursor?: string) => Promise<{ data: any[]; cursor: string | null; total?: number }>;
 
 export const contentSpecs = [
   defineHelix({
     type: 'twitch-helix-stream-markers',
-    group: 'stream markers',
     tier: 'extended',
     label: 'stream markers',
     help: 'Creates or lists stream markers. Creating needs a live stream and the broadcaster account.',
@@ -175,7 +77,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-clips',
-    group: 'clips',
     tier: 'core',
     label: 'clips',
     help: 'Creates a clip of a live stream or lists clips.',
@@ -269,7 +170,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-videos',
-    group: 'videos',
     tier: 'extended',
     label: 'videos',
     help: 'Lists videos or deletes one or more videos by ID.',
@@ -416,7 +316,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-games',
-    group: 'games',
     tier: 'advanced',
     label: 'games',
     help: 'Looks up a game/category, lists the top games or searches categories.',
@@ -490,7 +389,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-search',
-    group: 'search',
     tier: 'advanced',
     label: 'search channels',
     help: 'Searches channels by a partial or exact query, optionally limited to live channels.',
@@ -532,7 +430,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-raids',
-    group: 'raids',
     tier: 'extended',
     label: 'raids',
     help: 'Starts or cancels a raid.',
@@ -581,7 +478,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-get-streams',
-    group: 'streams',
     tier: 'core',
     label: 'get streams',
     help: 'Fetches a list of active Twitch streams based on your configuration parameters.',
@@ -635,7 +531,6 @@ export const contentSpecs = [
 
   defineHelix({
     type: 'twitch-helix-followed-streams',
-    group: 'streams',
     tier: 'extended',
     label: 'followed streams',
     help: 'Lists the live streams a user follows.',

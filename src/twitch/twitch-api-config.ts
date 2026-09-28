@@ -54,7 +54,6 @@ function serializeEndpoint(spec: HelixSpec) {
     type: spec.type,
     label: spec.label,
     help: spec.help,
-    group: spec.group ?? 'other',
     tier: specTier(spec),
     fields: effectiveFields(spec)
       .filter((field) => !field.hidden)

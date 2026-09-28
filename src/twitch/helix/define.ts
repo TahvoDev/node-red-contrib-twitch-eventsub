@@ -96,8 +96,6 @@ export interface HelixSpec {
   help: string;
   /** Palette tier; defaults to `core`. Only enabled tiers register. */
   tier?: HelixTier;
-  /** Resource group shown in the twitch-api endpoint picker and docs. */
-  group?: string;
   /**
    * OAuth scopes the node needs. For an action node this is the union shown in
    * the docs; the per-action scopes are checked at runtime.
