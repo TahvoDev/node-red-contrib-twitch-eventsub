@@ -39,7 +39,9 @@ RED.nodes.registerType('twitch-chat-part', {
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-part">
-  <p>Leaves a channel, stopping its chat messages from arriving at <b>chat in</b>.</p>
+  <p>Leaves a channel, stopping its chat messages from arriving at <b>chat in</b>. Leaving a channel
+  that is in the connection's configured <b>Channels</b> is temporary — the connection rejoins it on
+  the next connect — so the part does not survive a reconnect or redeploy.</p>
 
   <h3>Inputs</h3>
   <dl class="message-properties">

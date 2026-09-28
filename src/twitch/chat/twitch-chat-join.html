@@ -39,7 +39,9 @@ RED.nodes.registerType('twitch-chat-join', {
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-join">
-  <p>Joins a channel so its chat messages start arriving at <b>chat in</b>.</p>
+  <p>Joins a channel so its chat messages start arriving at <b>chat in</b>. Channel membership resets
+  on startup: a restart or redeploy drops runtime joins and the connection rejoins only its
+  configured <b>Channels</b>.</p>
 
   <h3>Inputs</h3>
   <dl class="message-properties">
