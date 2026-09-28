@@ -6,12 +6,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Changed
-- Consolidated the Helix palette from 76 one-endpoint nodes to 30 standalone/action nodes plus one
-  generic `api request` node. Endpoints that share a resource now sit behind an Action dropdown
+- Consolidated the Helix palette: endpoints that share a resource now sit behind an Action dropdown
   (`bans`, `moderators`, `vips`, `blocked terms`, `chat settings`, `channel points`, `redemptions`,
-  `polls`, `predictions`, `schedule`, `raids`, `ads`, `stream markers`, `clips`, `videos`); the
-  editor shows only the selected action's fields and scopes are checked per action. Low-value
-  endpoints are registered but hidden (`palette: false`) and reached through the generic node.
+  `polls`, `predictions`, `schedule`, `raids`, `ads`, `stream markers`, `clips`, `videos`, `bits`,
+  `subscriptions`, `teams`); the editor shows only the selected action's fields and scopes are
+  checked per action. Clutter is handled by tiers instead of hidden nodes.
 - Every spec now declares a `tier` (`core` | `extended` | `advanced`). Only enabled tiers register;
   configure `twitchApi.tiers` in `settings.js` (default `['core']`). OAuth scopes stay the fixed
   build-time union, so changing tiers never forces users to re-authenticate.
@@ -29,7 +28,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   `get-bits-leaderboard`/`get-cheermotes` → `bits`;
   `get-subscriptions`/`check-user-subscription` → `subscriptions`;
   `get-teams`/`get-channel-teams` → `teams`. The remaining long-tail endpoints keep their types and
-  are hidden from the palette.
+  are ordinary (tier-gated) palette nodes.
 - Helix nodes are now declarative specs instead of one `.ts`/`.html` pair each. A spec declares the
   type, palette label, help, scopes, fields and the single twurple call; the factory resolves and
   coerces fields, resolves usernames to ids, checks scopes and handles paging, and the build generates
@@ -46,20 +45,15 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   than failing
 
 ### Added
-- More Helix coverage, all as the same declarative specs and hidden behind the generic
-  `api request` node so the palette stays at 30: AutoMod settings and held messages, Shield Mode,
-  unban requests, moderated channels, ban/moderator checks, chat colour, user emotes, shared chat,
-  followed streams, channel editors, charity donations, schedule iCal/vacation/single-segment,
-  content classification labels, drops entitlements, extensions (released/live/bits/transactions)
-  and user extensions. `modify channel information` also covers content classification labels,
-  delay and branded content now
+- More Helix coverage, all as the same declarative specs and tier-gated palette nodes: AutoMod
+  settings and held messages, Shield Mode, unban requests, moderated channels, ban/moderator checks,
+  chat colour, user emotes, shared chat, followed streams, channel editors, charity donations,
+  schedule iCal/vacation/single-segment, content classification labels, drops entitlements,
+  extensions (released/live/bits/transactions) and user extensions. `modify channel information`
+  also covers content classification labels, delay and branded content now
 - A **Mock Token** field on the Twitch API config node's mock section. The Twitch CLI mock API
   generates a random client id, access token and user id at startup and 401s anything else, so the
   mock now accepts the token it prints (the Helix e2e reads all three from the mock log)
-- `twitch-helix-api-request`, a generic `api request` node that calls any Helix endpoint in the
-  registry (including the hidden long-tail specs). It groups endpoints by resource, renders the same
-  fields/actions as a dedicated node, honours tiers, and accepts `msg.endpoint`/`msg.action`
-  overrides; unknown endpoints report the closest matches
 - Action support in the spec format (`actions`, `defaultAction`) with an Action dropdown, per-action
   fields and per-action scope checks; `msg.action` → node config → `defaultAction` resolution
 - `test/e2e/run-helix-e2e.js`: runs the built module in a Node-RED container against the Twitch CLI

@@ -59,8 +59,7 @@ const CASES = [
     { type: 'twitch-helix-clips', fields: { action: 'list' }, method: 'GET', path: '/mock/clips' },
     { type: 'twitch-helix-bits', fields: { action: 'leaderboard' }, method: 'GET', path: '/mock/bits/leaderboard' },
     { type: 'twitch-helix-send-chat-message', fields: { message: 'e2e hello' }, method: 'POST', path: '/mock/chat/messages' },
-    // The generic node reaches a hidden spec through the same pipeline.
-    { type: 'twitch-helix-api-request', fields: { endpoint: 'twitch-helix-chat-badges' }, method: 'GET', path: '/mock/chat/badges' },
+    { type: 'twitch-helix-chat-badges', fields: {}, method: 'GET', path: '/mock/chat/badges' },
 ]
 
 const engine = process.env.CONTAINER_ENGINE || ['podman', 'docker'].find(hasEngine)

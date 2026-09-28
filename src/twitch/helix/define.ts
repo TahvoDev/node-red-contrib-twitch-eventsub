@@ -98,9 +98,7 @@ export interface HelixSpec {
   help: string;
   /** Palette tier; defaults to `core`. Only enabled tiers register. */
   tier?: HelixTier;
-  /** Set false to register the type but keep it out of the palette. Defaults to true. */
-  palette?: boolean;
-  /** Resource grouping used by the generic node's endpoint picker. */
+  /** Resource grouping, used by docs and the generated catalogue. */
   resource?: string;
   /**
    * OAuth scopes the node needs. For an action node this is the union shown in

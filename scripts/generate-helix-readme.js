@@ -24,8 +24,7 @@ const rows = HELIX_SPECS.map((spec) => {
   const actions = spec.actions
     ? Object.keys(spec.actions).map((name) => `\`${name}\``).join(', ')
     : '—'
-  const label = spec.palette === false ? `${spec.label} *(hidden)*` : spec.label
-  return `| ${label} | ${actions} | ${specTier(spec)} | ${scopeText} |`
+  return `| ${spec.label} | ${actions} | ${specTier(spec)} | ${scopeText} |`
 })
 
 const table = ['| Node | Actions | Tier | Scopes |', '| --- | --- | --- | --- |', ...rows].join('\n')

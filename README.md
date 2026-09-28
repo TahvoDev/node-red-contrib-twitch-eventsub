@@ -147,42 +147,42 @@ The catalogue below is generated from the Helix specs at build time — do not e
 | Node | Actions | Tier | Scopes |
 | --- | --- | --- | --- |
 | get users | — | core | — |
-| blocks *(hidden)* | `list`, `block`, `unblock` | core | `user:read:blocked_users`, `user:manage:blocked_users` |
-| get auth user *(hidden)* | — | core | — |
-| update bio *(hidden)* | — | core | `user:edit` |
+| blocks | `list`, `block`, `unblock` | core | `user:read:blocked_users`, `user:manage:blocked_users` |
+| get auth user | — | core | — |
+| update bio | — | core | `user:edit` |
 | get channel info | — | core | — |
 | update channel info | — | core | `channel:manage:broadcast` |
 | get followers | — | core | `moderator:read:followers` |
-| get followed channels *(hidden)* | — | core | `user:read:follows` |
+| get followed channels | — | core | `user:read:follows` |
 | ads | `get`, `snooze`, `start` | extended | `channel:read:ads`, `channel:manage:ads`, `channel:edit:commercial` |
-| get stream key *(hidden)* | — | advanced | `channel:read:stream_key` |
-| channel editors *(hidden)* | — | advanced | `channel:read:editors` |
+| get stream key | — | advanced | `channel:read:stream_key` |
+| channel editors | — | advanced | `channel:read:editors` |
 | send chat message | — | core | `user:write:chat` |
 | send announcement | — | core | `moderator:manage:announcements` |
 | send shoutout | — | core | `moderator:manage:shoutouts` |
-| chat moderation *(hidden)* | `chatters`, `clear`, `delete` | core | `moderator:read:chatters`, `moderator:manage:chat_messages` |
+| chat moderation | `chatters`, `clear`, `delete` | core | `moderator:read:chatters`, `moderator:manage:chat_messages` |
 | chat settings | `get`, `update` | extended | `moderator:manage:chat_settings` |
-| get emotes *(hidden)* | — | core | — |
-| get chat badges *(hidden)* | — | core | — |
-| chat colour *(hidden)* | `get`, `set` | extended | `user:manage:chat_color` |
-| user emotes *(hidden)* | — | extended | `user:read:emotes` |
-| shared chat *(hidden)* | — | extended | — |
+| get emotes | — | core | — |
+| get chat badges | — | core | — |
+| chat colour | `get`, `set` | extended | `user:manage:chat_color` |
+| user emotes | — | extended | `user:read:emotes` |
+| shared chat | — | extended | — |
 | bans | `ban`, `unban`, `list` | core | `moderator:manage:banned_users`, `moderation:read` |
 | moderators | `list`, `add`, `remove` | extended | `moderation:read`, `channel:manage:moderators` |
 | vips | `list`, `add`, `remove` | extended | `channel:read:vips`, `channel:manage:vips` |
 | blocked terms | `list`, `add`, `remove` | extended | `moderator:read:blocked_terms`, `moderator:manage:blocked_terms` |
-| moderation tools *(hidden)* | `warn`, `automod`, `moderated`, `checkBan`, `checkMod` | extended | `moderator:manage:warnings`, `moderation:read`, `user:read:moderated_channels` |
-| automod *(hidden)* | `settings`, `update`, `held` | extended | `moderator:read:automod_settings`, `moderator:manage:automod_settings`, `moderator:manage:automod` |
-| shield mode *(hidden)* | `get`, `update` | extended | `moderator:read:shield_mode`, `moderator:manage:shield_mode` |
-| unban requests *(hidden)* | `list`, `resolve` | extended | `moderator:read:unban_requests`, `moderator:manage:unban_requests` |
+| moderation tools | `warn`, `automod`, `moderated`, `checkBan`, `checkMod` | extended | `moderator:manage:warnings`, `moderation:read`, `user:read:moderated_channels` |
+| automod | `settings`, `update`, `held` | extended | `moderator:read:automod_settings`, `moderator:manage:automod_settings`, `moderator:manage:automod` |
+| shield mode | `get`, `update` | extended | `moderator:read:shield_mode`, `moderator:manage:shield_mode` |
+| unban requests | `list`, `resolve` | extended | `moderator:read:unban_requests`, `moderator:manage:unban_requests` |
 | stream markers | `create`, `list` | extended | `channel:manage:broadcast`, `user:read:broadcast` |
 | clips | `create`, `list` | core | `clips:edit` |
 | videos | `list`, `delete` | extended | `channel:manage:videos` |
-| games *(hidden)* | `get`, `top`, `search` | advanced | — |
-| search channels *(hidden)* | — | advanced | — |
+| games | `get`, `top`, `search` | advanced | — |
+| search channels | — | advanced | — |
 | raids | `start`, `cancel` | extended | `channel:manage:raids` |
 | get streams | — | core | — |
-| followed streams *(hidden)* | — | extended | `user:read:follows` |
+| followed streams | — | extended | `user:read:follows` |
 | channel points | `list`, `create`, `update`, `delete` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
 | redemptions | `list`, `update` | extended | `channel:read:redemptions`, `channel:manage:redemptions` |
 | polls | `list`, `create`, `end` | extended | `channel:read:polls`, `channel:manage:polls` |
@@ -195,20 +195,11 @@ The catalogue below is generated from the Helix specs at build time — do not e
 | get hype train | — | advanced | `channel:read:hype_train` |
 | get goals | — | advanced | `channel:read:goals` |
 | send whisper | — | advanced | `user:manage:whispers` |
-| content classification labels *(hidden)* | — | advanced | — |
-| drops *(hidden)* | `list`, `byIds`, `update` | advanced | — |
-| extensions *(hidden)* | `released`, `live`, `bits`, `putBits`, `transactions` | advanced | — |
-| user extensions *(hidden)* | `installed`, `active` | advanced | `user:read:broadcast` |
+| content classification labels | — | advanced | — |
+| drops | `list`, `byIds`, `update` | advanced | — |
+| extensions | `released`, `live`, `bits`, `putBits`, `transactions` | advanced | — |
+| user extensions | `installed`, `active` | advanced | `user:read:broadcast` |
 <!-- helix-nodes:end -->
-
-### Generic request node
-
-`api request` (`twitch-helix-api-request`) can call any Helix endpoint the package knows, including
-the hidden *(hidden)* endpoints above that have no palette node of their own. Pick an endpoint from
-the grouped dropdown and the node renders the same fields (and action dropdown) a dedicated node
-would. `msg.endpoint` and `msg.action` override the config at runtime, and every field still accepts
-its `msg.<field>` override. An unknown endpoint reports the closest matches. Endpoints from disabled
-tiers are not listed and are refused at runtime.
 
 ### Adding a Helix node
 
@@ -223,9 +214,9 @@ Pick the smallest shape that fits:
 - **Action node** (`actions`, `defaultAction`) when several verbs share one resource and mental
   model. Field names and message shapes stay constant across actions; `msg.action` selects one at
   runtime and the editor shows only the selected action's fields.
-- **`palette: false`** for a rare or long-tail endpoint: it stays registered but hidden, reachable
-  through the generic `api request` node. Every spec also declares a `tier` (`core` | `extended` |
-  `advanced`).
+
+Every spec also declares a `tier` (`core` | `extended` | `advanced`), which is what keeps the
+default palette small: only enabled tiers register.
 
 ```ts
 defineHelix({

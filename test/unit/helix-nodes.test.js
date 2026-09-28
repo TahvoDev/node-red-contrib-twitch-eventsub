@@ -371,10 +371,11 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
 
   const pkg = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'))
   const manifest = pkg['node-red'].nodes
-  const paletteSpecs = HELIX_SPECS.filter((spec) => spec.palette !== false)
-  assert.ok(HELIX_SPECS.length >= 30, `expected at least 30 Helix specs, found ${HELIX_SPECS.length}`)
-  assert.ok(paletteSpecs.length >= 25 && paletteSpecs.length <= 32, `expected about 30 palette nodes, found ${paletteSpecs.length}`)
-  assert.ok(paletteSpecs.filter((spec) => specTier(spec) === 'core').length <= 15, 'core palette should be at most 15 nodes')
+  assert.ok(HELIX_SPECS.length >= 50, `expected the full Helix registry, found ${HELIX_SPECS.length}`)
+  assert.ok(
+    HELIX_SPECS.filter((spec) => specTier(spec) === 'core').length <= 20,
+    'core palette should stay small'
+  )
 
   for (const spec of HELIX_SPECS) {
     const generatedJs = path.join(helixDist, 'generated', `${spec.type}.js`)
@@ -401,13 +402,6 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
     assert.ok(fs.existsSync(path.join(root, manifest[spec.type])), `${spec.type}: manifest file missing`)
 
     const ctor = registerNode(spec.type, successTwitch)
-
-    // Hidden specs stay registered-but-hidden: the stub must not claim a type.
-    if (spec.palette === false) {
-      assert.strictEqual(ctor, undefined, `${spec.type}: hidden spec should not register a palette node`)
-      continue
-    }
-
     assert.strictEqual(typeof ctor, 'function', `${spec.type}: did not register`)
     const noConfigNode = makeNode()
     const noConfigCtor = registerNode(spec.type, undefined)
@@ -431,8 +425,8 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
   }
 
   // Tier gating: a disabled tier's node does not register.
-  const coreSpec = paletteSpecs.find((spec) => specTier(spec) === 'core')
-  const extendedSpec = paletteSpecs.find((spec) => specTier(spec) === 'extended')
+  const coreSpec = HELIX_SPECS.find((spec) => specTier(spec) === 'core')
+  const extendedSpec = HELIX_SPECS.find((spec) => specTier(spec) === 'extended')
   assert.ok(coreSpec && extendedSpec, 'expected at least one core and one extended spec')
   assert.strictEqual(typeof registerNode(coreSpec.type, successTwitch, {}), 'function')
   assert.strictEqual(registerNode(extendedSpec.type, successTwitch, {}), undefined)
@@ -441,57 +435,7 @@ createHelixNode({ nodes: { createNode() {}, getNode: () => successTwitch } }, ba
     'function'
   )
 
-  /* --------------------------------------------- generic request node */
-
-  const genericModule = require(path.join(helixDist, 'twitch-helix-api-request.js'))
-  const genericCaptured = {}
-  genericModule({
-    settings: { twitchApi: { tiers: ['core', 'extended', 'advanced'] } },
-    nodes: {
-      createNode() {},
-      getNode: () => successTwitch,
-      registerType: (type, ctor) => { genericCaptured[type] = ctor },
-    },
-  })
-  const GenericCtor = genericCaptured['twitch-helix-api-request']
-  assert.strictEqual(typeof GenericCtor, 'function', 'generic node did not register')
-
-  // Endpoint and action resolve from config, then msg overrides them.
-  const genericSpec = paletteSpecs.find((spec) => spec.actions && specTier(spec) !== 'advanced')
-  const genericNode = makeNode()
-  GenericCtor.call(genericNode, { config: 'cfg', endpoint: genericSpec.type, action: genericSpec.defaultAction })
-  const genericOk = await runInput(genericNode, { action: Object.keys(genericSpec.actions)[1] })
-  assert.ok('err' in genericOk, 'generic node: done() never called')
-
-  // Unknown endpoint names close matches instead of throwing raw.
-  const genericBad = makeNode()
-  GenericCtor.call(genericBad, { config: 'cfg', endpoint: 'twitch-helix-bnas' })
-  const genericBadResult = await runInput(genericBad, {})
-  assert.ok(genericBadResult.err, 'generic node: unknown endpoint did not error')
-  assert.match(String(genericBadResult.err.message), /Unknown endpoint/)
-  assert.match(String(genericBadResult.err.message), /did you mean/)
-
-  // An endpoint from a disabled tier is refused at runtime.
-  const advancedCtor = (() => {
-    // Re-register the generic under a core-only host to check the runtime guard.
-    const captured = {}
-    genericModule({
-      settings: { twitchApi: { tiers: ['core'] } },
-      nodes: {
-        createNode() {},
-        getNode: () => successTwitch,
-        registerType: (type, ctor) => { captured[type] = ctor },
-      },
-    })
-    return captured['twitch-helix-api-request']
-  })()
-  const tierNode = makeNode()
-  advancedCtor.call(tierNode, { config: 'cfg', endpoint: extendedSpec.type })
-  const tierResult = await runInput(tierNode, {})
-  assert.ok(tierResult.err, 'generic node: disabled-tier endpoint did not error')
-  assert.match(String(tierResult.err.message), /tier, which is not enabled/)
-
-  console.log(`helix nodes test: ok (${HELIX_SPECS.length} specs, ${paletteSpecs.length} palette)`)
+  console.log(`helix nodes test: ok (${HELIX_SPECS.length} specs)`)
 })().catch((err) => {
   console.error('helix nodes test failed:', err && err.message ? err.message : err)
   process.exit(1)

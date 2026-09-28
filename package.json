@@ -132,7 +132,6 @@
       "twitch-eventsub-user-update": "dist/twitch/eventsub/generated/twitch-eventsub-user-update.js",
       "twitch-eventsub-user-whisper-message": "dist/twitch/eventsub/generated/twitch-eventsub-user-whisper-message.js",
       "twitch-helix-ads": "dist/twitch/helix/generated/twitch-helix-ads.js",
-      "twitch-helix-api-request": "dist/twitch/helix/twitch-helix-api-request.js",
       "twitch-helix-automod": "dist/twitch/helix/generated/twitch-helix-automod.js",
       "twitch-helix-bans": "dist/twitch/helix/generated/twitch-helix-bans.js",
       "twitch-helix-bits": "dist/twitch/helix/generated/twitch-helix-bits.js",

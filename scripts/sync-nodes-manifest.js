@@ -74,8 +74,6 @@ const expectedHelix = {}
 for (const spec of HELIX_SPECS) {
   expectedHelix[spec.type] = `${GENERATED_HELIX_DIR}${spec.type}.js`
 }
-// Hand-written Helix nodes that are not generated from a spec.
-expectedHelix['twitch-helix-api-request'] = 'dist/twitch/helix/twitch-helix-api-request.js'
 
 const merged = {}
 for (const [type, file] of Object.entries(current)) {

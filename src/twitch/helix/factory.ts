@@ -237,13 +237,12 @@ export function makeHandler(spec: HelixSpec) {
 
 /**
  * Registers one generated Helix node type by looking its spec up. A type is
- * only registered when its tier is enabled and it is not hidden, so disabled
- * tiers stay out of the palette.
+ * only registered when its tier is enabled, so disabled tiers stay out of the
+ * palette.
  */
 export function registerHelixNode(RED: NodeAPI, type: string): void {
   const spec = HELIX_SPECS.find((candidate) => candidate.type === type);
   if (!spec) throw new Error(`Unknown Helix node spec: ${type}`);
-  if (spec.palette === false) return;
   if (!isTierEnabled((RED as any).settings, specTier(spec))) return;
 
   function HelixSpecNode(this: any, config: any) {
