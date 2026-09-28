@@ -1,20 +1,36 @@
 # node-red-contrib-twitch-eventsub
 
-Easy Node-RED nodes for Twitch creators. This project is still in early development.
+Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC,
+sharing a single `twitch-api-config` account node.
 
-## Nodes
+> **AI-generated code.** This project is written and maintained with AI code
+> generation, and is still in early development. Review the code before relying on
+> it in production, and expect breaking changes between versions.
 
-- One **twitch events** node covers every EventSub event: follows, subscriptions and
-  gift subs, channel point redeems, bits, cheers, raids, polls, predictions, hype
-  trains, goals, charity, moderation, AutoMod, chat, warnings, whispers, stream
-  online/offline and more. Pick the event in the node's **Event** dropdown; it is
-  grouped by Twitch's own EventSub areas (automod, bits & ads, channel, channel
-  points, charity, chat events, goals, hype train, moderation, polls, predictions,
-  raids, stream, subscriptions and user).
-- The Helix API node (**twitch api**) shares the `twitch` palette category with the
-  EventSub node.
-- Twitch Chat (IRC) nodes live under a separate `twitch chat (irc)` category: receive and send
-  chat messages, run commands, moderate, announce, join and leave channels.
+## Overview
+
+The package gives a flow three ways to talk to Twitch, plus the account node they
+all share:
+
+- **EventSub** — one `twitch events` node covers every EventSub subscription:
+  follows, subs and gift subs, channel point redeems, bits, cheers, raids, polls,
+  predictions, hype trains, goals, charity, moderation, AutoMod, chat, warnings,
+  whispers, stream online/offline and more. Pick the event in the node's
+  **Event** dropdown (grouped by Twitch's own areas); the node emits the event
+  payload, including the full raw event.
+- **Helix API** — one `twitch api` node calls any of the bundled Helix endpoints.
+  Pick the endpoint, and an action where one endpoint groups several verbs, and
+  the node renders the matching fields. Endpoints are split into `core`,
+  `extended` and `advanced` tiers so the palette and requested OAuth scopes stay
+  manageable.
+- **Twitch Chat (IRC)** — receive and send chat messages, run commands, moderate,
+  announce, join and leave channels.
+
+The `twitch events` and `twitch api` nodes share the `twitch` palette category;
+the chat nodes live under a separate `twitch chat (irc)` category. Every node is
+backed by one `twitch-api-config` account node, which holds the OAuth credentials
+(real device-code login or the built-in mock) and owns the EventSub WebSocket and
+chat connections.
 
 ## Twitch Chat
 
