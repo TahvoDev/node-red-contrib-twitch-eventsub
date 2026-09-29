@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Removed
+- The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 ### Changed
 - **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
   spec-to-node factory/build-generation are gone. Endpoints are registry entries under
@@ -133,7 +135,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `package.json` pointed `main` at an `index.js` that did not exist, so the module could not be loaded by name (for example by Node-RED's external modules) even though the palette loaded from the `node-red` field
 - EventSub subscriptions are restored when Twitch reopens the WebSocket connection. Twurple reports the disconnect but does not resubscribe, so the nodes used to stay connected while silently receiving nothing
 - A subscription that cannot be restored is now retried instead of throwing an uncaught exception that stopped the whole Node-RED runtime
-- The `user authorization granted` and `user authorization revoked` nodes no longer fail with a permanent error: Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so they are reported once as unsupported and the node says so instead of retrying
 - The config node status no longer reads `Logged in as ` (empty login) in mock mode; it shows the mock user id and port
 - `chat announce` no longer fails with `Invalid announcement color` when it is wired straight onto a `chat in` message: `msg.color` is the sender's chat colour there, not one of Twitch's five announcement colours, so the announcement now falls back to `primary`. Set `msg.announceColor` to pick a colour
 - `chat reply` and `chat delete message` rejected every message coming from `chat in`, because they asked for `msg.replyTo` and `msg.messageId` while `chat in` emits `msg.id`. Both accept `msg.id` now, so the two can be wired directly onto a chat message

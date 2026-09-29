@@ -4,12 +4,12 @@
 /**
  * EventSub node test.
  *
- * The 72 EventSub events share one node and one mapper, so this checks the two
- * things that used to be spread across 72 generated nodes: the registry is well
- * formed (unique types, every event subscribable) and the field mapper honours
- * the string / from / default / map forms. Runs against the built dist/ output;
- * any failed assert throws and exits non-zero, failing `npm run test:unit`,
- * `npm run check` and `npm run build`.
+ * The EventSub events share one node and one mapper, so this checks the two
+ * things that used to be spread across the old generated nodes: the registry is
+ * well formed (unique types, every event subscribable) and the field mapper
+ * honours the string / from / default / map forms. Runs against the built dist/
+ * output; any failed assert throws and exits non-zero, failing `npm run
+ * test:unit`, `npm run check` and `npm run build`.
  */
 
 const assert = require('assert')

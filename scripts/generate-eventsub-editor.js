@@ -33,7 +33,6 @@ const catalog = EVENTS.map((event) => ({
   label: event.label,
   category: event.category,
   description: event.description,
-  unsupportedReason: event.unsupportedReason,
   fields: event.fields.map(fieldKey),
 }))
 
