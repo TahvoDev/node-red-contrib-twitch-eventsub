@@ -40,9 +40,6 @@
         $info.empty();
         if (!found) return;
         $info.append($('<p>').text(found.description || ''));
-        if (found.unsupportedReason) {
-          $info.append($('<p>').addClass('red-text').text(found.unsupportedReason));
-        }
         if (found.fields && found.fields.length) {
           $info.append($('<h3>').text('Payload properties'));
           var $list = $('<ul>');
@@ -62,11 +59,7 @@
           .slice()
           .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
           .forEach(function (item) {
-            // Say up front which events Twitch never delivers over the WebSocket.
-            var text = item.unsupportedReason
-              ? item.label + ' (not available over WebSocket)'
-              : item.label;
-            $group.append($('<option>').attr('value', item.type).text(text));
+            $group.append($('<option>').attr('value', item.type).text(item.label));
           });
         $event.append($group);
       });

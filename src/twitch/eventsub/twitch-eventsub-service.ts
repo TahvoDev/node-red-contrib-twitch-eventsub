@@ -20,13 +20,11 @@ class TwitchEventsubService {
   private activeSubscriptions: Map<string, { stop(): void }> = new Map();
   private reconnectingUsers: Set<string> = new Set();
   private pendingSubscriptions: Set<string> = new Set();
-  private warnedUnsupported: Set<string> = new Set();
   private restoring = false;
   private retryTimer?: NodeJS.Timeout;
   private retries = 0;
 
   onEventCb?: (event: any, subscriptionType: string) => void;
-  onUnsupportedCb?: (subscriptionType: string) => void;
 
   constructor(node: Node, userId: string, apiClient: ApiClient) {
     this.node = node;
@@ -68,18 +66,6 @@ class TwitchEventsubService {
     const definition = EVENTS_BY_TYPE[type];
     if (!definition) {
       this.node.warn(`Unknown subscription type: ${type}`);
-      return;
-    }
-
-    if (definition.unsupportedReason) {
-      // Twurple would throw for these, and the throw happens inside a listener callback
-      // during restore, which is enough to take the whole runtime down. They can never
-      // deliver over a WebSocket, so say so once and leave them alone.
-      if (!this.warnedUnsupported.has(type)) {
-        this.warnedUnsupported.add(type);
-        this.node.warn(definition.unsupportedReason);
-        this.onUnsupportedCb?.(type);
-      }
       return;
     }
 
@@ -175,7 +161,6 @@ class TwitchEventsubService {
     this.activeSubscriptions.clear();
     this.reconnectingUsers.clear();
     this.pendingSubscriptions.clear();
-    this.warnedUnsupported.clear();
     this.retries = 0;
   }
 }

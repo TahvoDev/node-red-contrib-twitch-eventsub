@@ -215,8 +215,6 @@ module.exports = function (RED: NodeAPI) {
     authReady = false;
     userId?: string;
     mockServerPort?: number;
-    nodeTypes: { [key: string]: string } = Object.create(null);
-    unsupportedNodes: Set<string> = new Set();
 
     private authInitPromise?: Promise<void>;
 
@@ -348,10 +346,6 @@ module.exports = function (RED: NodeAPI) {
         });
       };
 
-      this.eventsubService.onUnsupportedCb = (subscriptionType) => {
-        this.markUnsupported(subscriptionType);
-      };
-
       this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
       await this.eventsubService.start();
       this.updateStatus({
@@ -397,16 +391,13 @@ module.exports = function (RED: NodeAPI) {
 
     updateStatus(status: Status) {
       this.currentStatus = status;
-      Object.entries(this.nodeListeners).forEach(([id, node]) => {
-        if (!this.unsupportedNodes.has(id)) {
-          node.status(status);
-        }
+      Object.values(this.nodeListeners).forEach((node) => {
+        node.status(status);
       });
     }
 
     addNode(id: string, node: any, subscriptionType: string) {
       this.nodeListeners[id] = node;
-      this.nodeTypes[id] = subscriptionType;
       node.status(this.currentStatus);
       this.initAuth()
         .then(async () => {
@@ -416,23 +407,9 @@ module.exports = function (RED: NodeAPI) {
         .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
     }
 
-    markUnsupported(subscriptionType: string) {
-      Object.entries(this.nodeTypes).forEach(([id, type]) => {
-        if (type !== subscriptionType) return;
-        this.unsupportedNodes.add(id);
-        this.nodeListeners[id]?.status({
-          fill: 'grey',
-          shape: 'ring',
-          text: 'Not available over WebSocket',
-        });
-      });
-    }
-
     async removeNode(id: string, subscriptionType: string, done: () => void) {
       this.eventsubService?.removeSubscription(subscriptionType);
       delete this.nodeListeners[id];
-      delete this.nodeTypes[id];
-      this.unsupportedNodes.delete(id);
       if (Object.keys(this.nodeListeners).length === 0) {
         await this.takedown();
       }
