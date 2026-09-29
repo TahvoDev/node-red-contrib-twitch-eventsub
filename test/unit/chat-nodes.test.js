@@ -139,6 +139,32 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
     /could not be found/
   )
 
+  // A chat connection whose account auth throws must surface a red status on its
+  // listener nodes instead of leaving them stuck on "Connecting..." forever.
+  let ConnectionCtor
+  const RED = {
+    nodes: {
+      createNode(created) {
+        created.status = () => {}
+        created.error = () => {}
+        created.on = () => {}
+      },
+      getNode: () => ({
+        initAuth: async () => { throw new Error('invalid refresh token') },
+        getAuthProvider: () => undefined,
+      }),
+      registerType: (_type, ctor) => { ConnectionCtor = ctor },
+    },
+  }
+  require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-connection.js'))(RED)
+
+  const connection = new ConnectionCtor({ id: 'conn', account: 'acct', channels: '' })
+  let status
+  connection.addListener('n1', { id: 'n1', status: (s) => { status = s }, error() {}, on() {} })
+  await new Promise((resolve) => setImmediate(resolve))
+  assert.strictEqual(status.fill, 'red')
+  assert.match(status.text, /Auth failed: invalid refresh token/)
+
   console.log('chat nodes test: ok')
 })().catch((err) => {
   console.error('chat nodes test failed:', err.message)

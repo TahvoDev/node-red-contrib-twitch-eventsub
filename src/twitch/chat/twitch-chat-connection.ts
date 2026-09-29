@@ -1,6 +1,7 @@
 import type { Node, NodeAPI } from 'node-red';
 import { ChatClient } from '@twurple/chat';
 import type { ApiClient } from '@twurple/api';
+import type { AuthProvider } from '@twurple/auth';
 import {
   type ChatAccount,
   type ChatConnectionConfig,
@@ -64,12 +65,26 @@ module.exports = function (RED: NodeAPI) {
       if (!this.account) return undefined;
 
       this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Connecting...' });
-      await this.account.initAuth();
 
       // The config node exposes its AuthProvider directly; reusing that instance
       // avoids building a second refreshing provider that would fight over the
       // rotating refresh token.
-      const authProvider = this.account.getAuthProvider();
+      let authProvider: AuthProvider | undefined;
+      try {
+        await this.account.initAuth();
+        authProvider = this.account.getAuthProvider();
+      } catch (e) {
+        // The config node reports auth failures only to its own EventSub listeners,
+        // so without this the chat nodes stay stuck on "Connecting..." when auth
+        // throws (bad refresh token, network down). Surface it and let the caller log.
+        this.updateStatus({
+          fill: 'red',
+          shape: 'ring',
+          text: `Auth failed: ${(e as Error).message}`,
+        });
+        throw e;
+      }
+
       if (!authProvider) {
         this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch auth' });
         return undefined;

@@ -129,6 +129,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The per-subscription retry after a WebSocket reconnect now backs off exponentially (capped) instead of retrying on a fixed delay.
 
 ### Fixed
+- The Twitch Chat connection no longer hangs on `Connecting...` when the account's auth fails. An auth error (for example an invalid refresh token) now sets a red `Auth failed` status on the connection and on every chat node instead of being logged and leaving the nodes waiting forever
 - Event node icons fell back to the default Node-RED arrow because they lived outside the `icons` directory Node-RED scans for the package
 - The combined event nodes only ever emitted their last registered event, and their `eventType` field was always `unknown`
 - The hype train node never appeared in the palette: its editor file was a copy of the poll node's and registered the wrong type
