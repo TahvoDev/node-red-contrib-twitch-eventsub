@@ -42,14 +42,13 @@ const {
 
 /* ----------------------------------------------------------- attack corpus */
 
-// Twitch-origin text: controls, bidi and zero-width must not survive.
+// Twitch-origin text: line controls and bidi overrides must not survive.
 const ATTACKS = [
   '\r\nPRIVMSG #x :pwn',
   'hi\r\nJOIN #evil',
   '{{{x}}}',
   '{"__proto__":{"a":1}}',
   '\u202Egnp\u202B',
-  'zero\u200Bwidth\uFEFFhere',
   '../etc/passwd',
   '&scope=admin',
   'a\tb\0c',
@@ -60,10 +59,18 @@ for (const attack of ATTACKS) {
   const cleaned = sanitizeText(attack)
   assert.ok(!/[\r\n\0\t]/.test(cleaned), `newline survived: ${JSON.stringify(attack)}`)
   assert.ok(
-    !/[\u202A-\u202E\u2066-\u2069\u200B-\u200D\u2060\uFEFF]/.test(cleaned),
-    `bidi/zero-width survived: ${JSON.stringify(attack)}`
+    !/[\u202A-\u202E\u2066-\u2069]/.test(cleaned),
+    `bidi override survived: ${JSON.stringify(attack)}`
   )
 }
+
+// Legitimate Unicode is preserved: no NFKC, and zero-width joiners/marks stay.
+assert.strictEqual(sanitizeText('Ａ①ﬁ'), 'Ａ①ﬁ')
+assert.strictEqual(sanitizeText('👨\u200D👩\u200D👧'), '👨\u200D👩\u200D👧') // ZWJ family emoji
+assert.strictEqual(sanitizeText('a\u200Bb\uFEFFc'), 'a\u200Bb\uFEFFc')
+assert.strictEqual(sanitizeText('שלום\u200F'), 'שלום\u200F') // RTL + RLM kept
+// The bidi override is still removed.
+assert.strictEqual(sanitizeText('a\u202Eb'), 'ab')
 
 // 10MB input: capped, and fast (length fast path avoids a 10M-element array).
 const huge = 'a'.repeat(10 * 1024 * 1024)
@@ -263,7 +270,7 @@ assert.strictEqual(envelopeMsg.twitch.source, 'chat')
 
 // The sanitizer output must never contain a forbidden character and never exceed
 // the cap, for any input drawn from a hostile alphabet.
-const FORBIDDEN = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069\u200B-\u200D\u2060\uFEFF\r\n\t\0]/
+const FORBIDDEN = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F\u202A-\u202E\u2066-\u2069\r\n\t\0]/
 const ALPHABET = ['a', 'Z', '0', ' ', '\r', '\n', '\t', '\0', '\u202E', '\u202B', '\u200B', '\uFEFF', '&', '<', '>', '"', "'", '/', '.', '#', '\u{1F600}']
 let seed = 12345
 function random() {

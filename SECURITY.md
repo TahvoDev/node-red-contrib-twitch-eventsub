@@ -37,9 +37,15 @@ token, the Node-RED admin credential, or process memory access.
 
 `src/security/` cleans strings that originated at Twitch. `sanitize(value, policy)`
 is the entry point; policies are `text`, `topic`, `status`, `log` and `html`. It
-performs Unicode NFKC normalisation, removes C0/C1 control characters, bidi
-overrides (`U+202A–202E`, `U+2066–2069`) and zero-width characters, folds
-CR/LF/tab/NUL to a space, and caps by code point.
+folds CR/LF/tab/NUL to a space, drops the remaining C0/C1 control characters and
+the bidi overrides/isolates (`U+202A–202E`, `U+2066–2069`), and caps by code
+point.
+
+It deliberately does **not** NFKC-normalise, and keeps zero-width joiners and
+bidi marks: Twitch permits them, they are required for legitimate emoji
+(`👨‍👩‍👧`, ZWJ) and RTL/Arabic/Hebrew text, and NFKC would rewrite legitimate
+`①`/full-width text. Twitch already rejects CR/LF/NUL in chat, so that part is
+defense in depth.
 
 Applied to:
 

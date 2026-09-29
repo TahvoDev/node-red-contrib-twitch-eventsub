@@ -8,10 +8,11 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Security
 - **New `src/security/` sanitizer for Twitch-origin data.** Chat text/names (`twitch-chat-in`)
   and EventSub convenience fields (`twitch-eventsub`) are cleaned before a consumer sees them:
-  NFKC normalisation, removal of C0/C1 control characters, bidi overrides
-  (`U+202A–202E`, `U+2066–2069`) and zero-width characters, CR/LF/tab/NUL folded to a space,
-  and a code-point cap. `sanitize(value, policy)` is the entry point (`text`, `topic`,
-  `status`, `log`, `html`). The flow builder's own input — node config and `msg.*` — is not
+  CR/LF/tab/NUL folded to a space, remaining C0/C1 controls removed, and bidi
+  overrides/isolates (`U+202A–202E`, `U+2066–2069`) removed, with a code-point cap.
+  `sanitize(value, policy)` is the entry point (`text`, `topic`, `status`, `log`, `html`).
+  No NFKC is applied and zero-width joiners/marks are kept, so legitimate emoji and RTL text
+  are not rewritten. The flow builder's own input — node config and `msg.*` — is not
   rewritten; Twurple validates and neutralises what goes out to Twitch.
 - **Chat command authorization is now verified.** Set a **Connection** on
   `twitch-chat-command` and its role gates re-check the sender against Twitch

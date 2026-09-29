@@ -19,10 +19,12 @@ export const MAX_SCAN_LENGTH = 10000;
 
 /** C0/C1 control characters, excluding the whitespace we translate separately. */
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
-/** Bidi overrides/isolates and the directional marks: can reorder or spoof a line. */
-const BIDI_CHARS = /[\u202A-\u202E\u2066-\u2069\u200E\u200F\u061C]/g;
-/** Zero-width and invisible joiners/formatters. */
-const ZERO_WIDTH_CHARS = /[\u200B-\u200D\u2060\uFEFF]/g;
+/**
+ * Bidi overrides and isolates only (`U+202A–202E`, `U+2066–2069`). These can
+ * visually reorder a line. The directional marks (LRM/RLM/ALM) and RTL text are
+ * left alone because they are legitimate in real messages.
+ */
+const BIDI_OVERRIDES = /[\u202A-\u202E\u2066-\u2069]/g;
 /** Whitespace controls that stay meaningful as a single space. */
 const WHITESPACE_CONTROLS = /[\r\n\t\0\u000B\u000C]+/g;
 
@@ -50,25 +52,32 @@ function capCodePoints(value: string, max: number): string {
 }
 
 /**
- * NFKC-normalises and removes control, bidi and zero-width characters. CR, LF,
- * tab and NUL become a single space so words do not run together. Always scans at
- * most {@link MAX_SCAN_LENGTH} characters.
+ * Removes what can corrupt a line or spoofing a display, and keeps everything
+ * else intact:
+ *
+ * - CR, LF, tab and NUL become a single space so words do not run together.
+ * - The remaining C0/C1 controls are dropped (terminal/log safety).
+ * - Bidi overrides and isolates are dropped; bidi marks and RTL text are kept.
+ *
+ * Deliberately *not* done: no NFKC (it rewrites legitimate `①`, full-width and
+ * RTL text), and zero-width joiners/non-joiners are kept because they are
+ * required for legitimate emoji and scripts. Twitch already rejects CR/LF/NUL in
+ * chat, so that part is defense in depth. Always scans at most
+ * {@link MAX_SCAN_LENGTH} characters.
  */
 function scrub(value: unknown): string {
   if (value === null || value === undefined) return '';
   const source = typeof value === 'string' ? value : String(value);
   const capped = capCodePoints(source, MAX_SCAN_LENGTH);
   return capped
-    .normalize('NFKC')
     .replace(WHITESPACE_CONTROLS, ' ')
     .replace(CONTROL_CHARS, '')
-    .replace(BIDI_CHARS, '')
-    .replace(ZERO_WIDTH_CHARS, '');
+    .replace(BIDI_OVERRIDES, '');
 }
 
 /**
- * Generic text: normalised, controls removed, no newlines, capped. Never returns
- * a string containing CR/LF/NUL/bidi or longer than `max` code points.
+ * Generic text: controls and bidi overrides removed, no newlines, capped, but
+ * otherwise left as written (no NFKC). Never longer than `max` code points.
  */
 export function sanitizeText(raw: unknown, max: number = MAX_TEXT_LENGTH): string {
   return capCodePoints(scrub(raw), max);
