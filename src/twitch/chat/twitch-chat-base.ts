@@ -3,20 +3,7 @@ import type { ChatClient } from '@twurple/chat';
 import type { ApiClient, BaseApiClient } from '@twurple/api';
 import type { AuthProvider } from '@twurple/auth';
 import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
-import {
-  MAX_CHAT_MESSAGE_LENGTH,
-  assertLogin,
-  isLogin,
-  isUserId,
-  normalizeChannel,
-  sanitize,
-  sanitizeChatText,
-  sanitizeStatus,
-  sanitizeText,
-  toIrcLine,
-  type SafeIrcLine,
-  type TwitchLogin,
-} from '../../security';
+import { isLogin, isUserId, sanitizeStatus } from '../../security';
 
 export type ChatStatus = {
   fill: 'red' | 'green' | 'yellow' | 'blue' | 'grey';
@@ -117,6 +104,18 @@ export interface ChatAccount {
   getAuthProvider(): AuthProvider | undefined;
 }
 
+/**
+ * Channel names are lowercase and never carry a leading `#`. This is plain
+ * normalisation of the builder's own value; Twurple validates the name when the
+ * node actually joins or sends, so an invalid one fails loudly there.
+ */
+export function normalizeChannel(raw: unknown): string {
+  return String(raw ?? '')
+    .trim()
+    .replace(/^#/, '')
+    .toLowerCase();
+}
+
 /** Splits the comma-separated channel list from the config node into names. */
 export function parseChannels(raw: unknown): string[] {
   return String(raw ?? '')
@@ -133,7 +132,7 @@ export function getChatConnection(
   return (RED.nodes.getNode(config.connection) as unknown as ChatConnection) || undefined;
 }
 
-export { MAX_CHAT_MESSAGE_LENGTH, MAX_TIMEOUT_SECONDS, normalizeChannel, resolveAnnounceColor, sanitizeChatText };
+export { MAX_TIMEOUT_SECONDS, resolveAnnounceColor };
 
 /**
  * Resolves the moderation target to a numeric user ID. The target must be
@@ -186,10 +185,9 @@ export function buildCommandTrigger(
   prefix: unknown,
   command: unknown
 ): { name: string; trigger: string } {
-  const name = sanitizeText(command, 64).trim();
+  const name = String(command ?? '').trim();
   if (!name) throw new Error('twitch-chat-command requires a command name');
-  const safePrefix = sanitizeText(prefix, 8) || '!';
-  return { name, trigger: `${safePrefix}${name}`.toLowerCase() };
+  return { name, trigger: `${String(prefix || '!')}${name}`.toLowerCase() };
 }
 
 /**
@@ -246,31 +244,25 @@ export async function sendChatMessage(
       return;
     }
 
-    let channel: TwitchLogin;
-    try {
-      channel = assertLogin(normalizeChannel(msg.channel ?? config.channel));
-    } catch {
+    const channel = normalizeChannel(msg.channel ?? config.channel);
+    if (!channel) {
       node.error('No channel specified', msg);
       finish();
       return;
     }
 
-    // twitch-chat-in sets both text and payload; accept either so a message
-    // straight off the wire does not have to be reshaped first. Every external
-    // string crosses the one sanitizer: control/bidi/zero-width chars out, the
-    // length capped, and a leading `/` neutralised so chat text cannot turn into
-    // an IRC command. The branded types are what the IRC sink accepts.
-    const text: SafeIrcLine = toIrcLine(messageText(msg));
+    // The message is the flow builder's own input. Twurple handles the wire:
+    // `ChatClient.say` splits at 500, queues through a per-channel rate limiter,
+    // and `AbstractConnection.sendLine` strips CR/LF/NUL, so there is nothing to
+    // sanitize here and no reason to rewrite the user's text.
+    const text = messageText(msg);
     if (!text.trim()) {
       node.error('No message text — set msg.payload or msg.text to a string', msg);
       finish();
       return;
     }
 
-    // Outgoing rate limiting is Twurple's: ChatClient.say queues through a
-    // per-channel rate limiter (1 msg/1.2s per channel plus Twitch's bot-level
-    // allowance). A second, global bucket here would only be weaker.
-    const replyTo = options.replyTo ? sanitize(options.replyTo, 'text', { max: 64 }) : undefined;
+    const replyTo = options.replyTo ? String(options.replyTo) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});
     finish();

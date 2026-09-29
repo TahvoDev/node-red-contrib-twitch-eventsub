@@ -24,8 +24,6 @@ const {
   parseChannels,
   resolveAnnounceColor,
   resolveUserId,
-  sanitizeChatText,
-  MAX_CHAT_MESSAGE_LENGTH,
   MAX_TIMEOUT_SECONDS,
 } = base
 
@@ -54,19 +52,6 @@ assert.deepStrictEqual(parseChannels('Channel1, #channel2 ,, channel3'), [
 assert.deepStrictEqual(parseChannels(''), [])
 assert.deepStrictEqual(parseChannels(undefined), [])
 assert.deepStrictEqual(parseChannels('__proto__'), ['__proto__'])
-
-// IRC line injection: CR/LF/ NUL must not survive into the socket, and Twitch
-// rejects anything past 500 characters.
-assert.strictEqual(sanitizeChatText('hi\r\nPRIVMSG #x :free sub'), 'hi PRIVMSG #x :free sub')
-assert.ok(!/[\r\n]/.test(sanitizeChatText('a\r\nb\nc\rd')))
-assert.strictEqual(sanitizeChatText('\0'), ' ')
-assert.strictEqual(sanitizeChatText('hello'), 'hello')
-assert.strictEqual(sanitizeChatText(undefined), '')
-assert.strictEqual(sanitizeChatText('a'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100)).length, MAX_CHAT_MESSAGE_LENGTH)
-// The cap counts code points, so it never splits an emoji surrogate pair.
-const emojis = sanitizeChatText('\u{1F600}'.repeat(MAX_CHAT_MESSAGE_LENGTH + 100))
-assert.strictEqual(Array.from(emojis).length, MAX_CHAT_MESSAGE_LENGTH)
-assert.strictEqual([...emojis].some((ch) => /\uFFFD/.test(ch)), false)
 
 // Only string payloads/text are sent; a non-string is not coerced to
 // "[object Object]" on its way to chat.

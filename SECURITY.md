@@ -1,178 +1,139 @@
 # Security
 
-This package moves untrusted data between Twitch and Node-RED. This document
-describes the threat model, the controls that are in place, and how to report a
-problem.
+This document describes the threat model and the controls this package applies.
+
+**Scope.** The untrusted data is what comes **from Twitch** — chat text, EventSub
+event fields, Helix response strings, OAuth responses. Those are cleaned before a
+consumer can render, log or forward them. The flow builder is trusted: node
+config and the `msg.*` they (or an upstream node they chose) send are their own
+input, and what actually goes **to** Twitch is validated and neutralised by
+Twurple. We do not duplicate Twurple's wire-level work.
 
 ## Threat model
 
-Anything that did not originate in this repository's own source is untrusted:
+Untrusted (from Twitch):
 
-- Twitch IRC chat (sender name, display name, message text, badges, colour, id).
-- EventSub WebSocket events (names, ids, titles, reason/message text, raw event).
-- Helix REST responses (titles, descriptions, display names, URLs).
-- Node configuration values entered in the editor (channel, command, endpoint,
-  fields, mock server settings, client id).
-- Incoming `msg.*` properties on every node input (`payload`, `text`, `channel`,
-  `targetUser`, `targetUserId`, `reason`, `duration`, `replyTo`, `action`, field
-  overrides, `cursor`, and the `isMod`/`isSubscriber`/`isVip`/`isBroadcaster`
-  flags).
-- OAuth HTTP responses and admin request bodies.
-- Any user-influenced URL.
+- IRC chat: sender login/display name/id, message text, badges, colour, message id.
+- EventSub WebSocket events: names, ids, titles, reason/message text, the raw event.
+- Helix REST responses: titles, descriptions, display names, URLs.
+- OAuth responses: user id/login, verification URI, user code.
 
-A hostile actor is assumed to be able to send arbitrary chat text, forge a
-webhook body (but not sign it), and craft a flow message. They are assumed **not**
-to have a valid Twitch access token, the Node-RED admin credential, or the
-ability to read the process memory.
+Trusted (the builder's own input):
+
+- Node configuration entered in the editor or imported with a flow.
+- `msg.*` on a node input (payload, text, channel, targetUser, reason, action,
+  field overrides, and the `isMod`/`isSubscriber`/`isVip`/`isBroadcaster` flags).
+  Note that a flow may wire another source into these nodes, so an author who
+  does that owns the result; role checks are still verified against Twitch where
+  it matters (below).
+
+A hostile actor is assumed to be able to send arbitrary chat text and craft a
+webhook body (but not sign it). They are assumed **not** to have a Twitch access
+token, the Node-RED admin credential, or process memory access.
 
 ## Controls
 
-### One sanitizer for every external string
+### Twitch-origin sanitization
 
-`src/security/` exposes a single reusable entry point, `sanitize(value, policy)`,
-with policies for `chat`, `irc`, `login`, `userId`, `channel`, `text`, `status`,
-`log`, `html` and `topic`. Every node routes external strings through it (or one
-of the named helpers it delegates to) before the value can reach an IRC line, a
-URL, a status/log or the editor DOM.
+`src/security/` cleans strings that originated at Twitch. `sanitize(value, policy)`
+is the entry point; policies are `text`, `topic`, `status`, `log` and `html`. It
+performs Unicode NFKC normalisation, removes C0/C1 control characters, bidi
+overrides (`U+202A–202E`, `U+2066–2069`) and zero-width characters, folds
+CR/LF/tab/NUL to a space, and caps by code point.
 
-It performs Unicode NFKC normalisation; removes C0/C1 control characters, bidi
-overrides (`U+202A–202E`, `U+2066–2069`) and zero-width characters; converts
-CR/LF/tab/NUL to a space where word separation matters; and caps the result by
-code point.
+Applied to:
 
-Branded types (`SafeChatText`, `SafeIrcLine`, `TwitchLogin`, `TwitchUserId`,
-`SafeLogLine`, `SafeHtml`) are produced only by the sanitizer. The IRC send sink
-takes a `SafeIrcLine` + `TwitchLogin`, the announce sink takes a
-`SafeChatText`, and every node status takes a `SafeLogLine`, so a raw external
-string is a compile error at those calls.
+- `twitch-chat-in` — message text, sender login/display name, id, colour and badge
+  names are sanitized before they become `msg.payload`/`msg.text`/`msg.user`.
+- `twitch-eventsub` — the mapped convenience fields are deep-sanitized
+  (`sanitizeDeep`) before they become `msg.payload`.
+- OAuth responses — the user id/login are validated before being stored.
+- Node status and log text — sanitized (`sanitizeStatus`/`sanitizeLogLine`) and
+  secrets redacted (`redactSecrets`).
 
-Note that, as with any TypeScript type, a cast can defeat a brand: this is a
-guard-rail against mistakes, not a runtime enforcement.
+`SafeLogLine`/`SafeHtml` brands mark sanitized status and HTML; a cast can defeat
+a brand, so it is a guard-rail, not runtime enforcement.
 
-### What is *not* sanitized (raw escape hatches)
+**Not sanitized:** Helix response strings from the `twitch-api` node are returned
+as Twurple provides them (sanitizing every title/description would rewrite
+legitimate data). Escape them with `escapeHtml` / the `html` policy before
+rendering into a template or Dashboard.
 
-The point of the sanitizer is to make the deliverable value safe, not to rewrite
-every byte of the payload:
+### Raw escape hatches
 
-- `twitch-eventsub` sanitizes the mapped convenience fields (names, ids, text)
-  but deliberately leaves the declared `rawEvent` field untouched — it is
-  documented as the full, unmodified event. It is also copied to
-  `msg.twitch.raw`.
-- `twitch-chat-in` sanitizes `msg.payload`/`msg.text`; `msg.twitch.raw` holds the
-  original text and `msg._raw` holds the Twurple message object (both unsanitized).
+- `twitch-eventsub` leaves the declared `rawEvent` field untouched (it is
+  documented as the full event) and copies it to `msg.twitch.raw`.
+- `twitch-chat-in` puts the original text in `msg.twitch.raw` and the Twurple
+  message object in `msg._raw`.
 
 `msg.twitch.untrusted` is always `true`. **Treat `msg.twitch.raw`, `msg._raw` and
-EventSub `rawEvent` as untrusted**: escape them before any HTML, template or shell
-sink. Only the named fields and `msg.payload` have passed the sanitizer.
-
-Also note that sanitization is a *mutation*, not just a filter: NFKC folding
-means `①` becomes `1` and full-width forms are normalised. Helix string fields go
-through `toStr`, so a title or name is normalised before it reaches Twitch.
-
-### IRC output
-
-`toIrcLine` rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading
-`/` with a space so chat text cannot become a command. A leading `.` is left
-alone: on this transport `.` is the emote prefix (`.gg`, `.com`), not a command —
-mangling those broke legitimate messages. Outgoing rate limiting is Twurple's:
-`ChatClient.say` queues through a per-channel rate limiter using Twitch's own
-limits, so this package does not add a second, weaker one.
-
-### Boundaries and object hygiene
-
-`validateSchema` is a small, strict validator (no unknown keys) applied to node
-config, inbound `msg` shapes, Helix parameters and HTTP request bodies. It never
-copies a key it was not told about, so `__proto__`, `constructor` and
-`prototype` cannot ride in on external data. `safeMerge` replaces
-`Object.assign` for external data, and `sanitizeDeep` walks a payload and
-sanitizes its strings without recursion blow-ups.
-
-URLs are built with `buildUrl` against a host/path allowlist; no URL is
-assembled with string concatenation.
-
-### EventSub
-
-The shipped transport is ElectricSheep/EventSub **WebSocket**, so there is no
-HTTP webhook receiver to forge. `src/security/webhook.ts` provides the
-verification for a future receiver: HMAC-SHA256 over `id + timestamp + rawBody`
-(computed from the raw body captured **before** JSON parsing), compared with
-`crypto.timingSafeEqual`, a 10-minute timestamp window, and bounded message-id
-dedupe.
+`rawEvent` as untrusted**: escape them before any HTML, template or shell sink.
 
 ### Chat authorization
 
-`twitch-chat-command`'s role gates (`Broadcaster only`, `Mod only`, `Subscriber
-only`, `VIP only`) must not trust the `msg.isMod` / `msg.isBroadcaster` /
-`msg.isSubscriber` / `msg.isVip` flags, because any upstream node can set them.
+`twitch-chat-command`'s role gates must not trust `msg.isMod` / `msg.isBroadcaster`
+/ `msg.isSubscriber` / `msg.isVip`, because an upstream node can set them.
 
-- **Configure a Connection on the command node** (recommended, and the only
-  verified mode): the sender id from the chat message is checked against Twitch
-  (`moderation.checkUserIsModerator`, `subscriptions.checkUserSubscription`, the
-  VIP list) as the authenticated account. A forged flag is ignored, and the check
-  fails closed if the API is unavailable.
-- If no Connection is configured, the node falls back to the legacy message
-  flags and logs a warning. That mode is **unverified** and is retained only so
-  existing flows keep working; add a Connection to close it.
+- **Configure a Connection on the command node** (recommended, verified mode): the
+  sender id from the chat message is checked against Twitch
+  (`moderation.checkUserIsModerator`, `subscriptions.checkUserSubscription`, the VIP
+  list) as the authenticated account. Forged flags are ignored and the check fails
+  closed.
+- Without a Connection the node falls back to the legacy message flags and logs a
+  warning. That mode is **unverified**; add a Connection to close it.
 
-The destructive nodes (ban/timeout/unban/delete/announce/clear) still act as the
-configured account and do not re-check the sender themselves, so the command
-node is the authorization point. Do not wire a destructive node to a source where
-untrusted input can reach it directly.
+The destructive nodes (ban/timeout/unban/delete/announce/clear) act as the
+configured account, so the command node is the authorization point — do not wire a
+destructive node to a source where untrusted input can reach it directly.
 
-### OAuth and admin
+### Object hygiene and boundaries
 
-Every `RED.httpAdmin` route requires `RED.auth.needsPermission` using Node-RED's
-built-in editor permissions (`flows.read` for the read routes, `flows.write` for
-the auth routes); a standard `adminAuth` config already grants these to the users
-who can edit flows, so no custom permission has to be added. Request bodies are
-checked against an 8 KB cap (declared and actual size) and validated. Credentials
-are stored only through Node-RED credentials and never written to `msg` or logs;
-log lines pass through `redactSecrets`.
+`validateSchema` (strict, no unknown keys) validates the admin HTTP request bodies.
+`safeMerge` replaces `Object.assign` when merging externally shaped objects, and
+`sanitizeDeep` walks EventSub payloads. None of them copies `__proto__`,
+`constructor` or `prototype` from the input.
 
-The device-code flow has no redirect callback, so there is no OAuth `state`
-parameter to validate. If a redirect-based flow is added, generate a random,
-single-use `state` and compare it on callback.
+Admin routes require Node-RED's built-in editor permissions (`flows.read` /
+`flows.write`); a standard `adminAuth` config already grants these to flow editors.
+Request bodies are capped at 8 KB (declared and actual size). Credentials are
+stored only through Node-RED credentials and never written to `msg` or logs.
 
-### What Twurple already enforces (defense in depth)
+The device-code flow has no redirect callback, so there is no OAuth `state` to
+validate. If a redirect-based flow is added, generate a random single-use `state`
+and compare it on callback.
 
-Several controls here are deliberately *not* duplicated because Twurple 7
-already provides them; where this package still does the same check it is
-defense in depth, not the only line:
+### EventSub
 
-- **IRC wire injection.** `@d-fischer/connection` `AbstractConnection.sendLine`
-  removes `\0\r\n` from every outgoing line, so `say()` cannot inject a second
-  IRC line even without `toIrcLine`. Ours additionally replaces them with a
-  space (so words do not merge) and strips bidi/zero-width characters, which
-  Twurple does not.
-- **Channel/login validation.** `toUserName` (`^[a-z0-9][a-z0-9_]{0,24}$`) and
-  `isChannel` already reject invalid names and throw. Our `assertLogin` /
-  `normalizeChannel` validate earlier (and cover config parsing), but Twurple
-  would reject the same values at the call.
-- **IRCv3 tag parsing.** The `ircv3` parser builds a `Map` and escapes tag
-  values, so it is prototype-safe. This package does not reimplement it.
-- **Outgoing rate limits.** `ChatClient` uses a per-channel rate limiter and
-  `ApiClient` a Helix rate limiter that reads Twitch's `ratelimit-*` headers.
-  We removed our own global token bucket rather than run a second, weaker limiter.
-- **Helix URL/body building.** `@twurple/api-call` builds requests from a fixed
-  base plus `@d-fischer/qs`/`JSON.stringify`, so there is no concatenation of
-  untrusted input. Our `buildUrl` is only for this package's own admin `fetch`
-  calls, which Twurple does not make.
-- **EventSub WebSocket.** Events arrive on an authenticated socket; there is no
-  per-event HMAC to check (that is a webhook control).
+The shipped transport is EventSub **WebSocket**, so there is no HTTP webhook
+receiver to forge. `src/security/webhook.ts` provides verification for a future
+receiver: HMAC-SHA256 over `id + timestamp + rawBody` (from the raw body, captured
+before JSON parsing), `crypto.timingSafeEqual`, a 10-minute timestamp window and
+bounded message-id dedupe.
 
-### Library-only utilities
+## What Twurple already does (why we don't duplicate it)
 
-These are implemented and unit-tested but have no in-repo caller yet; they exist
-for flows and a future HTTP receiver, and are listed here so their presence is
-not mistaken for an active control:
+- IRC wire safety: `AbstractConnection.sendLine` removes `\0\r\n` from every
+  outgoing line, so a message cannot inject a second IRC line.
+- Channel/login validation: `toUserName` (`^[a-z0-9][a-z0-9_]{0,24}$`) and
+  `isChannel` reject invalid names and throw.
+- IRCv3 tag parsing: the `ircv3` parser builds a prototype-safe `Map`.
+- Rate limits: `ChatClient` limits per channel and `ApiClient` per Helix bucket,
+  using Twitch's own headers.
+- URL/body building: `@twurple/api-call` builds requests from a fixed base plus
+  `@d-fischer/qs`/`JSON.stringify`.
 
-- `src/security/webhook.ts` — webhook HMAC verification and replay guard. The
-  package uses the EventSub WebSocket transport, so there is no receiver to call
-  it. Wire it into an HTTP endpoint if one is ever added.
-- `BoundedBuffer` — a fixed-size inbound buffer. Twurple owns the socket
-  buffering; available for a custom reader.
-- `escapeHtml` / the `html` sanitize policy — for consumers that render into a
-  Dashboard or template; the package itself has no HTML sink.
+`buildUrl` remains for this package's own admin `fetch` calls, which Twurple does
+not make. `normalizeChannel` is plain lower-casing/#-stripping of the builder's
+value; Twurple validates the result when the node joins or sends.
+
+## Library-only utilities
+
+Implemented and unit-tested, but with no in-repo caller:
+
+- `src/security/webhook.ts` — webhook HMAC/replay guard for a future HTTP receiver.
+- `BoundedBuffer` — a fixed-size inbound buffer.
+- `escapeHtml` / the `html` policy — for consumers rendering into a Dashboard or
+  template.
 - `Untrusted<T>` — an opt-in marker type for consumers typing their own boundaries.
 
 ## Reporting a vulnerability

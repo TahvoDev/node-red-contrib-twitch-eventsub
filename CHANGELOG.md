@@ -6,45 +6,36 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Security
-- **New `src/security/` sanitizer layer.** All external strings (Twitch IRC/EventSub
-  payloads, Helix responses, node config, `msg.*` overrides, HTTP request bodies) now cross
-  one reusable function, `sanitize(value, policy)` (or its named helpers): NFKC normalisation,
-  removal of C0/C1 control characters, bidi overrides and zero-width characters, and a length
-  cap. Branded types (`SafeChatText`, `SafeIrcLine`, `TwitchLogin`, `TwitchUserId`, …) make an
-  unsanitized value a compile error at the known sinks.
-- IRC output rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading `/` so
-  chat text cannot become a command. A leading `.` is left alone because it is the emote
-  prefix (`.gg`, `.com`) on this transport. Outgoing rate limiting is left to Twurple,
-  whose `ChatClient` already queues per channel with Twitch's own limits; a second, global
-  token bucket was removed rather than maintained.
+- **New `src/security/` sanitizer for Twitch-origin data.** Chat text/names (`twitch-chat-in`)
+  and EventSub convenience fields (`twitch-eventsub`) are cleaned before a consumer sees them:
+  NFKC normalisation, removal of C0/C1 control characters, bidi overrides
+  (`U+202A–202E`, `U+2066–2069`) and zero-width characters, CR/LF/tab/NUL folded to a space,
+  and a code-point cap. `sanitize(value, policy)` is the entry point (`text`, `topic`,
+  `status`, `log`, `html`). The flow builder's own input — node config and `msg.*` — is not
+  rewritten; Twurple validates and neutralises what goes out to Twitch.
 - **Chat command authorization is now verified.** Set a **Connection** on
   `twitch-chat-command` and its role gates re-check the sender against Twitch
   (`checkUserIsModerator`, `checkUserSubscription`, the VIP list); forged
   `msg.isMod`/`msg.isBroadcaster`/`msg.isSubscriber`/`msg.isVip` flags are ignored and the
   check fails closed. Without a Connection the node keeps the legacy flag-based gating and
   logs a warning — configure the Connection to close that gap.
-- Strict runtime schema validation (`validateSchema`, no unknown keys) at the config, inbound
-  `msg`, HTTP-body and payload boundaries, with a prototype-pollution guard. `Object.assign`
-  of external data was replaced with `safeMerge`. IRCv3 tag parsing is left to the `ircv3`
-  package (a prototype-safe `Map`); `safeParseTags` was removed as a duplicate.
-- Helix/HTTP URLs are built with `buildUrl` against a host/path allowlist; no URL is assembled
-  by string concatenation.
-- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require Node-RED's
-  built-in editor permissions (`flows.read` / `flows.write`), so a standard `adminAuth`
-  config needs no changes, and enforce an 8 KB body cap (declared and actual size). Secrets
-  are redacted from logs and all config-node status lines are sanitized centrally.
-- `sanitizeDeep` drops a nested object past its depth limit instead of returning it raw, so
-  a deeply nested payload cannot smuggle control/bidi characters through.
+- `validateSchema` (strict, no unknown keys) validates the admin HTTP request bodies; `safeMerge`
+  replaces `Object.assign` for externally shaped objects; `sanitizeDeep` walks EventSub payloads.
+  None copies `__proto__`/`constructor`/`prototype`. `sanitizeDeep` drops a nested object past
+  its depth limit instead of returning it raw.
+- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) require Node-RED's built-in
+  editor permissions (`flows.read` / `flows.write`), so a standard `adminAuth` config needs no
+  changes, and enforce an 8 KB body cap (declared and actual size). Secrets are redacted from
+  logs and all config-node status lines are sanitized centrally.
 - EventSub webhook verification utilities (HMAC-SHA256 over `id + timestamp + rawBody` with
   `crypto.timingSafeEqual`, a 10-minute timestamp window and message-id dedupe) ship for a
   future HTTP receiver. The shipped transport is WebSocket, so nothing calls them yet.
 - Editor UI builds form elements with `.text()`/`.attr()` instead of string-concatenated HTML.
-- The raw escape hatches (`msg.twitch.raw`, `msg._raw`, EventSub `rawEvent`) are documented
-  as unsanitized; only `msg.payload` and the named fields pass the sanitizer.
-- SECURITY.md documents what Twurple already enforces (IRC `\0\r\n` stripping, channel/login
-  validation, prototype-safe IRCv3 tags, per-channel/per-bucket rate limits, safe Helix URL
-  building), so the remaining controls are understood as defense in depth rather than the
-  only line of defence.
+- The raw escape hatches (`msg.twitch.raw`, `msg._raw`, EventSub `rawEvent`) and unsanitized
+  Helix response strings are documented as such; only `msg.payload` and the named chat/EventSub
+  fields pass the sanitizer. SECURITY.md records what Twurple already enforces (IRC `\0\r\n`
+  stripping, channel/login validation, prototype-safe IRCv3 tags, per-channel/per-bucket rate
+  limits, safe URL building) so the remaining controls are not mistaken for the only line.
 - Tooling: `tsc` runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
   `eslint-plugin-no-unsanitized`) and a forbidden-pattern sink check run in `npm run check`;
   the security tests enforce ≥90% line/function coverage as part of `npm run check`; `npm

@@ -1,22 +1,14 @@
 /**
- * The one place untrusted strings are cleaned.
+ * The place strings *from Twitch* are cleaned.
  *
- * Every node pushes external data through `sanitize(value, policy)` (or one of
- * the named helpers below, all of which `sanitize` delegates to) before it can
- * reach an IRC line, a URL, a node status/log or the editor DOM. That keeps the
- * character rules — NFKC, control/bidi/zero-width removal, length caps — in a
- * single auditable function instead of copied into each node.
+ * The untrusted data is what Twitch sends: chat text, EventSub fields, Helix
+ * response strings. Those cross `sanitize(value, policy)` (or a named helper)
+ * before a consumer renders, logs or forwards them. The builder's own input —
+ * node config and `msg.*` — is not rewritten here; Twurple validates and
+ * neutralises what actually goes back out on the wire.
  */
 
-import type {
-  SafeChatText,
-  SafeHtml,
-  SafeIrcLine,
-  SafeLogLine,
-  SanitizePolicy,
-  TwitchLogin,
-  TwitchUserId,
-} from './types';
+import type { SafeHtml, SafeLogLine, SanitizePolicy } from './types';
 
 /** Twitch rejects chat/announcement text past 500 characters. */
 export const MAX_CHAT_MESSAGE_LENGTH = 500;
@@ -82,67 +74,12 @@ export function sanitizeText(raw: unknown, max: number = MAX_TEXT_LENGTH): strin
   return capCodePoints(scrub(raw), max);
 }
 
-/** Chat text: the generic rule with Twitch's 500-character cap. */
-export function sanitizeChatText(raw: unknown, max: number = MAX_CHAT_MESSAGE_LENGTH): SafeChatText {
-  return sanitizeText(raw, Math.min(max, MAX_CHAT_MESSAGE_LENGTH)) as SafeChatText;
-}
-
-export interface IrcLineOptions {
-  max?: number;
-}
-
-/**
- * Produces one IRC line. Strips CR/LF/NUL, caps the length, and neutralises a
- * leading `/` with a space so chat text cannot become an IRC command.
- *
- * A leading `.` is deliberately left alone: `.` is the emote prefix in real chat
- * (`.gg`, `.com`), not a command on this transport, and mangling those broke
- * legitimate messages. Only `/` is treated as a command.
- */
-export function toIrcLine(raw: unknown, options: IrcLineOptions = {}): SafeIrcLine {
-  const max = Math.min(options.max ?? MAX_CHAT_MESSAGE_LENGTH, MAX_CHAT_MESSAGE_LENGTH);
-  let line = sanitizeText(raw, max);
-  if (line.startsWith('/')) line = ` ${line}`;
-  return line as SafeIrcLine;
-}
-
-/** A valid Twitch login, lower-cased and validated. Throws {@link SecurityError} otherwise. */
-export function assertLogin(raw: unknown): TwitchLogin {
-  const login = String(raw ?? '')
-    .trim()
-    .replace(/^#/, '')
-    .toLowerCase();
-  if (!TWITCH_LOGIN_RE.test(login)) {
-    throw new SecurityError('Not a valid Twitch login (1-25 letters, digits or underscores)');
-  }
-  return login as TwitchLogin;
-}
-
-/** A valid numeric Twitch user id. Throws {@link SecurityError} otherwise. */
-export function assertUserId(raw: unknown): TwitchUserId {
-  const id = String(raw ?? '').trim();
-  if (!TWITCH_USER_ID_RE.test(id)) {
-    throw new SecurityError('Not a valid Twitch user id (1-20 digits)');
-  }
-  return id as TwitchUserId;
-}
-
 export function isLogin(raw: unknown): boolean {
   return TWITCH_LOGIN_RE.test(String(raw ?? '').trim().replace(/^#/, '').toLowerCase());
 }
 
 export function isUserId(raw: unknown): boolean {
   return TWITCH_USER_ID_RE.test(String(raw ?? '').trim());
-}
-
-/**
- * Channel names are logins. Strips a leading `#`, lower-cases, and returns `''`
- * for anything that is not a valid login so a caller fails loudly rather than
- * joining an attacker-chosen channel.
- */
-export function normalizeChannel(raw: unknown): string {
-  const candidate = scrub(raw).trim().replace(/^#/, '').toLowerCase();
-  return TWITCH_LOGIN_RE.test(candidate) ? candidate : '';
 }
 
 /** Escapes `& < > " '` for safe interpolation into HTML text or attributes. */
@@ -184,18 +121,12 @@ export function sanitizeStatus(raw: unknown, max = 40): SafeLogLine {
 
 /* ---------------------------------------------------------------- dispatcher */
 
-export interface SanitizeOptions extends IrcLineOptions {
+export interface SanitizeOptions {
   max?: number;
 }
 
-export function sanitize(raw: unknown, policy: 'chat', options?: SanitizeOptions): SafeChatText;
-export function sanitize(raw: unknown, policy: 'irc', options?: IrcLineOptions): SafeIrcLine;
-export function sanitize(raw: unknown, policy: 'login', options?: SanitizeOptions): TwitchLogin;
-export function sanitize(raw: unknown, policy: 'userId', options?: SanitizeOptions): TwitchUserId;
-export function sanitize(raw: unknown, policy: 'channel', options?: SanitizeOptions): string;
 export function sanitize(raw: unknown, policy: 'html', options?: SanitizeOptions): SafeHtml;
-export function sanitize(raw: unknown, policy: 'log', options?: SanitizeOptions): SafeLogLine;
-export function sanitize(raw: unknown, policy: 'status', options?: SanitizeOptions): SafeLogLine;
+export function sanitize(raw: unknown, policy: 'log' | 'status', options?: SanitizeOptions): SafeLogLine;
 export function sanitize(raw: unknown, policy: 'text' | 'topic', options?: SanitizeOptions): string;
 export function sanitize(
   raw: unknown,
@@ -203,16 +134,6 @@ export function sanitize(
   options: SanitizeOptions = {}
 ): string {
   switch (policy) {
-    case 'chat':
-      return sanitizeChatText(raw, options.max);
-    case 'irc':
-      return toIrcLine(raw, options);
-    case 'login':
-      return assertLogin(raw);
-    case 'userId':
-      return assertUserId(raw);
-    case 'channel':
-      return normalizeChannel(raw);
     case 'html':
       return escapeHtml(raw);
     case 'log':

@@ -6,7 +6,6 @@ import {
   runChatAction,
   type ChatNodeConfig,
 } from './twitch-chat-base';
-import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatTimeoutNode(this: Node, config: ChatNodeConfig) {
@@ -27,7 +26,7 @@ module.exports = function (RED: NodeAPI) {
           await ctx.moderation.banUser(broadcasterId, {
             user: userId,
             duration,
-            reason: sanitizeText(msg.reason, 500),
+            reason: msg.reason ? String(msg.reason) : '',
           });
         });
         done();

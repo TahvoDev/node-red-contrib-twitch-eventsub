@@ -1,35 +1,22 @@
 /**
  * Public surface of the security module. Nodes import from here only.
  *
- * `sanitize(value, policy)` is the single entry point every node uses to clean an
- * external string; the named helpers exist for call sites that need a specific
- * branded type and are what `sanitize` delegates to.
+ * Scope: strings *from Twitch*. `sanitize(value, policy)` is the entry point for
+ * cleaning them; the named helpers are what the Twitch-facing call sites use. The
+ * builder's own input is not sanitized — Twurple validates and neutralises what
+ * goes back out to Twitch.
  */
 
-export type {
-  Untrusted,
-  SafeChatText,
-  SafeIrcLine,
-  TwitchLogin,
-  TwitchUserId,
-  SafeLogLine,
-  SafeHtml,
-  SanitizePolicy,
-} from './types';
+export type { Untrusted, SafeLogLine, SafeHtml, SanitizePolicy } from './types';
 
 export {
   SecurityError,
   sanitize,
   sanitizeText,
-  sanitizeChatText,
   sanitizeLogLine,
   sanitizeStatus,
-  toIrcLine,
-  assertLogin,
-  assertUserId,
   isLogin,
   isUserId,
-  normalizeChannel,
   escapeHtml,
   redactSecrets,
   MAX_CHAT_MESSAGE_LENGTH,

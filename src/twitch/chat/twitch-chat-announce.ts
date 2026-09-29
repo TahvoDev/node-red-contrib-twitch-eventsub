@@ -4,7 +4,6 @@ import {
   messageText,
   resolveAnnounceColor,
   runChatAction,
-  sanitizeChatText,
   type ChatNodeConfig,
 } from './twitch-chat-base';
 
@@ -22,10 +21,9 @@ module.exports = function (RED: NodeAPI) {
     node.on('input', async (msg, _send, done) => {
       try {
         await runChatAction(node, connection, config, msg, async (ctx, broadcasterId) => {
-          // Twitch also caps announcements at 500 characters, so apply the same
-          // strip-and-cap as an IRC send rather than letting a long or control-
-          // character message surface as an opaque Helix 400.
-          const message = sanitizeChatText(messageText(msg));
+          // The builder's own announcement text goes to Twitch as-is; the Helix
+          // JSON body encodes it safely. Twitch rejects an over-long message.
+          const message = messageText(msg);
           if (!message.trim()) throw new Error('No announcement text — set msg.payload or msg.text to a string');
 
           await ctx.chat.sendAnnouncement(broadcasterId, {

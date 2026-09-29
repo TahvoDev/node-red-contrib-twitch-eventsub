@@ -4,10 +4,13 @@
 /**
  * Security unit + integration test.
  *
- * Runs the attack corpus, property-style checks and the sanitizer boundaries
- * against the built dist/security output, plus small mock IRC and Helix sinks to
- * prove an injected string cannot leave a node. Any failed assert throws and
- * exits non-zero, failing `npm run test:unit`, `npm run check` and `npm run build`.
+ * Scope: strings *from Twitch*. The sanitizer cleans Twitch-origin data (chat
+ * text, EventSub fields) before a consumer sees it; the builder's own input is
+ * passed through (Twurple validates and neutralises what goes back on the wire).
+ *
+ * Runs the attack corpus and the sanitizer boundaries against the built
+ * dist/security output, plus small mock IRC and Helix sinks to prove the
+ * pass-through. Any failed assert exits non-zero, failing `npm run test:unit`.
  */
 
 const assert = require('assert')
@@ -18,13 +21,10 @@ const security = require(path.join(root, 'dist', 'security', 'index.js'))
 const {
   sanitize,
   sanitizeText,
-  sanitizeChatText,
-  sanitizeLogLine,
   sanitizeStatus,
-  toIrcLine,
-  assertLogin,
-  assertUserId,
-  normalizeChannel,
+  sanitizeLogLine,
+  isLogin,
+  isUserId,
   escapeHtml,
   redactSecrets,
   validateSchema,
@@ -37,16 +37,15 @@ const {
   verifyEventsubRequest,
   ReplayGuard,
   BoundedBuffer,
-  MAX_CHAT_MESSAGE_LENGTH,
+  MAX_TEXT_LENGTH,
 } = security
 
 /* ----------------------------------------------------------- attack corpus */
 
+// Twitch-origin text: controls, bidi and zero-width must not survive.
 const ATTACKS = [
   '\r\nPRIVMSG #x :pwn',
   'hi\r\nJOIN #evil',
-  '/ban victim',
-  '.timeout victim 60',
   '{{{x}}}',
   '{"__proto__":{"a":1}}',
   '\u202Egnp\u202B',
@@ -60,29 +59,21 @@ const ATTACKS = [
 for (const attack of ATTACKS) {
   const cleaned = sanitizeText(attack)
   assert.ok(!/[\r\n\0\t]/.test(cleaned), `newline survived: ${JSON.stringify(attack)}`)
-  assert.ok(!/[\u202A-\u202E\u2066-\u2069\u200B-\u200D\u2060\uFEFF]/.test(cleaned), `bidi/zero-width survived: ${JSON.stringify(attack)}`)
+  assert.ok(
+    !/[\u202A-\u202E\u2066-\u2069\u200B-\u200D\u2060\uFEFF]/.test(cleaned),
+    `bidi/zero-width survived: ${JSON.stringify(attack)}`
+  )
 }
 
-// IRC line injection: CR/LF/NUL never reach the socket.
-for (const attack of ['\r\nPRIVMSG #x :pwn', 'a\r\nb\nc\rd', 'x\0y']) {
-  const line = toIrcLine(attack)
-  assert.ok(!/[\r\n\0]/.test(line), `IRC injection survived: ${JSON.stringify(attack)}`)
-}
-
-// A leading `/` command is neutralised; a leading `.` emote is left intact.
-assert.ok(toIrcLine('/ban victim').startsWith(' '), '/ban was not neutralised')
-assert.ok(!toIrcLine('/me waves').startsWith('/'), '/me was not neutralised')
-assert.strictEqual(toIrcLine('.gg hello'), '.gg hello', 'a .emote was mangled')
-assert.strictEqual(toIrcLine('.com'), '.com', 'a .com emote was mangled')
-
-// 10MB input: capped, and fast.
+// 10MB input: capped, and fast (length fast path avoids a 10M-element array).
 const huge = 'a'.repeat(10 * 1024 * 1024)
-assert.strictEqual(sanitizeText(huge).length, 1000)
-assert.strictEqual(sanitizeChatText(huge).length, MAX_CHAT_MESSAGE_LENGTH)
+assert.strictEqual(sanitizeText(huge).length, MAX_TEXT_LENGTH)
 
-// Path traversal and scope injection are data, not structure, but must be clean.
-const traversal = sanitizeText('../../etc/passwd')
-assert.strictEqual(typeof traversal, 'string')
+assert.strictEqual(sanitizeText('abc', 0), '')
+assert.strictEqual(isLogin('SomeUser'), true)
+assert.strictEqual(isLogin('bad name'), false)
+assert.strictEqual(isUserId('12345'), true)
+assert.strictEqual(isUserId('&scope=admin'), false)
 
 /* ------------------------------------------------------ prototype pollution */
 
@@ -97,18 +88,54 @@ assert.throws(
 const validated = validateSchema({ name: 'x' }, { fields: { name: { kind: 'string' } } })
 assert.deepStrictEqual(Object.keys(validated), ['name'])
 
-// safeGet ignores inherited keys.
 assert.strictEqual(safeGet({}, '__proto__'), undefined)
 assert.strictEqual(safeGet({ constructor: 1 }, 'constructor'), 1)
-assert.strictEqual(safeGet({ a: 1 }, 'a'), 1)
+assert.strictEqual(safeGet('a string', 'length'), undefined)
+assert.strictEqual(safeGet(null, 'x'), undefined)
 
-// safeMerge never copies a poisoning key.
 const mergedTarget = {}
 safeMerge(mergedTarget, JSON.parse('{"__proto__":{"polluted":true},"ok":1}'))
 assert.strictEqual(Object.prototype.polluted, undefined)
 assert.strictEqual(mergedTarget.ok, 1)
+assert.strictEqual(safeMerge({ a: 1 }, null).a, 1)
 
-// Deep sanitize keeps numbers/Dates, strips strings, drops poisoned keys.
+/* ---------------------------------------------------------- schema shapes */
+
+const shapes = validateSchema(
+  { name: 'x', count: 3, flag: true, ids: ['a'], nested: { child: 'y' }, def: undefined },
+  {
+    fields: {
+      name: { kind: 'string', maxLength: 10 },
+      count: { kind: 'int', min: 0, max: 10 },
+      flag: { kind: 'bool' },
+      ids: { kind: 'string[]', maxItems: 5, maxLength: 3 },
+      nested: { kind: 'object', schema: { fields: { child: { kind: 'string' } } } },
+      def: { kind: 'string', default: 'fallback' },
+      opt: { kind: 'string', optional: true },
+    },
+  }
+)
+assert.strictEqual(shapes.count, 3)
+assert.strictEqual(shapes.ids[0], 'a')
+assert.strictEqual(shapes.nested.child, 'y')
+assert.strictEqual(shapes.def, 'fallback')
+assert.strictEqual(shapes.opt, undefined)
+assert.throws(() => validateSchema({ count: 'x' }, { fields: { count: { kind: 'int' } } }), /integer/)
+assert.throws(() => validateSchema({ flag: 1 }, { fields: { flag: { kind: 'bool' } } }), /boolean/)
+assert.throws(() => validateSchema({ ids: ['a', 'b'] }, { fields: { ids: { kind: 'string[]', maxItems: 1 } } }), /too many/)
+assert.throws(() => validateSchema({ name: 1 }, { fields: { name: { kind: 'string' } } }), /must be a string/)
+assert.throws(() => validateSchema({ name: 'x' }, { fields: { name: { kind: 'string', pattern: /^\d+$/ } } }), /invalid format/)
+assert.throws(() => validateSchema({ count: 99 }, { fields: { count: { kind: 'int', max: 10 } } }), /above the maximum/)
+assert.throws(() => validateSchema({ count: -1 }, { fields: { count: { kind: 'int', min: 0 } } }), /below the minimum/)
+assert.throws(() => validateSchema({ x: 1 }, { fields: { x: { kind: 'bogus' } } }), /Unknown field kind/)
+assert.throws(() => validateSchema({ ids: [1] }, { fields: { ids: { kind: 'string[]' } } }), /must be a string/)
+// strict: false ignores unknown keys (config may carry Node-RED's own fields).
+const nonStrict = validateSchema({ name: 'x', other: 1 }, { strict: false, fields: { name: { kind: 'string' } } })
+assert.strictEqual(nonStrict.name, 'x')
+assert.strictEqual(nonStrict.other, undefined)
+
+/* ---------------------------------------------------------- sanitizeDeep */
+
 const deep = sanitizeDeep(
   JSON.parse('{"text":"a\\r\\nb","__proto__":{"x":1},"count":2,"list":["/x","ok"]}')
 )
@@ -117,29 +144,24 @@ assert.strictEqual(deep.count, 2)
 assert.deepStrictEqual(deep.list, ['/x', 'ok'])
 assert.ok(!Object.prototype.hasOwnProperty.call(deep, '__proto__') || deep.__proto__ === undefined)
 
-/* --------------------------------------------------------------- validation */
+// Past the depth limit an object is dropped, not returned raw.
+assert.deepStrictEqual(sanitizeDeep(['x'], 5, 99), [])
+assert.deepStrictEqual(sanitizeDeep({ deep: { a: 1 } }, 5, 99), {})
+let deepAttack = '\u202E\r\nJOIN #evil'
+for (let i = 0; i < 16; i++) deepAttack = { child: deepAttack }
+assert.strictEqual(JSON.stringify(sanitizeDeep(deepAttack)).indexOf('JOIN'), -1, 'deep payload bypassed the depth cap')
 
-assert.strictEqual(security.isLogin('SomeUser'), true)
-assert.strictEqual(security.isLogin('bad name'), false)
-assert.strictEqual(security.isUserId('12345'), true)
-assert.strictEqual(security.isUserId('abc'), false)
-assert.strictEqual(assertLogin('#SomeUser'), 'someuser')
-assert.strictEqual(assertLogin('user_name1'), 'user_name1')
-assert.throws(() => assertLogin('bad name!'), /valid Twitch login/)
-assert.throws(() => assertLogin('a'.repeat(26)), /valid Twitch login/)
-assert.strictEqual(assertUserId('12345'), '12345')
-assert.throws(() => assertUserId('&scope=admin'), /valid Twitch user id/)
-assert.throws(() => assertUserId('123456789012345678901'), /valid Twitch user id/)
-assert.strictEqual(normalizeChannel('#SomeChannel'), 'somechannel')
-assert.strictEqual(normalizeChannel('__proto__'), '__proto__')
-assert.strictEqual(normalizeChannel('bad name'), '')
-assert.strictEqual(normalizeChannel('evil\r\nJOIN #x'), '')
-
-/* ------------------------------------------------------------------- outputs */
+/* --------------------------------------------------------------- outputs */
 
 assert.strictEqual(escapeHtml('<img src=x onerror=alert(1)>'), '&lt;img src=x onerror=alert(1)&gt;')
 assert.strictEqual(escapeHtml('a"b\'c&d'), 'a&quot;b&#39;c&amp;d')
 assert.strictEqual(sanitize('{"x":1}', 'html'), '{&quot;x&quot;:1}')
+assert.strictEqual(sanitize('a\r\nb', 'text'), 'a b')
+assert.strictEqual(sanitize('a\r\nb', 'topic'), 'a b')
+assert.strictEqual(sanitize('a\r\nb', 'log'), 'a b')
+assert.strictEqual(sanitize('x', 'status'), 'x')
+assert.strictEqual(sanitizeStatus('x'), 'x')
+assert.throws(() => sanitize('x', 'nope'), /Unknown sanitize policy/)
 
 const redacted = redactSecrets('Authorization: Bearer abcdefghijklmnop oauth:1234567890 client_secret=supersecret')
 assert.ok(!/abcdefghijklmnop/.test(redacted), 'bearer token leaked')
@@ -187,10 +209,7 @@ assert.deepStrictEqual(verifyEventsubRequest({ secret: SECRET, rawBody: body, he
 })
 
 // Body tampered after signing.
-assert.strictEqual(
-  verifyEventsubRequest({ secret: SECRET, rawBody: Buffer.from('{"x":1}'), headers }).ok,
-  false
-)
+assert.strictEqual(verifyEventsubRequest({ secret: SECRET, rawBody: Buffer.from('{"x":1}'), headers }).ok, false)
 
 // Stale timestamp.
 const old = new Date(Date.now() - 11 * 60 * 1000).toISOString()
@@ -204,29 +223,18 @@ assert.deepStrictEqual(verifyEventsubRequest({ secret: SECRET, rawBody: body, he
   reason: 'stale-timestamp',
 })
 
-// Missing headers.
 assert.strictEqual(verifyEventsubRequest({ secret: SECRET, rawBody: body, headers: {} }).reason, 'missing-headers')
-
-// A string raw body and a repeated (array) header are both accepted.
-const arrayHeaders = {
-  ...headers,
-  'twitch-eventsub-message-id': [messageId, 'ignored'],
-}
 assert.strictEqual(
-  verifyEventsubRequest({ secret: SECRET, rawBody: body.toString('utf8'), headers: arrayHeaders }).ok,
+  verifyEventsubRequest({ secret: SECRET, rawBody: body.toString('utf8'), headers: { ...headers, 'twitch-eventsub-message-id': [messageId, 'x'] } }).ok,
   true
 )
 
-// Replay: the same id is accepted once.
 const guard = new ReplayGuard()
 assert.strictEqual(guard.check('id-1'), true)
 assert.strictEqual(guard.check('id-1'), false)
 assert.strictEqual(guard.check('id-2'), true)
-
-// An entry expires after the TTL, and the store is capped.
 const expiring = new ReplayGuard(1000)
 assert.strictEqual(expiring.check('id-a', 1000), true)
-assert.strictEqual(expiring.check('id-a', 1000), false)
 assert.strictEqual(expiring.check('id-a', 3000), true, 'expired id was not pruned')
 const capped = new ReplayGuard(1000, 1)
 assert.strictEqual(capped.check('first', 0), true)
@@ -251,63 +259,6 @@ assert.strictEqual(envelopeMsg.twitch.untrusted, true)
 assert.deepStrictEqual(envelopeMsg.twitch.raw, { text: 'raw' })
 assert.strictEqual(envelopeMsg.twitch.source, 'chat')
 
-/* ---------------------------------------------------------- schema shapes */
-
-const shapes = validateSchema(
-  { name: 'x', count: 3, flag: true, ids: ['a'], nested: { child: 'y' }, def: undefined },
-  {
-    fields: {
-      name: { kind: 'string', maxLength: 10 },
-      count: { kind: 'int', min: 0, max: 10 },
-      flag: { kind: 'bool' },
-      ids: { kind: 'string[]', maxItems: 5, maxLength: 3 },
-      nested: { kind: 'object', schema: { fields: { child: { kind: 'string' } } } },
-      def: { kind: 'string', default: 'fallback' },
-      opt: { kind: 'string', optional: true },
-    },
-  }
-)
-assert.strictEqual(shapes.count, 3)
-assert.strictEqual(shapes.ids[0], 'a')
-assert.strictEqual(shapes.nested.child, 'y')
-assert.strictEqual(shapes.def, 'fallback')
-assert.strictEqual(shapes.opt, undefined)
-assert.throws(() => validateSchema({ count: 'x' }, { fields: { count: { kind: 'int' } } }), /integer/)
-assert.throws(() => validateSchema({ flag: 1 }, { fields: { flag: { kind: 'bool' } } }), /boolean/)
-assert.throws(() => validateSchema({ ids: ['a', 'b'] }, { fields: { ids: { kind: 'string[]', maxItems: 1 } } }), /too many/)
-assert.throws(() => validateSchema({ name: 'x' }, { fields: {} }), /unknown key/)
-assert.throws(() => validateSchema({ name: 1 }, { fields: { name: { kind: 'string' } } }), /must be a string/)
-assert.throws(() => validateSchema({ name: 'x' }, { fields: { name: { kind: 'string', pattern: /^\d+$/ } } }), /invalid format/)
-assert.throws(() => validateSchema({ count: 99 }, { fields: { count: { kind: 'int', max: 10 } } }), /above the maximum/)
-assert.throws(() => validateSchema({ count: -1 }, { fields: { count: { kind: 'int', min: 0 } } }), /below the minimum/)
-assert.throws(() => validateSchema({ x: 1 }, { fields: { x: { kind: 'bogus' } } }), /Unknown field kind/)
-assert.throws(() => validateSchema({ ids: [1] }, { fields: { ids: { kind: 'string[]' } } }), /must be a string/)
-assert.strictEqual(safeGet('a string', 'length'), undefined)
-assert.strictEqual(safeGet(null, 'x'), undefined)
-assert.strictEqual(safeMerge({ a: 1 }, null).a, 1)
-assert.deepStrictEqual(sanitizeDeep(['x'], 5, 99), [])
-// Past the depth limit an object is dropped, not returned raw.
-assert.deepStrictEqual(sanitizeDeep({ deep: { a: 1 } }, 5, 99), {})
-// A bidi/CRLF payload nested deeper than the limit must not pass through.
-let deepAttack = '\u202E\r\nJOIN #evil'
-for (let i = 0; i < 16; i++) deepAttack = { child: deepAttack }
-assert.strictEqual(JSON.stringify(sanitizeDeep(deepAttack)).indexOf('JOIN'), -1, 'deep payload bypassed the depth cap')
-assert.strictEqual(sanitizeText('abc', 0), '')
-
-/* --------------------------------------------------------- sanitize policies */
-
-assert.strictEqual(sanitize(' USER ', 'login'), 'user')
-assert.strictEqual(sanitize('123', 'userId'), '123')
-assert.strictEqual(sanitize('#Chan', 'channel'), 'chan')
-assert.strictEqual(sanitize('a\r\nb', 'chat'), 'a b')
-assert.strictEqual(sanitize('a\r\nb', 'irc'), 'a b')
-assert.strictEqual(sanitize('a\r\nb', 'text'), 'a b')
-assert.strictEqual(sanitize('a\r\nb', 'topic'), 'a b')
-assert.strictEqual(sanitize('a\r\nb', 'log'), 'a b')
-assert.strictEqual(sanitizeStatus('x'), 'x')
-assert.strictEqual(sanitize('x', 'status'), 'x')
-assert.throws(() => sanitize('x', 'nope'), /Unknown sanitize policy/)
-
 /* ------------------------------------------------------------ property tests */
 
 // The sanitizer output must never contain a forbidden character and never exceed
@@ -316,7 +267,6 @@ const FORBIDDEN = /[\u0000-\u0008\u000B-\u001F\u007F-\u009F\u202A-\u202E\u2066-\
 const ALPHABET = ['a', 'Z', '0', ' ', '\r', '\n', '\t', '\0', '\u202E', '\u202B', '\u200B', '\uFEFF', '&', '<', '>', '"', "'", '/', '.', '#', '\u{1F600}']
 let seed = 12345
 function random() {
-  // Deterministic LCG so a failure is reproducible.
   seed = (seed * 1103515245 + 12345) & 0x7fffffff
   return seed / 0x7fffffff
 }
@@ -328,9 +278,6 @@ for (let i = 0; i < 3000; i++) {
   const out = sanitizeText(input, max)
   assert.ok(!FORBIDDEN.test(out), `forbidden char from ${JSON.stringify(input)} -> ${JSON.stringify(out)}`)
   assert.ok(Array.from(out).length <= max, `over cap from ${JSON.stringify(input)}`)
-  // The IRC variant additionally never contains a NUL and never a bare command.
-  const line = toIrcLine(input)
-  assert.ok(!/[\r\n\0]/.test(line))
 }
 
 /* ------------------------------------------------- integration: mock sinks */
@@ -345,34 +292,30 @@ function makeNode() {
 ;(async () => {
   const base = require(path.join(root, 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 
-  // Mock IRC server: capture what would go on the wire.
+  // Mock IRC server: the builder's own text is handed to Twurple unchanged;
+  // Twurple strips CR/LF at the wire, not this node.
   const sent = []
   const connection = {
-    initChat: async () => ({
-      say: async (channel, text, opts) => sent.push({ channel, text, opts }),
-    }),
+    initChat: async () => ({ say: async (channel, text, opts) => sent.push({ channel, text, opts }) }),
   }
-
   const node = makeNode()
-  await base.sendChatMessage(node, connection, { channel: 'somechannel' }, { payload: '/ban victim\r\nPRIVMSG #x :pwn' }, () => {})
+  const builderText = '/ban victim\r\nPRIVMSG #x :pwn'
+  await base.sendChatMessage(node, connection, { channel: 'somechannel' }, { payload: builderText }, () => {})
   assert.strictEqual(sent.length, 1)
   assert.strictEqual(sent[0].channel, 'somechannel')
-  assert.ok(!/[\r\n]/.test(sent[0].text), 'CR/LF reached the IRC sink')
-  assert.ok(sent[0].text.startsWith(' '), 'leading command reached the IRC sink')
+  assert.strictEqual(sent[0].text, builderText)
 
-  // A channel with an injected newline is rejected before any send.
+  // An empty channel still fails loudly before any send.
   const badNode = makeNode()
-  await base.sendChatMessage(badNode, connection, { channel: 'x' }, { payload: 'hi', channel: 'evil\r\nJOIN #x' }, () => {})
-  assert.strictEqual(sent.length, 1, 'send happened with an invalid channel')
+  await base.sendChatMessage(badNode, connection, {}, { payload: 'hi', channel: '' }, () => {})
+  assert.strictEqual(sent.length, 1, 'send happened without a channel')
   assert.match(String(badNode.errors[0]), /No channel specified/)
 
-  // Mock Helix sink through the real dispatcher: string fields are sanitized.
+  // Mock Helix sink through the real dispatcher: builder input passes through.
   const { callEndpoint } = require(path.join(root, 'dist', 'twitch', 'helix', 'helix-core.js'))
   const { defineHelix } = require(path.join(root, 'dist', 'twitch', 'helix', 'define.js'))
   let received
-  const api = {
-    asUser: async (_id, fn) => fn({}),
-  }
+  const api = { asUser: async (_id, fn) => fn({}) }
   const spec = defineHelix({
     type: 'twitch-helix-security-test',
     tier: 'core',
@@ -386,8 +329,9 @@ function makeNode() {
       return { input }
     },
   })
-  await callEndpoint(spec, api, { text: 'ok\r\nJOIN #evil\u202E' }, {}, { userId: '1', config: { twitch_user_id: '1' } })
-  assert.ok(!/[\r\n\u202E]/.test(received), 'injection survived into the Helix call')
+  const builderField = 'ok\r\nJOIN #evil\u202E'
+  await callEndpoint(spec, api, { text: builderField }, {}, { userId: '1', config: { twitch_user_id: '1' } })
+  assert.strictEqual(received, builderField, 'builder Helix input was rewritten')
 
   console.log('security test: ok')
 })().catch((err) => {

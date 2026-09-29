@@ -14,13 +14,7 @@ import {
   type HelixSpec,
 } from './helix/define';
 import { enabledTiers } from './helix/helix-core';
-import {
-  buildUrl,
-  isUserId,
-  sanitizeStatus,
-  validateSchema,
-  type Schema,
-} from '../security';
+import { buildUrl, sanitizeStatus, validateSchema, type Schema } from '../security';
 
 /** A field reduced to the metadata the twitch-api editor needs. */
 function serializeField(field: HelixField) {
@@ -347,13 +341,6 @@ module.exports = function (RED: NodeAPI) {
 
       const { twitch_refresh_token, twitch_client_secret } = this.credentials ?? {};
 
-      // The account id comes from the editor/config and is a trust boundary:
-      // reject anything that is not a numeric Twitch id before it reaches Helix.
-      if (this.config.twitch_user_id && !isUserId(this.config.twitch_user_id)) {
-        this.updateStatus({ fill: 'red', shape: 'ring', text: 'Twitch user ID is not numeric — re-login' });
-        return;
-      }
-
       if (!twitch_refresh_token || !this.config.twitch_user_id) {
         this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch login…' });
         return;
@@ -412,10 +399,6 @@ module.exports = function (RED: NodeAPI) {
 
       if (!userId) {
         this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Mock server needs a user ID' });
-        return;
-      }
-      if (!isUserId(userId)) {
-        this.updateStatus({ fill: 'red', shape: 'ring', text: 'Mock user ID must be numeric' });
         return;
       }
 

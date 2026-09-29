@@ -270,11 +270,13 @@ the request each one is supposed to make. Same container-engine requirement.
 
 ## Security
 
-Everything a Twitch node emits is **untrusted input**: chat text, EventSub
-fields, Helix strings and any `msg.*` override. The nodes sanitize their own
-outputs, but a downstream node can undo that if you are not careful.
+Data **from Twitch** is untrusted — chat text, EventSub fields, Helix response
+strings. The nodes clean what they deliver (`msg.payload`, `msg.text`,
+`msg.user`, EventSub convenience fields); Helix response strings are passed
+through as Twurple returns them. Your own input (node config, the messages you
+send) is yours to handle, and Twurple handles the Twitch wire.
 
-**Never** pass raw chat text straight to:
+**Never** pass a Twitch string straight to:
 
 - a **function node** that concatenates it into a command string or uses it to
   build code;
@@ -285,10 +287,8 @@ outputs, but a downstream node can undo that if you are not careful.
 
 Only `msg.payload` and the named convenience fields have passed the sanitizer.
 `msg.twitch.raw`, `msg._raw` and the EventSub `rawEvent` field are the
-untouched originals — escape them before any HTML/template sink.
-
-Prefer the sanitized value (`msg.payload`) and the branded helpers in
-`src/security/`, keep templates sourced only from node config. See
+untouched originals — escape them (and Helix response strings) with `escapeHtml`
+or the `html` policy before an HTML/template sink. See
 [SECURITY.md](SECURITY.md) for the full threat model and controls.
 
 > **Chat command authorization.** The role checks on `twitch-chat-command`

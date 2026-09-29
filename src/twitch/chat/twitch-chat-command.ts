@@ -7,7 +7,6 @@ import {
   type ChatCommandConfig,
   type TwitchChatMessage,
 } from './twitch-chat-base';
-import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
@@ -45,8 +44,7 @@ module.exports = function (RED: NodeAPI) {
             ? msg.payload
             : '';
 
-      // Cap before the match/split: msg.text is an untrusted, possibly huge value.
-      const args = matchCommand(sanitizeText(raw, 4000), trigger);
+      const args = matchCommand(raw, trigger);
       if (!args) return;
 
       if (wantsRole) {
@@ -64,10 +62,8 @@ module.exports = function (RED: NodeAPI) {
         }
       }
 
-      // The args are still attacker text: strip control/bidi/zero-width and cap
-      // each before they are handed to a downstream node.
       msg.command = command;
-      msg.args = args.map((arg) => sanitizeText(arg, 100));
+      msg.args = args;
       node.send(msg);
     });
   }
