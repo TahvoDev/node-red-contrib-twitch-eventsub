@@ -30,14 +30,12 @@ const {
   validateSchema,
   safeGet,
   safeMerge,
-  safeParseTags,
   sanitizeDeep,
   buildUrl,
   markUntrusted,
   computeEventsubSignature,
   verifyEventsubRequest,
   ReplayGuard,
-  TokenBucket,
   BoundedBuffer,
   MAX_CHAT_MESSAGE_LENGTH,
 } = security
@@ -109,18 +107,6 @@ const mergedTarget = {}
 safeMerge(mergedTarget, JSON.parse('{"__proto__":{"polluted":true},"ok":1}'))
 assert.strictEqual(Object.prototype.polluted, undefined)
 assert.strictEqual(mergedTarget.ok, 1)
-
-// Tags parse into a Map; forbidden keys are dropped.
-const tags = safeParseTags('display-name=bob;__proto__=x;constructor=y;color=red')
-assert.strictEqual(tags.get('display-name'), 'bob')
-assert.strictEqual(tags.get('__proto__'), undefined)
-assert.strictEqual(tags.get('constructor'), undefined)
-assert.strictEqual(tags.get('color'), 'red')
-assert.ok(tags instanceof Map)
-assert.deepStrictEqual(
-  [...safeParseTags('a=1;b=2', ['a']).keys()],
-  ['a']
-)
 
 // Deep sanitize keeps numbers/Dates, strips strings, drops poisoned keys.
 const deep = sanitizeDeep(
@@ -247,17 +233,7 @@ assert.strictEqual(capped.check('first', 0), true)
 assert.strictEqual(capped.check('second', 0), true)
 assert.strictEqual(capped.check('first', 0), true, 'oldest entry was not evicted')
 
-/* ----------------------------------------------------- rate limit / buffers */
-
-const bucket = new TokenBucket(2, 1, 1000)
-assert.strictEqual(bucket.tryRemove(1000), true)
-assert.strictEqual(bucket.tryRemove(1000), true)
-assert.strictEqual(bucket.tryRemove(1000), false)
-assert.ok(bucket.delayMs(1000) > 0)
-assert.strictEqual(bucket.tryRemove(3000), true)
-// A clock that goes backwards must not create tokens.
-bucket.tryRemove(9000)
-assert.strictEqual(bucket.delayMs(8000) >= 0, true)
+/* --------------------------------------------------------- inbound buffers */
 
 const buffer = new BoundedBuffer(5)
 buffer.append('abcdefgh')

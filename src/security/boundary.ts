@@ -161,28 +161,10 @@ export function safeMerge<T extends Record<string, unknown>>(
 }
 
 /**
- * Parses IRCv3-style `key=value;key2=value2` tags into a Map. A key allowlist can
- * be supplied for a fixed set of expected tags; forbidden keys are dropped. A Map
- * is used so a hostile key can never reach the prototype.
+ * IRCv3 tag parsing is not reimplemented here: the `ircv3` package that Twurple
+ * uses already parses tags into a `Map` and escapes tag values, so it is
+ * proto-safe. See SECURITY.md.
  */
-export function safeParseTags(
-  raw: unknown,
-  allowedKeys?: readonly string[]
-): Map<string, string> {
-  const tags = new Map<string, string>();
-  if (typeof raw !== 'string' || !raw) return tags;
-
-  for (const segment of raw.slice(0, 10000).split(';')) {
-    if (!segment) continue;
-    const eq = segment.indexOf('=');
-    const key = (eq === -1 ? segment : segment.slice(0, eq)).trim();
-    const value = eq === -1 ? '' : segment.slice(eq + 1);
-    if (!key || FORBIDDEN_KEYS.has(key)) continue;
-    if (allowedKeys && allowedKeys.indexOf(key) === -1) continue;
-    tags.set(key, value);
-  }
-  return tags;
-}
 
 /** The fixed origins this package is allowed to call. */
 export const ALLOWED_URL_HOSTS = [

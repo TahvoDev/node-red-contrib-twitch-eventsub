@@ -74,9 +74,9 @@ through `toStr`, so a title or name is normalised before it reaches Twitch.
 `toIrcLine` rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading
 `/` with a space so chat text cannot become a command. A leading `.` is left
 alone: on this transport `.` is the emote prefix (`.gg`, `.com`), not a command —
-mangling those broke legitimate messages. Outgoing chat is token-bucket rate
-limited; the token is reserved inside the wait loop, so concurrent callers cannot
-all wake from one delay and send unthrottled.
+mangling those broke legitimate messages. Outgoing rate limiting is Twurple's:
+`ChatClient.say` queues through a per-channel rate limiter using Twitch's own
+limits, so this package does not add a second, weaker one.
 
 ### Boundaries and object hygiene
 
@@ -84,9 +84,8 @@ all wake from one delay and send unthrottled.
 config, inbound `msg` shapes, Helix parameters and HTTP request bodies. It never
 copies a key it was not told about, so `__proto__`, `constructor` and
 `prototype` cannot ride in on external data. `safeMerge` replaces
-`Object.assign` for external data, `safeParseTags` parses IRCv3 tags into a `Map`
-with a key allowlist, and `sanitizeDeep` walks a payload and sanitizes its
-strings without recursion blow-ups.
+`Object.assign` for external data, and `sanitizeDeep` walks a payload and
+sanitizes its strings without recursion blow-ups.
 
 URLs are built with `buildUrl` against a host/path allowlist; no URL is
 assembled with string concatenation.
@@ -134,6 +133,33 @@ The device-code flow has no redirect callback, so there is no OAuth `state`
 parameter to validate. If a redirect-based flow is added, generate a random,
 single-use `state` and compare it on callback.
 
+### What Twurple already enforces (defense in depth)
+
+Several controls here are deliberately *not* duplicated because Twurple 7
+already provides them; where this package still does the same check it is
+defense in depth, not the only line:
+
+- **IRC wire injection.** `@d-fischer/connection` `AbstractConnection.sendLine`
+  removes `\0\r\n` from every outgoing line, so `say()` cannot inject a second
+  IRC line even without `toIrcLine`. Ours additionally replaces them with a
+  space (so words do not merge) and strips bidi/zero-width characters, which
+  Twurple does not.
+- **Channel/login validation.** `toUserName` (`^[a-z0-9][a-z0-9_]{0,24}$`) and
+  `isChannel` already reject invalid names and throw. Our `assertLogin` /
+  `normalizeChannel` validate earlier (and cover config parsing), but Twurple
+  would reject the same values at the call.
+- **IRCv3 tag parsing.** The `ircv3` parser builds a `Map` and escapes tag
+  values, so it is prototype-safe. This package does not reimplement it.
+- **Outgoing rate limits.** `ChatClient` uses a per-channel rate limiter and
+  `ApiClient` a Helix rate limiter that reads Twitch's `ratelimit-*` headers.
+  We removed our own global token bucket rather than run a second, weaker limiter.
+- **Helix URL/body building.** `@twurple/api-call` builds requests from a fixed
+  base plus `@d-fischer/qs`/`JSON.stringify`, so there is no concatenation of
+  untrusted input. Our `buildUrl` is only for this package's own admin `fetch`
+  calls, which Twurple does not make.
+- **EventSub WebSocket.** Events arrive on an authenticated socket; there is no
+  per-event HMAC to check (that is a webhook control).
+
 ### Library-only utilities
 
 These are implemented and unit-tested but have no in-repo caller yet; they exist
@@ -143,8 +169,6 @@ not mistaken for an active control:
 - `src/security/webhook.ts` — webhook HMAC verification and replay guard. The
   package uses the EventSub WebSocket transport, so there is no receiver to call
   it. Wire it into an HTTP endpoint if one is ever added.
-- `safeParseTags` — IRCv3 tag parsing with a key allowlist. Twurple parses the
-  tags before this package sees them, so it is not on the message path.
 - `BoundedBuffer` — a fixed-size inbound buffer. Twurple owns the socket
   buffering; available for a custom reader.
 - `escapeHtml` / the `html` sanitize policy — for consumers that render into a

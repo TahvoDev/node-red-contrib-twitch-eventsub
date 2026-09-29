@@ -5,7 +5,6 @@ import type { AuthProvider } from '@twurple/auth';
 import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
 import {
   MAX_CHAT_MESSAGE_LENGTH,
-  TokenBucket,
   assertLogin,
   isLogin,
   isUserId,
@@ -218,32 +217,6 @@ export interface SendChatOptions {
 }
 
 /**
- * Outgoing chat is rate limited so a fast flow cannot flood Twitch. The bucket is
- * global, not per channel — a bot that sends to many busy channels at once would
- * need per-channel buckets; this is the conservative default.
- */
-// ponytail: global bucket; split per channel if multi-channel throughput matters.
-let chatSendBucket = new TokenBucket(20, 0.66);
-
-/**
- * Reserves a send token. The token is consumed only when `tryRemove` returns
- * true, inside the loop, so concurrent callers cannot all wake from the same
- * delay and send anyway: the losers observe an empty bucket and keep waiting.
- */
-export async function acquireSendSlot(): Promise<void> {
-  for (;;) {
-    const delay = chatSendBucket.delayMs();
-    if (delay <= 0 && chatSendBucket.tryRemove()) return;
-    await new Promise((resolve) => setTimeout(resolve, delay > 0 ? delay : 1));
-  }
-}
-
-/** Test hook: replace the shared bucket so a test can control its state. */
-export function resetChatSendBucket(capacity = 20, refillPerSecond = 0.66): void {
-  chatSendBucket = new TokenBucket(capacity, refillPerSecond);
-}
-
-/**
  * Sends a chat message over the shared ChatClient. The channel can be overridden
  * per message with msg.channel. Threading is opt-in via `options.replyTo` so a
  * plain send never silently becomes a reply to whatever msg.id carries.
@@ -294,7 +267,9 @@ export async function sendChatMessage(
       return;
     }
 
-    await acquireSendSlot();
+    // Outgoing rate limiting is Twurple's: ChatClient.say queues through a
+    // per-channel rate limiter (1 msg/1.2s per channel plus Twitch's bot-level
+    // allowance). A second, global bucket here would only be weaker.
     const replyTo = options.replyTo ? sanitize(options.replyTo, 'text', { max: 64 }) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});

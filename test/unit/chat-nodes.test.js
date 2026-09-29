@@ -165,14 +165,6 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   assert.strictEqual(status.fill, 'red')
   assert.match(status.text, /Auth failed: invalid refresh token/)
 
-  // Rate limiter: with one token and a 1/s refill, two concurrent acquirers must
-  // not both return immediately. The old code ignored tryRemove()'s result and
-  // let the second send through; this asserts the token is actually reserved.
-  base.resetChatSendBucket(1, 1)
-  const started = Date.now()
-  await Promise.all([base.acquireSendSlot(), base.acquireSendSlot()])
-  assert.ok(Date.now() - started >= 900, 'a concurrent send bypassed the rate limit')
-
   // Role verification is server-side: the flags on the message are ignored.
   const roleApi = {
     users: { getUserByName: async () => ({ id: '55' }) },

@@ -14,8 +14,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   unsanitized value a compile error at the known sinks.
 - IRC output rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading `/` so
   chat text cannot become a command. A leading `.` is left alone because it is the emote
-  prefix (`.gg`, `.com`) on this transport. Outgoing chat is rate limited with a token
-  reserved inside the wait loop, so concurrent sends cannot bypass it.
+  prefix (`.gg`, `.com`) on this transport. Outgoing rate limiting is left to Twurple,
+  whose `ChatClient` already queues per channel with Twitch's own limits; a second, global
+  token bucket was removed rather than maintained.
 - **Chat command authorization is now verified.** Set a **Connection** on
   `twitch-chat-command` and its role gates re-check the sender against Twitch
   (`checkUserIsModerator`, `checkUserSubscription`, the VIP list); forged
@@ -24,7 +25,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   logs a warning — configure the Connection to close that gap.
 - Strict runtime schema validation (`validateSchema`, no unknown keys) at the config, inbound
   `msg`, HTTP-body and payload boundaries, with a prototype-pollution guard. `Object.assign`
-  of external data was replaced with `safeMerge`; IRCv3 tags use `safeParseTags` (a `Map`).
+  of external data was replaced with `safeMerge`. IRCv3 tag parsing is left to the `ircv3`
+  package (a prototype-safe `Map`); `safeParseTags` was removed as a duplicate.
 - Helix/HTTP URLs are built with `buildUrl` against a host/path allowlist; no URL is assembled
   by string concatenation.
 - HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require Node-RED's
@@ -39,6 +41,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Editor UI builds form elements with `.text()`/`.attr()` instead of string-concatenated HTML.
 - The raw escape hatches (`msg.twitch.raw`, `msg._raw`, EventSub `rawEvent`) are documented
   as unsanitized; only `msg.payload` and the named fields pass the sanitizer.
+- SECURITY.md documents what Twurple already enforces (IRC `\0\r\n` stripping, channel/login
+  validation, prototype-safe IRCv3 tags, per-channel/per-bucket rate limits, safe Helix URL
+  building), so the remaining controls are understood as defense in depth rather than the
+  only line of defence.
 - Tooling: `tsc` runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
   `eslint-plugin-no-unsanitized`) and a forbidden-pattern sink check run in `npm run check`;
   the security tests enforce ≥90% line/function coverage as part of `npm run check`; `npm
