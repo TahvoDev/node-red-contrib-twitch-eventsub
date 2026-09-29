@@ -25,11 +25,6 @@ export interface EventSubEventDefinition {
   description: string;
   /** Twurple EventSub listener method invoked for this event. */
   subscribe: (listener: EventSubWsListener, userId: string, cb: (event: any) => void) => void;
-  /**
-   * Set when Twitch never delivers this topic over the EventSub WebSocket transport.
-   * The value is shown to the user and the subscription is skipped.
-   */
-  unsupportedReason?: string;
   /** Output payload mapping. */
   fields: EventSubField[];
 }
@@ -1401,34 +1396,6 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userDisplayName",
       "reason",
       "chatRulesCited",
-      { key: 'rawEvent', map: (e: any) => getRawData(e) },
-    ],
-  },
-  {
-    type: "twitch-eventsub-user-authorization-grant",
-    label: "authorization granted",
-    description: "Fires when a user grants authorization to an application or extension.",
-    subscribe: (listener, userId, cb) => listener.onUserAuthorizationGrant(cb),
-    unsupportedReason: `user.authorization.grant is only delivered to webhooks and conduits, not over the EventSub WebSocket transport, so this node will not receive events`,
-    fields: [
-      "userId",
-      "userName",
-      "userDisplayName",
-      "clientId",
-      { key: 'rawEvent', map: (e: any) => getRawData(e) },
-    ],
-  },
-  {
-    type: "twitch-eventsub-user-authorization-revoke",
-    label: "authorization revoked",
-    description: "Fires when a user revokes authorization from an application or extension.",
-    subscribe: (listener, userId, cb) => listener.onUserAuthorizationRevoke(cb),
-    unsupportedReason: `user.authorization.revoke is only delivered to webhooks and conduits, not over the EventSub WebSocket transport, so this node will not receive events`,
-    fields: [
-      "userId",
-      "userName",
-      "userDisplayName",
-      "clientId",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },

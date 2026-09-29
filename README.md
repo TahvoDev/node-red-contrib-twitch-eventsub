@@ -283,10 +283,20 @@ outputs, but a downstream node can undo that if you are not careful.
   `innerHTML`;
 - a URL built with string `+`.
 
+Only `msg.payload` and the named convenience fields have passed the sanitizer.
+`msg.twitch.raw`, `msg._raw` and the EventSub `rawEvent` field are the
+untouched originals — escape them before any HTML/template sink.
+
 Prefer the sanitized value (`msg.payload`) and the branded helpers in
-`src/security/`, keep templates sourced only from node config, and treat
-`msg.twitch.raw` as raw data for display-escaping only. See
+`src/security/`, keep templates sourced only from node config. See
 [SECURITY.md](SECURITY.md) for the full threat model and controls.
+
+> **Chat command authorization.** The role checks on `twitch-chat-command`
+> (`Mod only`, `Broadcaster only`, …) trust the `msg.isMod`/`msg.isBroadcaster`
+> flags unless you set a **Connection** on the node. With a Connection the
+> sender is re-checked against Twitch and a forged flag is ignored; without one
+> the node logs a warning and the gating is unverified. Set the Connection for
+> any command that triggers a destructive action.
 
 ## Adding a new event
 

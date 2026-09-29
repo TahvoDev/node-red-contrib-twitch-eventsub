@@ -6,6 +6,7 @@ import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
 import {
   MAX_CHAT_MESSAGE_LENGTH,
   TokenBucket,
+  assertLogin,
   isLogin,
   isUserId,
   normalizeChannel,
@@ -14,6 +15,8 @@ import {
   sanitizeStatus,
   sanitizeText,
   toIrcLine,
+  type SafeIrcLine,
+  type TwitchLogin,
 } from '../../security';
 
 export type ChatStatus = {
@@ -38,7 +41,7 @@ export interface ChatConnectionConfig extends NodeDef {
   channels?: string;
 }
 
-export interface ChatCommandConfig extends NodeDef {
+export interface ChatCommandConfig extends ChatNodeConfig {
   command?: string;
   prefix?: string;
   requireMod?: boolean;
@@ -220,12 +223,24 @@ export interface SendChatOptions {
  * need per-channel buckets; this is the conservative default.
  */
 // ponytail: global bucket; split per channel if multi-channel throughput matters.
-const chatSendBucket = new TokenBucket(20, 0.66);
+let chatSendBucket = new TokenBucket(20, 0.66);
 
-async function waitForSendSlot(): Promise<void> {
-  const delay = chatSendBucket.delayMs();
-  if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
-  chatSendBucket.tryRemove();
+/**
+ * Reserves a send token. The token is consumed only when `tryRemove` returns
+ * true, inside the loop, so concurrent callers cannot all wake from the same
+ * delay and send anyway: the losers observe an empty bucket and keep waiting.
+ */
+export async function acquireSendSlot(): Promise<void> {
+  for (;;) {
+    const delay = chatSendBucket.delayMs();
+    if (delay <= 0 && chatSendBucket.tryRemove()) return;
+    await new Promise((resolve) => setTimeout(resolve, delay > 0 ? delay : 1));
+  }
+}
+
+/** Test hook: replace the shared bucket so a test can control its state. */
+export function resetChatSendBucket(capacity = 20, refillPerSecond = 0.66): void {
+  chatSendBucket = new TokenBucket(capacity, refillPerSecond);
 }
 
 /**
@@ -258,8 +273,10 @@ export async function sendChatMessage(
       return;
     }
 
-    const channel = normalizeChannel(msg.channel ?? config.channel);
-    if (!channel) {
+    let channel: TwitchLogin;
+    try {
+      channel = assertLogin(normalizeChannel(msg.channel ?? config.channel));
+    } catch {
       node.error('No channel specified', msg);
       finish();
       return;
@@ -268,16 +285,16 @@ export async function sendChatMessage(
     // twitch-chat-in sets both text and payload; accept either so a message
     // straight off the wire does not have to be reshaped first. Every external
     // string crosses the one sanitizer: control/bidi/zero-width chars out, the
-    // length capped, and a leading `/`/`.` neutralised so chat text cannot turn
-    // into an IRC command.
-    const text = toIrcLine(messageText(msg));
+    // length capped, and a leading `/` neutralised so chat text cannot turn into
+    // an IRC command. The branded types are what the IRC sink accepts.
+    const text: SafeIrcLine = toIrcLine(messageText(msg));
     if (!text.trim()) {
       node.error('No message text — set msg.payload or msg.text to a string', msg);
       finish();
       return;
     }
 
-    await waitForSendSlot();
+    await acquireSendSlot();
     const replyTo = options.replyTo ? sanitize(options.replyTo, 'text', { max: 64 }) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});
@@ -346,5 +363,76 @@ export async function runChatAction(
   } catch (err) {
     node.status({ fill: 'red', shape: 'ring', text: sanitizeStatus((err as Error).message) });
     node.error(err, msg);
+  }
+}
+
+/** The role checks a chat command node can require of the message sender. */
+export interface ChatRoleRequirement {
+  requireBroadcaster?: boolean;
+  requireMod?: boolean;
+  requireSub?: boolean;
+  requireVip?: boolean;
+}
+
+/**
+ * Verifies the sender's role against Twitch rather than trusting the `msg.isMod`
+ * / `msg.isSubscriber` / `msg.isVip` / `msg.isBroadcaster` flags, which any
+ * upstream node can set. Returns false when the sender does not hold the
+ * required role, when the sender id is missing, or when the API is unavailable
+ * (fail closed). The checks run as the authenticated account, so the connection
+ * needs the matching read scope (`moderation:read`, `channel:read:subscriptions`,
+ * `channel:read:vips`).
+ */
+export async function verifyChatRole(
+  connection: ChatConnection | undefined,
+  config: ChatRoleRequirement & { channel?: string },
+  msg: TwitchChatMessage
+): Promise<boolean> {
+  const needsCheck = config.requireBroadcaster || config.requireMod || config.requireSub || config.requireVip;
+  if (!needsCheck) return true;
+  if (!connection) return false;
+
+  const channel = normalizeChannel(msg.channel ?? config.channel);
+  if (!channel) return false;
+
+  const senderId = String(msg.userId ?? '').trim();
+  if (!isUserId(senderId)) return false;
+
+  const api = connection.getApiClient();
+  const authId = connection.getUserId();
+  if (!api || !authId) return false;
+
+  try {
+    let broadcasterId = broadcasterIds.get(channel);
+    if (!broadcasterId) {
+      broadcasterId = (await api.users.getUserByName(channel))?.id;
+      if (!broadcasterId) return false;
+      broadcasterIds.set(channel, broadcasterId);
+    }
+
+    // The broadcaster always satisfies every role.
+    if (senderId === broadcasterId) return true;
+    if (config.requireBroadcaster) return false;
+
+    if (config.requireMod) {
+      const isMod = await api.asUser(authId, (ctx: any) =>
+        ctx.moderation.checkUserIsModerator(broadcasterId, senderId)
+      );
+      if (!isMod) return false;
+    }
+    if (config.requireSub) {
+      const sub = await api.asUser(authId, (ctx: any) =>
+        ctx.subscriptions.checkUserSubscription(broadcasterId, senderId)
+      );
+      if (!sub) return false;
+    }
+    if (config.requireVip) {
+      const vips = (await api.asUser(authId, (ctx: any) => ctx.channels.getVips(broadcasterId))) as any[];
+      const isVip = (vips ?? []).some((vip: any) => vip.id === senderId);
+      if (!isVip) return false;
+    }
+    return true;
+  } catch {
+    return false;
   }
 }

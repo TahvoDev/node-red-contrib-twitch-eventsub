@@ -165,6 +165,41 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   assert.strictEqual(status.fill, 'red')
   assert.match(status.text, /Auth failed: invalid refresh token/)
 
+  // Rate limiter: with one token and a 1/s refill, two concurrent acquirers must
+  // not both return immediately. The old code ignored tryRemove()'s result and
+  // let the second send through; this asserts the token is actually reserved.
+  base.resetChatSendBucket(1, 1)
+  const started = Date.now()
+  await Promise.all([base.acquireSendSlot(), base.acquireSendSlot()])
+  assert.ok(Date.now() - started >= 900, 'a concurrent send bypassed the rate limit')
+
+  // Role verification is server-side: the flags on the message are ignored.
+  const roleApi = {
+    users: { getUserByName: async () => ({ id: '55' }) },
+    asUser: async (_id, fn) => fn({
+      moderation: { checkUserIsModerator: async () => true },
+      subscriptions: { checkUserSubscription: async () => ({ tier: '1000' }) },
+      channels: { getVips: async () => [{ id: '99' }] },
+    }),
+  }
+  const roleConnection = {
+    initChat: async () => ({}),
+    getApiClient: () => roleApi,
+    getUserId: () => '55',
+    addListener() {}, removeListener() {},
+  }
+  assert.strictEqual(await base.verifyChatRole(roleConnection, {}, {}), true)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireBroadcaster: true, channel: 'chan' }, { userId: '55' }), true)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireBroadcaster: true, channel: 'chan' }, { userId: '99' }), false)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireMod: true, channel: 'chan' }, { userId: '99' }), true)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireVip: true, channel: 'chan' }, { userId: '99' }), true)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireSub: true, channel: 'chan' }, { userId: '99' }), true)
+  // Fail closed: no connection, missing/invalid sender, or API error denies.
+  assert.strictEqual(await base.verifyChatRole(undefined, { requireMod: true, channel: 'chan' }, { userId: '99' }), false)
+  assert.strictEqual(await base.verifyChatRole(roleConnection, { requireMod: true, channel: 'chan' }, { userId: 'not-an-id' }), false)
+  const failing = { ...roleConnection, getApiClient: () => ({ users: { getUserByName: async () => { throw new Error('down') } } }) }
+  assert.strictEqual(await base.verifyChatRole(failing, { requireMod: true, channel: 'chan' }, { userId: '99' }), false)
+
   console.log('chat nodes test: ok')
 })().catch((err) => {
   console.error('chat nodes test failed:', err.message)

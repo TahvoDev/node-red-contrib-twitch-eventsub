@@ -21,8 +21,10 @@ const path = require('path')
 
 const SRC = path.resolve(__dirname, '..', 'src')
 
+// Only block comments and whole-line `//` comments are removed; stripping inline
+// `//` would eat the `//` inside string literals (e.g. in a URL).
 function stripTsComments(code) {
-  return code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '').replace(/([^:])\/\/.*$/gm, '$1')
+  return code.replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '')
 }
 
 function stripHtmlComments(code) {

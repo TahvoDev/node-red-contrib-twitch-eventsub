@@ -1,11 +1,30 @@
 import type { Node, NodeAPI } from 'node-red';
-import { buildCommandTrigger, matchCommand, type ChatCommandConfig } from './twitch-chat-base';
+import {
+  buildCommandTrigger,
+  getChatConnection,
+  matchCommand,
+  verifyChatRole,
+  type ChatCommandConfig,
+  type TwitchChatMessage,
+} from './twitch-chat-base';
 import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
     const node = this;
     RED.nodes.createNode(node, config);
+
+    const connection = getChatConnection(RED, config);
+    const wantsRole = Boolean(
+      config.requireBroadcaster || config.requireMod || config.requireSub || config.requireVip
+    );
+    if (wantsRole && !connection) {
+      // Without a connection the role flags are the only gate, and any upstream
+      // node can set them. Warn once so the flow author can wire one in.
+      node.warn(
+        'Permission checks are unverified: set a Connection on this node so roles are checked against Twitch.'
+      );
+    }
 
     let command: string;
     let trigger: string;
@@ -18,7 +37,7 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', (msg) => {
+    node.on('input', async (msg: TwitchChatMessage) => {
       const raw =
         typeof msg.text === 'string'
           ? msg.text
@@ -30,14 +49,20 @@ module.exports = function (RED: NodeAPI) {
       const args = matchCommand(sanitizeText(raw, 4000), trigger);
       if (!args) return;
 
-      // These permission checks are the only authorization for the destructive
-      // nodes: they act as the configured account and do not re-check the sender.
-      // The flags come from the badges twitch-chat-in reads from Twitch, so do
-      // not feed this node from a source where untrusted input can set them.
-      if (config.requireBroadcaster && !msg.isBroadcaster) return;
-      if (config.requireMod && !(msg.isMod || msg.isBroadcaster)) return;
-      if (config.requireSub && !msg.isSubscriber) return;
-      if (config.requireVip && !msg.isVip) return;
+      if (wantsRole) {
+        if (connection) {
+          // Verified against Twitch: msg.isMod/isBroadcaster/isSubscriber/isVip
+          // are ignored, so an upstream node cannot forge the role.
+          if (!(await verifyChatRole(connection, config, msg))) return;
+        } else {
+          // Legacy fallback (no connection configured). Unverified by design —
+          // see the warning above and SECURITY.md.
+          if (config.requireBroadcaster && !msg.isBroadcaster) return;
+          if (config.requireMod && !(msg.isMod || msg.isBroadcaster)) return;
+          if (config.requireSub && !msg.isSubscriber) return;
+          if (config.requireVip && !msg.isVip) return;
+        }
+      }
 
       // The args are still attacker text: strip control/bidi/zero-width and cap
       // each before they are handed to a downstream node.

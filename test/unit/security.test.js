@@ -71,11 +71,11 @@ for (const attack of ['\r\nPRIVMSG #x :pwn', 'a\r\nb\nc\rd', 'x\0y']) {
   assert.ok(!/[\r\n\0]/.test(line), `IRC injection survived: ${JSON.stringify(attack)}`)
 }
 
-// A leading command is neutralised unless explicitly allowlisted.
+// A leading `/` command is neutralised; a leading `.` emote is left intact.
 assert.ok(toIrcLine('/ban victim').startsWith(' '), '/ban was not neutralised')
-assert.ok(toIrcLine('.timeout victim').startsWith(' '), '.timeout was not neutralised')
-assert.strictEqual(toIrcLine('/me waves', { allowCommands: ['/me'] }), '/me waves')
-assert.ok(!toIrcLine('/me waves').startsWith('/'), 'non-allowlisted /me was not neutralised')
+assert.ok(!toIrcLine('/me waves').startsWith('/'), '/me was not neutralised')
+assert.strictEqual(toIrcLine('.gg hello'), '.gg hello', 'a .emote was mangled')
+assert.strictEqual(toIrcLine('.com'), '.com', 'a .com emote was mangled')
 
 // 10MB input: capped, and fast.
 const huge = 'a'.repeat(10 * 1024 * 1024)
@@ -310,7 +310,12 @@ assert.strictEqual(safeGet('a string', 'length'), undefined)
 assert.strictEqual(safeGet(null, 'x'), undefined)
 assert.strictEqual(safeMerge({ a: 1 }, null).a, 1)
 assert.deepStrictEqual(sanitizeDeep(['x'], 5, 99), [])
-assert.deepStrictEqual(sanitizeDeep({ deep: { a: 1 } }, 5, 99), { deep: { a: 1 } })
+// Past the depth limit an object is dropped, not returned raw.
+assert.deepStrictEqual(sanitizeDeep({ deep: { a: 1 } }, 5, 99), {})
+// A bidi/CRLF payload nested deeper than the limit must not pass through.
+let deepAttack = '\u202E\r\nJOIN #evil'
+for (let i = 0; i < 16; i++) deepAttack = { child: deepAttack }
+assert.strictEqual(JSON.stringify(sanitizeDeep(deepAttack)).indexOf('JOIN'), -1, 'deep payload bypassed the depth cap')
 assert.strictEqual(sanitizeText('abc', 0), '')
 
 /* --------------------------------------------------------- sanitize policies */

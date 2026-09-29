@@ -41,15 +41,42 @@ CR/LF/tab/NUL to a space where word separation matters; and caps the result by
 code point.
 
 Branded types (`SafeChatText`, `SafeIrcLine`, `TwitchLogin`, `TwitchUserId`,
-`SafeLogLine`, `SafeHtml`) are only produced by the sanitizer, so passing a raw
-string to a known sink is a compile error.
+`SafeLogLine`, `SafeHtml`) are produced only by the sanitizer. The IRC send sink
+takes a `SafeIrcLine` + `TwitchLogin`, the announce sink takes a
+`SafeChatText`, and every node status takes a `SafeLogLine`, so a raw external
+string is a compile error at those calls.
+
+Note that, as with any TypeScript type, a cast can defeat a brand: this is a
+guard-rail against mistakes, not a runtime enforcement.
+
+### What is *not* sanitized (raw escape hatches)
+
+The point of the sanitizer is to make the deliverable value safe, not to rewrite
+every byte of the payload:
+
+- `twitch-eventsub` sanitizes the mapped convenience fields (names, ids, text)
+  but deliberately leaves the declared `rawEvent` field untouched — it is
+  documented as the full, unmodified event. It is also copied to
+  `msg.twitch.raw`.
+- `twitch-chat-in` sanitizes `msg.payload`/`msg.text`; `msg.twitch.raw` holds the
+  original text and `msg._raw` holds the Twurple message object (both unsanitized).
+
+`msg.twitch.untrusted` is always `true`. **Treat `msg.twitch.raw`, `msg._raw` and
+EventSub `rawEvent` as untrusted**: escape them before any HTML, template or shell
+sink. Only the named fields and `msg.payload` have passed the sanitizer.
+
+Also note that sanitization is a *mutation*, not just a filter: NFKC folding
+means `①` becomes `1` and full-width forms are normalised. Helix string fields go
+through `toStr`, so a title or name is normalised before it reaches Twitch.
 
 ### IRC output
 
 `toIrcLine` rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading
-`/` or `.` (Twitch treats those as commands) unless the command is on a node's
-explicit allowlist. Outgoing chat is token-bucket rate limited; inbound line
-buffers are capped so a flood cannot grow memory.
+`/` with a space so chat text cannot become a command. A leading `.` is left
+alone: on this transport `.` is the emote prefix (`.gg`, `.com`), not a command —
+mangling those broke legitimate messages. Outgoing chat is token-bucket rate
+limited; the token is reserved inside the wait loop, so concurrent callers cannot
+all wake from one delay and send unthrottled.
 
 ### Boundaries and object hygiene
 
@@ -73,17 +100,56 @@ verification for a future receiver: HMAC-SHA256 over `id + timestamp + rawBody`
 `crypto.timingSafeEqual`, a 10-minute timestamp window, and bounded message-id
 dedupe.
 
+### Chat authorization
+
+`twitch-chat-command`'s role gates (`Broadcaster only`, `Mod only`, `Subscriber
+only`, `VIP only`) must not trust the `msg.isMod` / `msg.isBroadcaster` /
+`msg.isSubscriber` / `msg.isVip` flags, because any upstream node can set them.
+
+- **Configure a Connection on the command node** (recommended, and the only
+  verified mode): the sender id from the chat message is checked against Twitch
+  (`moderation.checkUserIsModerator`, `subscriptions.checkUserSubscription`, the
+  VIP list) as the authenticated account. A forged flag is ignored, and the check
+  fails closed if the API is unavailable.
+- If no Connection is configured, the node falls back to the legacy message
+  flags and logs a warning. That mode is **unverified** and is retained only so
+  existing flows keep working; add a Connection to close it.
+
+The destructive nodes (ban/timeout/unban/delete/announce/clear) still act as the
+configured account and do not re-check the sender themselves, so the command
+node is the authorization point. Do not wire a destructive node to a source where
+untrusted input can reach it directly.
+
 ### OAuth and admin
 
-Every `RED.httpAdmin` route requires `RED.auth.needsPermission`
-(`twitch-eventsub.read` / `twitch-eventsub.write`); admin users need that
-permission or `*`. Request bodies are limited to 8 KB and validated. Credentials
+Every `RED.httpAdmin` route requires `RED.auth.needsPermission` using Node-RED's
+built-in editor permissions (`flows.read` for the read routes, `flows.write` for
+the auth routes); a standard `adminAuth` config already grants these to the users
+who can edit flows, so no custom permission has to be added. Request bodies are
+checked against an 8 KB cap (declared and actual size) and validated. Credentials
 are stored only through Node-RED credentials and never written to `msg` or logs;
 log lines pass through `redactSecrets`.
 
 The device-code flow has no redirect callback, so there is no OAuth `state`
 parameter to validate. If a redirect-based flow is added, generate a random,
 single-use `state` and compare it on callback.
+
+### Library-only utilities
+
+These are implemented and unit-tested but have no in-repo caller yet; they exist
+for flows and a future HTTP receiver, and are listed here so their presence is
+not mistaken for an active control:
+
+- `src/security/webhook.ts` — webhook HMAC verification and replay guard. The
+  package uses the EventSub WebSocket transport, so there is no receiver to call
+  it. Wire it into an HTTP endpoint if one is ever added.
+- `safeParseTags` — IRCv3 tag parsing with a key allowlist. Twurple parses the
+  tags before this package sees them, so it is not on the message path.
+- `BoundedBuffer` — a fixed-size inbound buffer. Twurple owns the socket
+  buffering; available for a custom reader.
+- `escapeHtml` / the `html` sanitize policy — for consumers that render into a
+  Dashboard or template; the package itself has no HTML sink.
+- `Untrusted<T>` — an opt-in marker type for consumers typing their own boundaries.
 
 ## Reporting a vulnerability
 

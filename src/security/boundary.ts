@@ -122,7 +122,11 @@ export function sanitizeDeep(value: unknown, max: number = 1000, depth = 0): unk
     return value.map((entry) => sanitizeDeep(entry, max, depth + 1));
   }
   if (value && typeof value === 'object') {
-    if (depth > 12 || value instanceof Date) return value;
+    // A Date carries no string content and is safe to pass through; anything
+    // beyond the depth limit is dropped, never returned raw (a nested object
+    // would otherwise smuggle control/bidi characters past the sanitizer).
+    if (value instanceof Date) return value;
+    if (depth > 12) return {};
     const out: Record<string, unknown> = {};
     for (const key of Object.keys(value)) {
       if (FORBIDDEN_KEYS.has(key)) continue;

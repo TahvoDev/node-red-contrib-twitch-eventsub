@@ -8,7 +8,7 @@
   "scripts": {
     "build": "rm -rf dist && tsc && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/generate-eventsub-editor.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && node scripts/check-forbidden-patterns.js && npm run test:unit",
     "collect-glyphs": "node scripts/collect-glyphs.js",
-    "check": "npm run typecheck && npm run lint && node scripts/check-forbidden-patterns.js && npm run test:unit",
+    "check": "npm run typecheck && npm run lint && node scripts/check-forbidden-patterns.js && npm run test:unit && npm run test:coverage",
     "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "audit": "npm audit --omit=dev --audit-level=high",

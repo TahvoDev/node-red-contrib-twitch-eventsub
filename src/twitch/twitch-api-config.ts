@@ -149,8 +149,10 @@ const MAX_ADMIN_BODY_BYTES = 8192;
 module.exports = function (RED: NodeAPI) {
 
   /**
-   * Every admin route needs the Node-RED permission. Falls back to a pass-through
-   * when an embedder has no auth configured, so the package still loads there.
+   * Every admin route uses Node-RED's built-in editor permissions (`flows.read`
+   * / `flows.write`), so no custom permission has to be granted and a standard
+   * `adminAuth` config keeps working. Falls back to a pass-through when an
+   * embedder has no auth configured, so the package still loads there.
    */
   const needsPermission = (permission: string) => {
     const auth = (RED as any).auth;
@@ -158,10 +160,21 @@ module.exports = function (RED: NodeAPI) {
     return (_req: any, _res: any, next: any) => next();
   };
 
-  /** Rejects an oversized admin body before it is parsed. */
+  /**
+   * Rejects an oversized admin body. The declared Content-Length is checked
+   * first; the actual parsed size is checked too, so a chunked or lying
+   * Content-Length cannot get past. Node-RED parses the body before this runs,
+   * so this is a post-parse guard rather than a streaming cap.
+   */
   const bodyLimit = (maxBytes = MAX_ADMIN_BODY_BYTES) => (req: any, res: any, next: any) => {
     const declared = Number(req.headers?.['content-length'] ?? 0);
-    if (Number.isFinite(declared) && declared > maxBytes) {
+    let actual: number;
+    try {
+      actual = req.body === undefined ? 0 : Buffer.byteLength(JSON.stringify(req.body));
+    } catch {
+      actual = maxBytes + 1;
+    }
+    if ((Number.isFinite(declared) && declared > maxBytes) || actual > maxBytes) {
       res.status(413).json({ error: 'Request body too large' });
       return;
     }
@@ -172,7 +185,7 @@ module.exports = function (RED: NodeAPI) {
     // Every scope a user could need, for the editor's Login with Twitch button.
     RED.httpAdmin.get(
       '/twitch-eventsub/helix/scopes',
-      needsPermission('twitch-eventsub.read'),
+      needsPermission('flows.read'),
       (_req: any, res: any) => {
         res.json({ scopes: MOCK_SCOPES });
       }
@@ -182,7 +195,7 @@ module.exports = function (RED: NodeAPI) {
     // enabled tier.
     RED.httpAdmin.get(
       '/twitch-eventsub/helix/endpoints',
-      needsPermission('twitch-eventsub.read'),
+      needsPermission('flows.read'),
       (_req: any, res: any) => {
         const tiers = enabledTiers((RED as any).settings);
         const endpoints = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(
@@ -196,7 +209,7 @@ module.exports = function (RED: NodeAPI) {
 
     RED.httpAdmin.post(
       '/twitch-eventsub/auth/device',
-      needsPermission('twitch-eventsub.write'),
+      needsPermission('flows.write'),
       bodyLimit(),
       async (req: any, res: any) => {
         let body: { client_id: string; scopes: string };
@@ -226,7 +239,7 @@ module.exports = function (RED: NodeAPI) {
 
     RED.httpAdmin.post(
       '/twitch-eventsub/auth/token',
-      needsPermission('twitch-eventsub.write'),
+      needsPermission('flows.write'),
       bodyLimit(),
       async (req: any, res: any) => {
         let body: { client_id: string; device_code: string };
@@ -300,8 +313,6 @@ module.exports = function (RED: NodeAPI) {
     authReady = false;
     userId?: string;
     mockServerPort?: number;
-    nodeTypes: { [key: string]: string } = Object.create(null);
-    unsupportedNodes: Set<string> = new Set();
 
     private authInitPromise?: Promise<void>;
 
@@ -444,10 +455,6 @@ module.exports = function (RED: NodeAPI) {
         });
       };
 
-      this.eventsubService.onUnsupportedCb = (subscriptionType) => {
-        this.markUnsupported(subscriptionType);
-      };
-
       this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
       await this.eventsubService.start();
       this.updateStatus({
@@ -492,17 +499,17 @@ module.exports = function (RED: NodeAPI) {
     }
 
     updateStatus(status: Status) {
-      this.currentStatus = status;
-      Object.entries(this.nodeListeners).forEach(([id, node]) => {
-        if (!this.unsupportedNodes.has(id)) {
-          node.status(status);
-        }
+      // Sanitize centrally: every status line — including the login/id from the
+      // config and any error message — reaches the editor through here.
+      const safe: Status = { ...status, text: sanitizeStatus(status.text) };
+      this.currentStatus = safe;
+      Object.values(this.nodeListeners).forEach((node) => {
+        node.status(safe);
       });
     }
 
     addNode(id: string, node: any, subscriptionType: string) {
       this.nodeListeners[id] = node;
-      this.nodeTypes[id] = subscriptionType;
       node.status(this.currentStatus);
       this.initAuth()
         .then(async () => {
@@ -512,23 +519,9 @@ module.exports = function (RED: NodeAPI) {
         .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
     }
 
-    markUnsupported(subscriptionType: string) {
-      Object.entries(this.nodeTypes).forEach(([id, type]) => {
-        if (type !== subscriptionType) return;
-        this.unsupportedNodes.add(id);
-        this.nodeListeners[id]?.status({
-          fill: 'grey',
-          shape: 'ring',
-          text: 'Not available over WebSocket',
-        });
-      });
-    }
-
     async removeNode(id: string, subscriptionType: string, done: () => void) {
       this.eventsubService?.removeSubscription(subscriptionType);
       delete this.nodeListeners[id];
-      delete this.nodeTypes[id];
-      this.unsupportedNodes.delete(id);
       if (Object.keys(this.nodeListeners).length === 0) {
         await this.takedown();
       }

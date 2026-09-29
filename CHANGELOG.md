@@ -12,24 +12,43 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   removal of C0/C1 control characters, bidi overrides and zero-width characters, and a length
   cap. Branded types (`SafeChatText`, `SafeIrcLine`, `TwitchLogin`, `TwitchUserId`, …) make an
   unsanitized value a compile error at the known sinks.
-- IRC output rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading `/` or `.`
-  unless the command is on an explicit allowlist. Outgoing chat is rate limited and inbound
-  lines are buffer-capped.
+- IRC output rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading `/` so
+  chat text cannot become a command. A leading `.` is left alone because it is the emote
+  prefix (`.gg`, `.com`) on this transport. Outgoing chat is rate limited with a token
+  reserved inside the wait loop, so concurrent sends cannot bypass it.
+- **Chat command authorization is now verified.** Set a **Connection** on
+  `twitch-chat-command` and its role gates re-check the sender against Twitch
+  (`checkUserIsModerator`, `checkUserSubscription`, the VIP list); forged
+  `msg.isMod`/`msg.isBroadcaster`/`msg.isSubscriber`/`msg.isVip` flags are ignored and the
+  check fails closed. Without a Connection the node keeps the legacy flag-based gating and
+  logs a warning — configure the Connection to close that gap.
 - Strict runtime schema validation (`validateSchema`, no unknown keys) at the config, inbound
   `msg`, HTTP-body and payload boundaries, with a prototype-pollution guard. `Object.assign`
   of external data was replaced with `safeMerge`; IRCv3 tags use `safeParseTags` (a `Map`).
 - Helix/HTTP URLs are built with `buildUrl` against a host/path allowlist; no URL is assembled
   by string concatenation.
-- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require a Node-RED
-  permission (`RED.auth.needsPermission`), enforce an 8 KB body limit, and validate their
-  bodies. Secrets are redacted from logs.
+- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require Node-RED's
+  built-in editor permissions (`flows.read` / `flows.write`), so a standard `adminAuth`
+  config needs no changes, and enforce an 8 KB body cap (declared and actual size). Secrets
+  are redacted from logs and all config-node status lines are sanitized centrally.
+- `sanitizeDeep` drops a nested object past its depth limit instead of returning it raw, so
+  a deeply nested payload cannot smuggle control/bidi characters through.
 - EventSub webhook verification utilities (HMAC-SHA256 over `id + timestamp + rawBody` with
   `crypto.timingSafeEqual`, a 10-minute timestamp window and message-id dedupe) ship for a
   future HTTP receiver. The shipped transport is WebSocket, so nothing calls them yet.
 - Editor UI builds form elements with `.text()`/`.attr()` instead of string-concatenated HTML.
-- Tooling: `tsc` now runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
-  `eslint-plugin-no-unsanitized`), a forbidden-pattern sink check, `npm audit`, CodeQL and
-  Semgrep run in CI; `package-lock.json` is committed.
+- The raw escape hatches (`msg.twitch.raw`, `msg._raw`, EventSub `rawEvent`) are documented
+  as unsanitized; only `msg.payload` and the named fields pass the sanitizer.
+- Tooling: `tsc` runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
+  `eslint-plugin-no-unsanitized`) and a forbidden-pattern sink check run in `npm run check`;
+  the security tests enforce ≥90% line/function coverage as part of `npm run check`; `npm
+  audit` is clean and `package-lock.json` is committed. `ci/github-actions.yml` wires the
+  same checks plus CodeQL and Semgrep into GitHub Actions — copy it to
+  `.github/workflows/ci.yml` (or push it with a token that has `workflows: write`) to
+  activate it.
+
+### Removed
+- The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 
 ### Changed
 - **Message contract (additive).** Messages built from external data now carry
@@ -166,7 +185,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `package.json` pointed `main` at an `index.js` that did not exist, so the module could not be loaded by name (for example by Node-RED's external modules) even though the palette loaded from the `node-red` field
 - EventSub subscriptions are restored when Twitch reopens the WebSocket connection. Twurple reports the disconnect but does not resubscribe, so the nodes used to stay connected while silently receiving nothing
 - A subscription that cannot be restored is now retried instead of throwing an uncaught exception that stopped the whole Node-RED runtime
-- The `user authorization granted` and `user authorization revoked` nodes no longer fail with a permanent error: Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so they are reported once as unsupported and the node says so instead of retrying
 - The config node status no longer reads `Logged in as ` (empty login) in mock mode; it shows the mock user id and port
 - `chat announce` no longer fails with `Invalid announcement color` when it is wired straight onto a `chat in` message: `msg.color` is the sender's chat colour there, not one of Twitch's five announcement colours, so the announcement now falls back to `primary`. Set `msg.announceColor` to pick a colour
 - `chat reply` and `chat delete message` rejected every message coming from `chat in`, because they asked for `msg.replyTo` and `msg.messageId` while `chat in` emits `msg.id`. Both accept `msg.id` now, so the two can be wired directly onto a chat message

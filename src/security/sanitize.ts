@@ -49,6 +49,10 @@ export class SecurityError extends Error {
 /** Cuts a string to `max` code points without splitting a surrogate pair. */
 function capCodePoints(value: string, max: number): string {
   if (max <= 0) return '';
+  // Fast path: UTF-16 length is an upper bound on the code-point count, so a
+  // string already within `max` needs no allocation (avoids a 10M-element array
+  // for a 10 MB input that is about to be capped).
+  if (value.length <= max) return value;
   const points = Array.from(value);
   return points.length > max ? points.slice(0, max).join('') : value;
 }
@@ -84,29 +88,21 @@ export function sanitizeChatText(raw: unknown, max: number = MAX_CHAT_MESSAGE_LE
 }
 
 export interface IrcLineOptions {
-  /** Command names (without the prefix) the node is explicitly allowed to issue. */
-  allowCommands?: readonly string[];
   max?: number;
 }
 
 /**
  * Produces one IRC line. Strips CR/LF/NUL, caps the length, and neutralises a
- * leading `/` or `.` (Twitch treats those as commands) unless the command is on
- * the node's explicit allowlist. Never build an IRC command by concatenation.
+ * leading `/` with a space so chat text cannot become an IRC command.
+ *
+ * A leading `.` is deliberately left alone: `.` is the emote prefix in real chat
+ * (`.gg`, `.com`), not a command on this transport, and mangling those broke
+ * legitimate messages. Only `/` is treated as a command.
  */
 export function toIrcLine(raw: unknown, options: IrcLineOptions = {}): SafeIrcLine {
   const max = Math.min(options.max ?? MAX_CHAT_MESSAGE_LENGTH, MAX_CHAT_MESSAGE_LENGTH);
   let line = sanitizeText(raw, max);
-  line = line.replace(/\0/g, ' ');
-
-  const commandMatch = line.match(/^([/.][A-Za-z]+)\b/);
-  if (commandMatch) {
-    const allowed = (options.allowCommands ?? []).some(
-      (command) => command.toLowerCase() === commandMatch[1].toLowerCase()
-    );
-    if (!allowed) line = ` ${line}`;
-  }
-
+  if (line.startsWith('/')) line = ` ${line}`;
   return line as SafeIrcLine;
 }
 
@@ -181,9 +177,9 @@ export function sanitizeLogLine(raw: unknown, max = 500): SafeLogLine {
 }
 
 /** A node status line: one short line, truncated, never a raw external string. */
-export function sanitizeStatus(raw: unknown, max = 40): string {
+export function sanitizeStatus(raw: unknown, max = 40): SafeLogLine {
   const line = sanitizeText(redactSecrets(raw), max).trim();
-  return line.length > max ? `${line.slice(0, max - 1)}…` : line;
+  return (line.length > max ? `${line.slice(0, max - 1)}…` : line) as SafeLogLine;
 }
 
 /* ---------------------------------------------------------------- dispatcher */
@@ -199,7 +195,7 @@ export function sanitize(raw: unknown, policy: 'userId', options?: SanitizeOptio
 export function sanitize(raw: unknown, policy: 'channel', options?: SanitizeOptions): string;
 export function sanitize(raw: unknown, policy: 'html', options?: SanitizeOptions): SafeHtml;
 export function sanitize(raw: unknown, policy: 'log', options?: SanitizeOptions): SafeLogLine;
-export function sanitize(raw: unknown, policy: 'status', options?: SanitizeOptions): string;
+export function sanitize(raw: unknown, policy: 'status', options?: SanitizeOptions): SafeLogLine;
 export function sanitize(raw: unknown, policy: 'text' | 'topic', options?: SanitizeOptions): string;
 export function sanitize(
   raw: unknown,
