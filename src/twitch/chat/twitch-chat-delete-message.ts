@@ -1,5 +1,6 @@
 import type { Node, NodeAPI } from 'node-red';
 import { getChatConnection, runChatAction, type ChatNodeConfig } from './twitch-chat-base';
+import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatDeleteMessageNode(this: Node, config: ChatNodeConfig) {
@@ -20,7 +21,7 @@ module.exports = function (RED: NodeAPI) {
           if (!messageId) {
             throw new Error('msg.messageId is required for twitch-chat-delete-message');
           }
-          await ctx.moderation.deleteChatMessages(broadcasterId, String(messageId));
+          await ctx.moderation.deleteChatMessages(broadcasterId, sanitizeText(messageId, 64));
         });
         done();
       } catch (err) {

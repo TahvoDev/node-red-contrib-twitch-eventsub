@@ -1,6 +1,8 @@
 .DS_Store
 node_modules
 dist 
+coverage
+semgrep.sarif
 
 *.iml
 /.idea

@@ -27,37 +27,54 @@
       var $action = $('#node-input-action');
       var $fields = $('#twitch-api-fields');
 
-      function esc(value) { return $('<div>').text(String(value)).html(); }
       function spec() { return registry.find(function (candidate) { return candidate.type === $endpoint.val(); }); }
+
+      // Build the form with DOM nodes and .text()/.attr() only: never interpolate
+      // a registry value or a saved config value into an HTML string.
+      function labelFor(field, id) {
+        var $label = $('<label>').attr('for', id);
+        $label.append($('<i>').addClass('fa ' + (field.faIcon || 'fa-font')));
+        $label.append(document.createTextNode(' ' + (field.label || '')));
+        return $label;
+      }
 
       function inputHtml(field, value) {
         var id = 'helix-field-' + field.name;
-        var label = '<label for="' + id + '"><i class="fa ' + esc(field.faIcon || 'fa-font') + '"></i> ' + esc(field.label) + '</label>';
-        var hint = field.hint ? ' placeholder="' + esc(field.hint) + '"' : '';
+        var $row = $('<div class="form-row">').append(labelFor(field, id));
         if (field.kind === 'bool') {
           var checked = value === true || value === 'true' || value === 1 || value === '1';
-          return '<div class="form-row">' + label + '<input type="checkbox" id="' + id + '" style="display:inline-block;width:auto;"' + (checked ? ' checked' : '') + '/></div>';
+          $row.append(
+            $('<input type="checkbox">')
+              .attr('id', id)
+              .css({ display: 'inline-block', width: 'auto' })
+              .prop('checked', checked)
+          );
+          return $row;
         }
         if (field.kind === 'select') {
-          var options = (field.options || []).map(function (option) {
+          var $select = $('<select>').attr('id', id);
+          (field.options || []).forEach(function (option) {
             var v = typeof option === 'string' ? option : option.value;
             var t = typeof option === 'string' ? option : (option.label || option.value);
-            var sel = String(value === undefined || value === null ? '' : value) === String(v) ? ' selected' : '';
-            return '<option value="' + esc(v) + '"' + sel + '>' + esc(t) + '</option>';
-          }).join('');
-          return '<div class="form-row">' + label + '<select id="' + id + '">' + options + '</select></div>';
+            $select.append($('<option>').attr('value', v).text(t));
+          });
+          $select.val(value === undefined || value === null ? '' : String(value));
+          $row.append($select);
+          return $row;
         }
-        var text = value === undefined || value === null ? '' : esc(value);
-        return '<div class="form-row">' + label + '<input type="text" id="' + id + '"' + hint + ' value="' + text + '"/></div>';
+        var $input = $('<input type="text">').attr('id', id);
+        if (field.hint) $input.attr('placeholder', field.hint);
+        $input.val(value === undefined || value === null ? '' : String(value));
+        return $row.append($input);
       }
 
       function renderEndpoints() {
-        $endpoint.empty().append('<option value=""></option>');
+        $endpoint.empty().append($('<option>'));
         registry
           .slice()
           .sort(function (a, b) { return String(a.label).localeCompare(String(b.label)); })
           .forEach(function (entry) {
-            $endpoint.append('<option value="' + esc(entry.type) + '">' + esc(entry.label) + '</option>');
+            $endpoint.append($('<option>').attr('value', entry.type).text(entry.label));
           });
         $endpoint.val(node.endpoint || '');
       }
@@ -71,7 +88,7 @@
         var previous = $action.val() || node.action || '';
         $action.empty();
         Object.keys(entry.actions).forEach(function (name) {
-          $action.append('<option value="' + esc(name) + '">' + esc(entry.actions[name].label) + '</option>');
+          $action.append($('<option>').attr('value', name).text(entry.actions[name].label));
         });
         var actionName = entry.actions[previous]
           ? previous

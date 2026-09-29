@@ -230,7 +230,7 @@ export async function callEndpoint(
     ? await fetchAllPages(fetchPage, resolveAllMax(input.allMax))
     : await fetchPage();
 
-  const mapped = result.data.map((item) => (call.map ? call.map(item, ctx) : item));
+  const mapped = result.data.map((item: any) => (call.map ? call.map(item, ctx) : item));
   const extra: Record<string, any> = {
     pagination: { cursor: result.cursor ?? null },
     total: result.total,

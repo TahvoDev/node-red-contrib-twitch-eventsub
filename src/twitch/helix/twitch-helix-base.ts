@@ -1,5 +1,6 @@
 import type { NodeAPI } from 'node-red';
 import { helixErrorMessage, shortStatus } from './twitch-helix-utils';
+import { sanitizeStatus, safeMerge } from '../../security';
 
 /**
  * A handler runs inside the base's try/catch. It may return:
@@ -26,7 +27,9 @@ function applyResult(msg: any, result: any): void {
   ) {
     msg.payload = result.payload;
     if (result.extra && typeof result.extra === 'object') {
-      Object.assign(msg, result.extra);
+      // Never Object.assign external data onto the message: only own keys, and
+      // the prototype-poisoning names are skipped.
+      safeMerge(msg, result.extra);
     }
     return;
   }
@@ -64,7 +67,7 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
             // its identity so existing nodes report exactly what they always did.
             if (typeof (err as any)?.statusCode === 'number') {
                 const message = helixErrorMessage(err);
-                node.status({ fill: 'red', shape: 'ring', text: shortStatus(message) });
+                node.status({ fill: 'red', shape: 'ring', text: sanitizeStatus(message) });
                 const wrapped = new Error(message);
                 (wrapped as any).cause = err;
                 done(wrapped);
@@ -74,7 +77,7 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
             node.status({
                 fill: 'red',
                 shape: 'ring',
-                text: shortStatus((err as Error)?.message || String(err)),
+                text: sanitizeStatus((err as Error)?.message || String(err)),
             });
             done(err);
         }

@@ -3,6 +3,18 @@ import type { ChatClient } from '@twurple/chat';
 import type { ApiClient, BaseApiClient } from '@twurple/api';
 import type { AuthProvider } from '@twurple/auth';
 import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
+import {
+  MAX_CHAT_MESSAGE_LENGTH,
+  TokenBucket,
+  isLogin,
+  isUserId,
+  normalizeChannel,
+  sanitize,
+  sanitizeChatText,
+  sanitizeStatus,
+  sanitizeText,
+  toIrcLine,
+} from '../../security';
 
 export type ChatStatus = {
   fill: 'red' | 'green' | 'yellow' | 'blue' | 'grey';
@@ -103,11 +115,6 @@ export interface ChatAccount {
   getAuthProvider(): AuthProvider | undefined;
 }
 
-/** Twitch channel names are lowercase and never carry a leading #. */
-export function normalizeChannel(raw: unknown): string {
-  return String(raw ?? '').trim().replace(/^#/, '').toLowerCase();
-}
-
 /** Splits the comma-separated channel list from the config node into names. */
 export function parseChannels(raw: unknown): string[] {
   return String(raw ?? '')
@@ -124,13 +131,7 @@ export function getChatConnection(
   return (RED.nodes.getNode(config.connection) as unknown as ChatConnection) || undefined;
 }
 
-/** Twitch logins are 1-25 chars of a-z, 0-9 and underscore (logins are lowercase). */
-const TWITCH_LOGIN_RE = /^[a-z0-9_]{1,25}$/;
-
-/** Twitch chat messages are capped at 500 characters. */
-export const MAX_CHAT_MESSAGE_LENGTH = 500;
-
-export { MAX_TIMEOUT_SECONDS, resolveAnnounceColor };
+export { MAX_CHAT_MESSAGE_LENGTH, MAX_TIMEOUT_SECONDS, normalizeChannel, resolveAnnounceColor, sanitizeChatText };
 
 /**
  * Resolves the moderation target to a numeric user ID. The target must be
@@ -141,7 +142,7 @@ export { MAX_TIMEOUT_SECONDS, resolveAnnounceColor };
 export async function resolveUserId(ctx: BaseApiClient, msg: TwitchChatMessage): Promise<string> {
   const explicitId = String(msg.targetUserId ?? '').trim();
   if (explicitId) {
-    if (!/^\d+$/.test(explicitId)) {
+    if (!isUserId(explicitId)) {
       throw new Error('msg.targetUserId must be a numeric Twitch user ID');
     }
     return explicitId;
@@ -149,23 +150,13 @@ export async function resolveUserId(ctx: BaseApiClient, msg: TwitchChatMessage):
 
   const raw = String(msg.targetUser ?? '').trim().toLowerCase();
   if (!raw) throw new Error('Target user is required — set msg.targetUser or msg.targetUserId');
-  if (!TWITCH_LOGIN_RE.test(raw)) {
+  if (!isLogin(raw)) {
     throw new Error('msg.targetUser must be a Twitch login: 1-25 letters, digits or underscores');
   }
 
   const found = await ctx.users.getUserByName(raw);
   if (!found) throw new Error(`Twitch user "${raw}" could not be found`);
   return found.id;
-}
-
-/**
- * Strips carriage returns and line feeds (which would otherwise become extra IRC
- * commands on the wire) and caps the message at Twitch's 500-character limit.
- */
-export function sanitizeChatText(raw: unknown): string {
-  const cleaned = String(raw ?? '').replace(/[\r\n\0]+/g, ' ');
-  // Slice by code point so a cap at 500 cannot split a surrogate pair.
-  return Array.from(cleaned).slice(0, MAX_CHAT_MESSAGE_LENGTH).join('');
 }
 
 /**
@@ -193,9 +184,10 @@ export function buildCommandTrigger(
   prefix: unknown,
   command: unknown
 ): { name: string; trigger: string } {
-  const name = String(command ?? '').trim();
+  const name = sanitizeText(command, 64).trim();
   if (!name) throw new Error('twitch-chat-command requires a command name');
-  return { name, trigger: `${String(prefix || '!')}${name}`.toLowerCase() };
+  const safePrefix = sanitizeText(prefix, 8) || '!';
+  return { name, trigger: `${safePrefix}${name}`.toLowerCase() };
 }
 
 /**
@@ -220,6 +212,20 @@ export function matchCommand(text: string, trigger: string): string[] | undefine
 /** Optional threading for a send. Only twitch-chat-reply passes this in. */
 export interface SendChatOptions {
   replyTo?: string;
+}
+
+/**
+ * Outgoing chat is rate limited so a fast flow cannot flood Twitch. The bucket is
+ * global, not per channel — a bot that sends to many busy channels at once would
+ * need per-channel buckets; this is the conservative default.
+ */
+// ponytail: global bucket; split per channel if multi-channel throughput matters.
+const chatSendBucket = new TokenBucket(20, 0.66);
+
+async function waitForSendSlot(): Promise<void> {
+  const delay = chatSendBucket.delayMs();
+  if (delay > 0) await new Promise((resolve) => setTimeout(resolve, delay));
+  chatSendBucket.tryRemove();
 }
 
 /**
@@ -260,21 +266,24 @@ export async function sendChatMessage(
     }
 
     // twitch-chat-in sets both text and payload; accept either so a message
-    // straight off the wire does not have to be reshaped first. Newlines are
-    // stripped and the text capped before it reaches the IRC socket.
-    const text = sanitizeChatText(messageText(msg));
+    // straight off the wire does not have to be reshaped first. Every external
+    // string crosses the one sanitizer: control/bidi/zero-width chars out, the
+    // length capped, and a leading `/`/`.` neutralised so chat text cannot turn
+    // into an IRC command.
+    const text = toIrcLine(messageText(msg));
     if (!text.trim()) {
       node.error('No message text — set msg.payload or msg.text to a string', msg);
       finish();
       return;
     }
 
-    const replyTo = options.replyTo ? String(options.replyTo) : undefined;
+    await waitForSendSlot();
+    const replyTo = options.replyTo ? sanitize(options.replyTo, 'text', { max: 64 }) : undefined;
     await client.say(channel, text, replyTo ? { replyTo } : undefined);
     node.status({});
     finish();
   } catch (err) {
-    node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+    node.status({ fill: 'red', shape: 'ring', text: sanitizeStatus((err as Error).message) });
     // node.error already logs and triggers a Catch node; finish() without the
     // error completes the message without reporting the same error twice.
     node.error(err, msg);
@@ -335,7 +344,7 @@ export async function runChatAction(
     await api.asUser(userId, (ctx) => handler(ctx, broadcasterId));
     node.status({});
   } catch (err) {
-    node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+    node.status({ fill: 'red', shape: 'ring', text: sanitizeStatus((err as Error).message) });
     node.error(err, msg);
   }
 }

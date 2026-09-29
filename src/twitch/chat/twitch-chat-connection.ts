@@ -8,6 +8,7 @@ import {
   type ChatStatus,
   parseChannels,
 } from './twitch-chat-base';
+import { sanitizeStatus } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
 
@@ -80,7 +81,7 @@ module.exports = function (RED: NodeAPI) {
         this.updateStatus({
           fill: 'red',
           shape: 'ring',
-          text: `Auth failed: ${(e as Error).message}`,
+          text: sanitizeStatus(`Auth failed: ${(e as Error).message}`),
         });
         throw e;
       }
@@ -106,7 +107,7 @@ module.exports = function (RED: NodeAPI) {
       client.onConnect(() => this.updateStatus({ fill: 'green', shape: 'dot', text: 'Connected' }));
       client.onDisconnect(() => this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Reconnecting' }));
       client.onAuthenticationFailure((text: string) =>
-        this.updateStatus({ fill: 'red', shape: 'ring', text: `Disconnected: ${text}` })
+        this.updateStatus({ fill: 'red', shape: 'ring', text: sanitizeStatus(`Disconnected: ${text}`) })
       );
 
       this.chatClient = client;

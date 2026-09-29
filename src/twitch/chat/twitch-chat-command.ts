@@ -1,5 +1,6 @@
 import type { Node, NodeAPI } from 'node-red';
 import { buildCommandTrigger, matchCommand, type ChatCommandConfig } from './twitch-chat-base';
+import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
@@ -18,14 +19,15 @@ module.exports = function (RED: NodeAPI) {
     }
 
     node.on('input', (msg) => {
-      const text =
+      const raw =
         typeof msg.text === 'string'
           ? msg.text
           : typeof msg.payload === 'string'
             ? msg.payload
             : '';
 
-      const args = matchCommand(text, trigger);
+      // Cap before the match/split: msg.text is an untrusted, possibly huge value.
+      const args = matchCommand(sanitizeText(raw, 4000), trigger);
       if (!args) return;
 
       // These permission checks are the only authorization for the destructive
@@ -37,8 +39,10 @@ module.exports = function (RED: NodeAPI) {
       if (config.requireSub && !msg.isSubscriber) return;
       if (config.requireVip && !msg.isVip) return;
 
+      // The args are still attacker text: strip control/bidi/zero-width and cap
+      // each before they are handed to a downstream node.
       msg.command = command;
-      msg.args = args;
+      msg.args = args.map((arg) => sanitizeText(arg, 100));
       node.send(msg);
     });
   }

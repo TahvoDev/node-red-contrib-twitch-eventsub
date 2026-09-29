@@ -1,6 +1,7 @@
 import type { Node, NodeAPI } from 'node-red';
 import { EVENTS_BY_TYPE, type EventSubEventDefinition } from './eventsub-registry';
 import { mapEvent } from './eventsub-mapper';
+import { markUntrusted, sanitizeDeep } from '../../security';
 
 /**
  * The subset of the Twitch API config node this node depends on. Keeping it in a
@@ -65,7 +66,17 @@ class TwitchEventsubNode {
    */
   triggerTwitchEvent(event: any, subscriptionType: string) {
     if (this.definition && subscriptionType === this.definition.type) {
-      this.send({ payload: mapEvent(this.definition, event) });
+      const payload = mapEvent(this.definition, event);
+      // Convenience fields are sanitized; the declared `rawEvent` field is kept
+      // verbatim (it is the documented escape hatch) and mirrored into
+      // msg.twitch.raw. Consumers must treat the whole payload as untrusted.
+      for (const key of Object.keys(payload)) {
+        if (key === 'rawEvent') continue;
+        payload[key] = sanitizeDeep(payload[key]);
+      }
+      const msg: Record<string, unknown> = { payload };
+      markUntrusted(msg, 'eventsub', (payload as Record<string, unknown>).rawEvent ?? payload);
+      this.send(msg as any);
     }
   }
 }

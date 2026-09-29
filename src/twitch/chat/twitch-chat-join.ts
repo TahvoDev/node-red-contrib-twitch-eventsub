@@ -1,5 +1,6 @@
 import type { Node, NodeAPI } from 'node-red';
 import { getChatConnection, normalizeChannel, type ChatNodeConfig } from './twitch-chat-base';
+import { sanitizeStatus } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatJoinNode(this: Node, config: ChatNodeConfig) {
@@ -32,7 +33,7 @@ module.exports = function (RED: NodeAPI) {
         node.status({});
         done();
       } catch (err) {
-        node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+        node.status({ fill: 'red', shape: 'ring', text: sanitizeStatus((err as Error).message) });
         // node.error reports (and triggers Catch); done(err) would report again
         // because Node-RED's _complete delegates to node.error.
         node.error(err, msg);

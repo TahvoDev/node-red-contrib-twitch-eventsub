@@ -6,6 +6,8 @@
  * with a clear message — never throw a raw TypeError out of the node.
  */
 
+import { MAX_TEXT_LENGTH, sanitizeText } from '../../security';
+
 export interface HelixPagedResult<T> {
   data: T[];
   cursor: string | null;
@@ -21,11 +23,11 @@ export interface HelixPagedResult<T> {
 export function toStr(value: unknown): string | undefined {
   if (value === null || value === undefined) return undefined;
   if (Buffer.isBuffer(value)) {
-    const s = value.toString('utf8').trim();
+    const s = sanitizeText(value.toString('utf8'), MAX_TEXT_LENGTH).trim();
     return s || undefined;
   }
   if (typeof value === 'string') {
-    const s = value.trim();
+    const s = sanitizeText(value, MAX_TEXT_LENGTH).trim();
     return s || undefined;
   }
   if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {

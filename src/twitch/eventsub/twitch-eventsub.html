@@ -55,7 +55,7 @@
       catalog.forEach(function (item) {
         (groups[item.category] = groups[item.category] || []).push(item);
       });
-      $event.empty().append('<option value=""></option>');
+      $event.empty().append($('<option>'));
       Object.keys(groups).sort().forEach(function (category) {
         var $group = $('<optgroup>').attr('label', category);
         groups[category]

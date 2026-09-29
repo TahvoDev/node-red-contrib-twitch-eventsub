@@ -3,7 +3,7 @@
     "module": "commonjs",
     "esModuleInterop": true,
     "target": "es2015",
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "moduleResolution": "node10",
     "skipLibCheck": true,
     "strict": true,

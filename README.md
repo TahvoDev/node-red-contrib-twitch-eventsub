@@ -268,6 +268,26 @@ test: `npm install`, `npm run build` and `npm run check` work without a containe
 per endpoint), reads the credentials the Twitch CLI mock generates, and asserts the mock received
 the request each one is supposed to make. Same container-engine requirement.
 
+## Security
+
+Everything a Twitch node emits is **untrusted input**: chat text, EventSub
+fields, Helix strings and any `msg.*` override. The nodes sanitize their own
+outputs, but a downstream node can undo that if you are not careful.
+
+**Never** pass raw chat text straight to:
+
+- a **function node** that concatenates it into a command string or uses it to
+  build code;
+- `exec` / `child_process` / a shell;
+- an unescaped **template** (no triple-brace / raw HTML rendering) or dashboard
+  `innerHTML`;
+- a URL built with string `+`.
+
+Prefer the sanitized value (`msg.payload`) and the branded helpers in
+`src/security/`, keep templates sourced only from node config, and treat
+`msg.twitch.raw` as raw data for display-escaping only. See
+[SECURITY.md](SECURITY.md) for the full threat model and controls.
+
 ## Adding a new event
 
 All EventSub events live in `src/twitch/eventsub/eventsub-registry.ts`. Add one entry

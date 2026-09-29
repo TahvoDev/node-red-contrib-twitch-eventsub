@@ -5,6 +5,7 @@ import {
   runChatAction,
   type ChatNodeConfig,
 } from './twitch-chat-base';
+import { sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatBanNode(this: Node, config: ChatNodeConfig) {
@@ -23,7 +24,7 @@ module.exports = function (RED: NodeAPI) {
           const userId = await resolveUserId(ctx, msg);
           await ctx.moderation.banUser(broadcasterId, {
             user: userId,
-            reason: msg.reason ? String(msg.reason) : '',
+            reason: sanitizeText(msg.reason, 500),
           });
         });
         done();

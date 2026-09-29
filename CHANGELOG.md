@@ -5,7 +5,39 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+### Security
+- **New `src/security/` sanitizer layer.** All external strings (Twitch IRC/EventSub
+  payloads, Helix responses, node config, `msg.*` overrides, HTTP request bodies) now cross
+  one reusable function, `sanitize(value, policy)` (or its named helpers): NFKC normalisation,
+  removal of C0/C1 control characters, bidi overrides and zero-width characters, and a length
+  cap. Branded types (`SafeChatText`, `SafeIrcLine`, `TwitchLogin`, `TwitchUserId`, …) make an
+  unsanitized value a compile error at the known sinks.
+- IRC output rejects CR/LF/NUL, caps at 500 code points, and neutralises a leading `/` or `.`
+  unless the command is on an explicit allowlist. Outgoing chat is rate limited and inbound
+  lines are buffer-capped.
+- Strict runtime schema validation (`validateSchema`, no unknown keys) at the config, inbound
+  `msg`, HTTP-body and payload boundaries, with a prototype-pollution guard. `Object.assign`
+  of external data was replaced with `safeMerge`; IRCv3 tags use `safeParseTags` (a `Map`).
+- Helix/HTTP URLs are built with `buildUrl` against a host/path allowlist; no URL is assembled
+  by string concatenation.
+- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require a Node-RED
+  permission (`RED.auth.needsPermission`), enforce an 8 KB body limit, and validate their
+  bodies. Secrets are redacted from logs.
+- EventSub webhook verification utilities (HMAC-SHA256 over `id + timestamp + rawBody` with
+  `crypto.timingSafeEqual`, a 10-minute timestamp window and message-id dedupe) ship for a
+  future HTTP receiver. The shipped transport is WebSocket, so nothing calls them yet.
+- Editor UI builds form elements with `.text()`/`.attr()` instead of string-concatenated HTML.
+- Tooling: `tsc` now runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
+  `eslint-plugin-no-unsanitized`), a forbidden-pattern sink check, `npm audit`, CodeQL and
+  Semgrep run in CI; `package-lock.json` is committed.
+
 ### Changed
+- **Message contract (additive).** Messages built from external data now carry
+  `msg.twitch = { untrusted: true, source, raw, receivedAt }`. `twitch-chat-in` emits the
+  sanitized text in `msg.payload`/`msg.text` and the original in `msg.twitch.raw`; the
+  `twitch-eventsub` node sanitizes its convenience fields and mirrors the full event into
+  `msg.twitch.raw`. Existing properties are unchanged, but flows that forward the whole
+  message should treat `payload` as untrusted (see SECURITY.md).
 - **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
   spec-to-node factory/build-generation are gone. Endpoints are registry entries under
   `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (endpoint → action
