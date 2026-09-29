@@ -6,7 +6,7 @@ import {
   type ChatInConfig,
   type TwitchChatMessage,
 } from './twitch-chat-base';
-import { MAX_CHAT_MESSAGE_LENGTH, isUserId, markUntrusted, sanitizeText } from '../../security';
+import { MAX_CHAT_MESSAGE_LENGTH, markUntrusted, sanitizeText } from '../../security';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatInNode(this: Node, config: ChatInConfig) {
@@ -39,23 +39,23 @@ module.exports = function (RED: NodeAPI) {
         const userInfo = message.userInfo;
         if (ignoreOwnMessages && userInfo.userId === connection.getUserId()) return;
 
+        // The free text is user-chosen and gets cleaned: the message body and
+        // the display name are what a chatter actually types. The rest are
+        // Twitch-assigned metadata (numeric user id, message id, hex colour,
+        // login) that a chatter cannot forge, so they are passed through as-is.
         const rawText = typeof text === 'string' ? text : '';
         const safeText = sanitizeText(rawText, MAX_CHAT_MESSAGE_LENGTH);
-        const safeUser = sanitizeText(userInfo.userName, 64);
         const safeDisplay = sanitizeText(userInfo.displayName, 64);
-        const safeUserId = isUserId(userInfo.userId)
-          ? userInfo.userId
-          : sanitizeText(userInfo.userId, 32);
 
         const out = {
-          topic: `twitch/chat/${safeChannel}/${safeUser}`,
+          topic: `twitch/chat/${safeChannel}/${userInfo.userName}`,
           channel: safeChannel,
-          user: safeUser,
+          user: userInfo.userName,
           displayName: safeDisplay,
-          userId: safeUserId,
+          userId: userInfo.userId,
           text: safeText,
           payload: safeText,
-          id: sanitizeText(message.id, 64),
+          id: message.id,
           emotes: Array.from(message.emoteOffsets, ([name, positions]) => ({
             name: sanitizeText(name, 64),
             positions,
@@ -66,7 +66,7 @@ module.exports = function (RED: NodeAPI) {
           isSubscriber: userInfo.isSubscriber,
           isVip: userInfo.isVip,
           isBroadcaster: userInfo.isBroadcaster,
-          color: sanitizeText(userInfo.color, 16),
+          color: userInfo.color,
           badges: Array.from(userInfo.badges, ([name, version]) => ({
             name: sanitizeText(name, 64),
             version: sanitizeText(version, 64),

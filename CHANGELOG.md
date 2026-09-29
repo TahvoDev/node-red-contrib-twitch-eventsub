@@ -6,8 +6,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [Unreleased]
 ### Security
-- **New `src/security/` sanitizer for Twitch-origin data.** Chat text/names (`twitch-chat-in`)
-  and EventSub convenience fields (`twitch-eventsub`) are cleaned before a consumer sees them:
+- **New `src/security/` sanitizer for Twitch-origin data.** The user-chosen chat fields
+  (`twitch-chat-in` message text and display name) and EventSub convenience fields
+  (`twitch-eventsub`) are cleaned before a consumer sees them; Twitch-assigned metadata
+  (numeric user id, message id, login, hex colour) passes through as-is. The scrub:
   CR/LF/tab/NUL folded to a space, remaining C0/C1 controls removed, and bidi
   overrides/isolates (`U+202A–202E`, `U+2066–2069`) removed, with a code-point cap.
   `sanitize(value, policy)` is the entry point (`text`, `topic`, `status`, `log`, `html`).

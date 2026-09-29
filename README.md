@@ -271,10 +271,11 @@ the request each one is supposed to make. Same container-engine requirement.
 ## Security
 
 Data **from Twitch** is untrusted — chat text, EventSub fields, Helix response
-strings. The nodes clean what they deliver (`msg.payload`, `msg.text`,
-`msg.user`, EventSub convenience fields); Helix response strings are passed
-through as Twurple returns them. Your own input (node config, the messages you
-send) is yours to handle, and Twurple handles the Twitch wire.
+strings. The nodes clean the user-chosen text (`msg.payload`, `msg.text`,
+`msg.displayName`, EventSub convenience fields); Twitch-assigned metadata
+(`msg.userId`, `msg.id`, `msg.user`, `msg.color`) and Helix response strings are
+passed through as Twitch/Twurple returns them. Your own input (node config, the
+messages you send) is yours to handle, and Twurple handles the Twitch wire.
 
 **Never** pass a Twitch string straight to:
 

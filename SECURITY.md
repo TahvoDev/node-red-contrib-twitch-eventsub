@@ -49,8 +49,11 @@ defense in depth.
 
 Applied to:
 
-- `twitch-chat-in` — message text, sender login/display name, id, colour and badge
-  names are sanitized before they become `msg.payload`/`msg.text`/`msg.user`.
+- `twitch-chat-in` — the message text and the sender's display name (the two
+  user-chosen fields) are sanitized before they become `msg.payload`/`msg.text`/
+  `msg.displayName`. Twitch-assigned metadata — the numeric user id, message id,
+  login and hex colour — is passed through as-is: a chatter cannot forge it and
+  it is not free text.
 - `twitch-eventsub` — the mapped convenience fields are deep-sanitized
   (`sanitizeDeep`) before they become `msg.payload`.
 - OAuth responses — the user id/login are validated before being stored.
