@@ -1,5 +1,11 @@
 import type { Node, NodeAPI } from 'node-red';
-import { buildCommandTrigger, matchCommand, type ChatCommandConfig } from './twitch-chat-base';
+import {
+  buildCommandTrigger,
+  matchCommand,
+  messageText,
+  type ChatCommandConfig,
+  type TwitchChatMessage,
+} from './twitch-chat-base';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
@@ -18,12 +24,9 @@ module.exports = function (RED: NodeAPI) {
     }
 
     node.on('input', (msg) => {
-      const text =
-        typeof msg.text === 'string'
-          ? msg.text
-          : typeof msg.payload === 'string'
-            ? msg.payload
-            : '';
+      // Same read order as the outbound nodes (messageText): payload first.
+      // chat-in emits payload only, so text is just an input alias.
+      const text = messageText(msg as TwitchChatMessage);
 
       const args = matchCommand(text, trigger);
       if (!args) return;
