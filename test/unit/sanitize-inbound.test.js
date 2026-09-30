@@ -17,9 +17,14 @@
 const assert = require('assert')
 const path = require('path')
 
-const { sanitizeInbound, sanitizeInboundString, MAX_INBOUND_STRING_LENGTH, MAX_INBOUND_DEPTH } = require(
-  path.join(__dirname, '..', '..', 'dist', 'twitch', 'twitch-shared.js')
-)
+const {
+  sanitizeInbound,
+  sanitizeInboundString,
+  escapeText,
+  normalizeEscapeMode,
+  MAX_INBOUND_STRING_LENGTH,
+  MAX_INBOUND_DEPTH,
+} = require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'twitch-shared.js'))
 const S = sanitizeInboundString
 
 /* --------------------------------------------------------------- basics */
@@ -121,6 +126,45 @@ function isPlainObject(value) {
 for (const value of [sanitizeInbound(hostile), sanitizeInbound({ a: [1, { b: 2 }] })]) {
   assert.ok(isPlainObject(value), 'sanitizeInbound returned a non-plain object')
 }
+
+/* --------------------------------------------------------------- escape */
+
+// Unknown/absent config values fall back to none, so old flows keep working.
+assert.strictEqual(normalizeEscapeMode(undefined), 'none')
+assert.strictEqual(normalizeEscapeMode(''), 'none')
+assert.strictEqual(normalizeEscapeMode('HTML'), 'html')
+assert.strictEqual(normalizeEscapeMode('bogus'), 'none')
+assert.strictEqual(escapeText('plain', 'none'), 'plain')
+
+// html: text and quoted-attribute characters, nothing else.
+assert.strictEqual(escapeText(`<script>&"'`, 'html'), '&lt;script&gt;&amp;&quot;&#39;')
+
+// Escape runs after NFKC: a fullwidth < folds to < only after normalization,
+// so escaping first would let it through as a raw <.
+assert.strictEqual(S('\uFF1C'), '<')
+assert.strictEqual(escapeText(S('\uFF1C'), 'html'), '&lt;')
+
+// js: string-literal escapes, plus $ so ${} cannot interpolate in a template
+// literal, plus < > & so a value cannot close a <script>.
+assert.strictEqual(escapeText('a\\b', 'js'), 'a\\\\b')
+assert.strictEqual(escapeText("a'b\"c`d", 'js'), "a\\'b\\\"c\\`d")
+assert.strictEqual(escapeText('$x', 'js'), '\\u0024x')
+assert.strictEqual(escapeText('</script>', 'js'), '\\u003C/script\\u003E')
+assert.strictEqual(escapeText('a\nb', 'js'), 'a\\u000Ab')
+assert.strictEqual(escapeText('a\u2028b', 'js'), 'a\\u2028b')
+
+// shell: single-quote wrap; a quote becomes the POSIX '\'' sequence.
+assert.strictEqual(escapeText('hello world', 'shell'), "'hello world'")
+assert.strictEqual(escapeText("'; rm -rf /", 'shell'), "''\\''; rm -rf /'")
+
+// Applied exactly once, not as escape(escape(x)): escaping is not idempotent.
+const twice = escapeText(escapeText('a & b', 'html'), 'html')
+assert.notStrictEqual(twice, escapeText('a & b', 'html'))
+assert.strictEqual(twice, 'a &amp;amp; b')
+
+// The cap is applied before escaping, so escaped output may exceed it.
+const capThenEscape = escapeText(S('<'.repeat(MAX_INBOUND_STRING_LENGTH + 1)), 'html')
+assert.strictEqual(capThenEscape.length, MAX_INBOUND_STRING_LENGTH * 4)
 
 /* --------------------------------------------- seeded property loop */
 

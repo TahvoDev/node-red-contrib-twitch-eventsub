@@ -1,16 +1,27 @@
 import type { Node, NodeAPI } from 'node-red';
 import type { ChatClient } from '@twurple/chat';
 import { getChatConnection, normalizeChannel, type ChatInConfig } from './twitch-chat-base';
-import { sanitizeInbound } from '../twitch-shared';
+import { escapeText, normalizeEscapeMode, sanitizeInbound, type EscapeMode } from '../twitch-shared';
 
 /**
  * Builds the Node-RED message for one chat message. Pure so the plain-output
- * test can exercise it: every Twitch-sourced string is normalised by the caller,
- * and `_raw` (the whole Twurple message) is deliberately not emitted.
+ * test can exercise it. Every Twitch-sourced string is normalised, `_raw` (the
+ * whole Twurple message) is deliberately not emitted, and the message text is
+ * escaped last when an escape mode is set.
+ *
+ * Only `payload` is escaped: escaping the routing fields (`topic`, `id`, `user`)
+ * would break downstream nodes, and a shell-wrapped id is not an id any more.
+ * The correct order is normalization (NFKC folds fullwidth characters) and then
+ * escaping, applied once.
  */
-function buildChatMessage(channel: string, text: string, message: any): Record<string, unknown> {
+function buildChatMessage(
+  channel: string,
+  text: string,
+  message: any,
+  escape: EscapeMode = 'none'
+): Record<string, unknown> {
   const userInfo = message.userInfo;
-  return {
+  const output = sanitizeInbound({
     topic: `twitch/chat/${channel}/${userInfo.userName}`,
     channel,
     user: userInfo.userName,
@@ -28,7 +39,9 @@ function buildChatMessage(channel: string, text: string, message: any): Record<s
     color: userInfo.color,
     badges: Array.from(userInfo.badges, ([name, version]) => ({ name, version })),
     timestamp: new Date(),
-  };
+  }) as Record<string, unknown>;
+  if (escape !== 'none') output.payload = escapeText(String(output.payload), escape);
+  return output;
 }
 
 module.exports = function (RED: NodeAPI) {
@@ -44,6 +57,7 @@ module.exports = function (RED: NodeAPI) {
 
     const channelFilter = normalizeChannel(config.channel);
     const ignoreOwnMessages = config.ignoreOwnMessages === true;
+    const escape = normalizeEscapeMode(config.escape);
     let listener: { unbind(): void } | undefined;
 
     // Rebind whenever the connection builds a client, so a client created after
@@ -57,7 +71,7 @@ module.exports = function (RED: NodeAPI) {
         const userInfo = message.userInfo;
         if (ignoreOwnMessages && userInfo.userId === connection.getUserId()) return;
 
-        node.send(sanitizeInbound(buildChatMessage(channel, text, message)) as any);
+        node.send(buildChatMessage(channel, text, message, escape) as any);
       });
     };
 

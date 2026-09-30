@@ -28,7 +28,6 @@ const root = path.join(__dirname, '..', '..')
 const eventsubDist = path.join(root, 'dist', 'twitch', 'eventsub')
 const { EVENTS } = require(path.join(eventsubDist, 'eventsub-registry.js'))
 const { mapEvent } = require(path.join(eventsubDist, 'eventsub-mapper.js'))
-const { sanitizeInbound } = require(path.join(root, 'dist', 'twitch', 'twitch-shared.js'))
 const { buildChatMessage } = require(path.join(root, 'dist', 'twitch', 'chat', 'twitch-chat-in.js'))
 const { HELIX_SPECS } = require(path.join(root, 'dist', 'twitch', 'helix', 'specs', 'index.js'))
 
@@ -219,7 +218,7 @@ const chatMessage = {
     badges: new Map([['subscriber', '12']]),
   },
 }
-const chatOutput = sanitizeInbound(buildChatMessage('caster', 'hi\r\nPRIVMSG #caster :free sub', chatMessage))
+const chatOutput = buildChatMessage('caster', 'hi\r\nPRIVMSG #caster :free sub', chatMessage)
 assertPlainOutput(chatOutput, 'chat message')
 assert.strictEqual(chatOutput._raw, undefined, 'chat-in still emits _raw')
 assert.strictEqual(chatOutput.displayName, 'Viewer')
@@ -230,6 +229,15 @@ assert.strictEqual(chatOutput.isMod, false)
 assert.strictEqual(chatOutput.user, 'viewer')
 assert.deepStrictEqual(chatOutput.emotes, [{ name: 'Kappa', positions: ['0-4'] }])
 assert.deepStrictEqual(chatOutput.badges, [{ name: 'subscriber', version: '12' }])
+
+// Escape mode escapes payload only, after normalization; the routing fields and
+// the other attacker-influenced strings are left normalized-only.
+const escapedChat = buildChatMessage('caster', '<b>hi</b>', chatMessage, 'html')
+assert.strictEqual(escapedChat.payload, '&lt;b&gt;hi&lt;/b&gt;')
+assert.strictEqual(escapedChat.displayName, 'Viewer')
+assert.strictEqual(escapedChat.user, 'viewer')
+assert.strictEqual(escapedChat.topic, 'twitch/chat/caster/viewer')
+assert.strictEqual(escapedChat.id, 'chat-1')
 
 /* ----------------------------------------------------------------- Helix */
 

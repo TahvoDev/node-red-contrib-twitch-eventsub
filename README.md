@@ -106,7 +106,8 @@ the account in again so the new scope is granted.
 ### Nodes
 
 - **chat in** — emits a message for each incoming chat message (channel, user, payload, badges, bits, …),
-  with an optional **Ignore own messages** switch for the connection's own account.
+  with an optional **Ignore own messages** switch for the connection's own account and an
+  **Escape text** option (see below).
 - **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
 - **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
   `msg.id` that **chat in** emits.
@@ -126,6 +127,25 @@ The moderation nodes go through the Twitch Helix API (Twitch's IRC gateway no lo
 moderation chat commands), so the authenticated account must be a moderator or the broadcaster of the
 target channel. Which account triggered the action is not sent: Twitch requires the ban/clear/announce
 request to be made by the token's own user, so the bot is what Twitch logs.
+
+### Escaping chat text
+
+**chat in** normalizes every Twitch string but does not escape it (see
+[Input normalization](#input-normalization)). If you feed `msg.payload` into a sink that interprets
+markup or a shell, set the node's **Escape text** option:
+
+- `html` — encodes `& < > " '`, for HTML text and quoted attributes.
+- `js` — escapes a JavaScript string literal (including `$` and `</script>`), for a function node
+  that builds code.
+- `shell` — wraps the value as a single POSIX shell argument, for a sink that runs a shell command
+  string (the **exec** node's default mode). It is not for the exec node's **spawn** mode, which
+  splits on whitespace and strips only double quotes. Quoting does not stop argument injection, so
+  put `--` before the value.
+
+Only `msg.payload` is escaped; `topic`, `id` and `user` are never touched. Escaping is applied
+exactly once, so do not enable it when the sink (for example a **template** node) already escapes.
+The 10000-character cap is applied before escaping, and escaping only covers the message text —
+escape `displayName`, badge and emote names yourself if you render them.
 
 ### Example: reply to `!hello`
 

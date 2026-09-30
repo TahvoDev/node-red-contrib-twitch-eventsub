@@ -19,6 +19,8 @@ export interface ChatNodeConfig extends NodeDef {
 /** twitch-chat-in can optionally drop the connection's own messages. */
 export interface ChatInConfig extends ChatNodeConfig {
   ignoreOwnMessages?: boolean;
+  /** Sink to escape the message text for: none (default), html, js or shell. */
+  escape?: string;
 }
 
 export interface ChatConnectionConfig extends NodeDef {
