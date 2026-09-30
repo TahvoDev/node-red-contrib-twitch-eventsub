@@ -26,10 +26,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   replaces `Object.assign` for externally shaped objects; `sanitizeDeep` walks EventSub payloads.
   None copies `__proto__`/`constructor`/`prototype`. `sanitizeDeep` drops a nested object past
   its depth limit instead of returning it raw.
-- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) require Node-RED's built-in
-  editor permissions (`flows.read` / `flows.write`), so a standard `adminAuth` config needs no
-  changes, and enforce an 8 KB body cap (declared and actual size). Secrets are redacted from
-  logs and all config-node status lines are sanitized centrally.
+- HTTP admin routes (`/auth/device`, `/auth/token`, `/helix/*`) now require Node-RED's built-in
+  editor permissions (`flows.read` / `flows.write`). Secrets are redacted from logs and all
+  config-node status lines are sanitized centrally.
 - EventSub webhook verification utilities (HMAC-SHA256 over `id + timestamp + rawBody` with
   `crypto.timingSafeEqual`, a 10-minute timestamp window and message-id dedupe) ship for a
   future HTTP receiver. The shipped transport is WebSocket, so nothing calls them yet.
@@ -51,6 +50,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 
 ### Changed
+- **The `/twitch-eventsub/*` admin routes now require the editor permissions `flows.read` /
+  `flows.write`.** A standard `adminAuth` grants these to flow editors, but a **read-only**
+  editor user can no longer use the *Login with Twitch* button (`flows.write`), and with **no**
+  `adminAuth` configured the check is a no-op (unchanged from before). Also, the
+  `twitch-chat-command` node has a new optional **Connection** field: set it to have its role
+  checks verified against Twitch instead of trusting `msg.isMod`-style flags.
 - **Message contract (additive).** Messages built from external data now carry
   `msg.twitch = { untrusted: true, source, raw, receivedAt }`. `twitch-chat-in` emits the
   sanitized text in `msg.payload`/`msg.text` and the original in `msg.twitch.raw`; the

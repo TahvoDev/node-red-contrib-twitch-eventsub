@@ -340,6 +340,25 @@ function makeNode() {
   await callEndpoint(spec, api, { text: builderField }, {}, { userId: '1', config: { twitch_user_id: '1' } })
   assert.strictEqual(received, builderField, 'builder Helix input was rewritten')
 
+  // The outbound IRC sink relies on Twurple's transport, not on this package:
+  // `ircv3`'s IrcClient.sendRaw calls connection.sendLine, and sendLine strips
+  // \0\r\n before appending the single trailing CRLF. Guard that assumption, so
+  // a dependency change cannot silently reintroduce IRC command injection.
+  const { createMessage, MessageTypes } = require('ircv3')
+  const { AbstractConnection } = require('@d-fischer/connection')
+  const frames = []
+  const fakeConnection = { _connected: true, sendRaw: (line) => frames.push(line) }
+  const serialized = createMessage(
+    MessageTypes.Commands.PrivateMessage,
+    { target: '#chan', text: 'hi\r\nPRIVMSG #chan :pwned' },
+    undefined,
+    new Map(),
+    undefined
+  ).toString()
+  AbstractConnection.prototype.sendLine.call(fakeConnection, serialized)
+  assert.strictEqual(frames.length, 1, 'a CRLF split the IRC frame')
+  assert.ok(!/[\r\n]/.test(frames[0].slice(0, -2)), 'CR/LF survived sendLine')
+
   console.log('security test: ok')
 })().catch((err) => {
   console.error('security test failed:', err && err.message ? err.message : err)

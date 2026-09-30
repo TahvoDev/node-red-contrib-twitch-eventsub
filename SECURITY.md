@@ -55,7 +55,9 @@ Applied to:
   login and hex colour — is passed through as-is: a chatter cannot forge it and
   it is not free text.
 - `twitch-eventsub` — the mapped convenience fields are deep-sanitized
-  (`sanitizeDeep`) before they become `msg.payload`.
+  (`sanitizeDeep`) before they become `msg.payload`. Strings are capped at 1000
+  code points; a value longer than that is truncated with **no marker**, so a
+  consumer that needs to detect truncation must compare against `msg.twitch.raw`.
 - OAuth responses — the user id/login are validated before being stored.
 - Node status and log text — sanitized (`sanitizeStatus`/`sanitizeLogLine`) and
   secrets redacted (`redactSecrets`).
@@ -103,8 +105,11 @@ destructive node to a source where untrusted input can reach it directly.
 `constructor` or `prototype` from the input.
 
 Admin routes require Node-RED's built-in editor permissions (`flows.read` /
-`flows.write`); a standard `adminAuth` config already grants these to flow editors.
-Request bodies are capped at 8 KB (declared and actual size). Credentials are
+`flows.write`); a standard `adminAuth` config already grants these to flow editors
+(a read-only editor user cannot use the auth routes; with no `adminAuth` the check
+is a no-op). Request bodies over 8 KB are rejected on their declared
+`Content-Length` before the handler runs — Node-RED's own `apiMaxLength` (5 MB by
+default) is the real buffer cap, since it parses the body first. Credentials are
 stored only through Node-RED credentials and never written to `msg` or logs.
 
 The device-code flow has no redirect callback, so there is no OAuth `state` to
@@ -121,8 +126,15 @@ bounded message-id dedupe.
 
 ## What Twurple already does (why we don't duplicate it)
 
-- IRC wire safety: `AbstractConnection.sendLine` removes `\0\r\n` from every
-  outgoing line, so a message cannot inject a second IRC line.
+- IRC wire safety: `ircv3`'s `IrcClient.sendRaw` calls
+  `this._connection.sendLine(line)`, and that connection (`@d-fischer/connection`'s
+  `WebSocketConnection`, which extends `AbstractConnection` and does not override it)
+  runs `line.replace(/[\0\r\n]/g, '')` before appending the single trailing `\r\n`.
+  So a message body containing CR/LF cannot split the frame into a second IRC
+  command. Serialization (`Message.toString()`) emits the text verbatim — the strip
+  is at the transport, which is why a test that stops at `toString()` misses it.
+  `test/unit/security.test.js` asserts this wire-level behaviour so a Twurple
+  upgrade cannot silently reintroduce the hole.
 - Channel/login validation: `toUserName` (`^[a-z0-9][a-z0-9_]{0,24}$`) and
   `isChannel` reject invalid names and throw.
 - IRCv3 tag parsing: the `ircv3` parser builds a prototype-safe `Map`.

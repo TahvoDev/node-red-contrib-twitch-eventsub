@@ -36,9 +36,11 @@ function checkField(name: string, spec: FieldSpec, value: unknown, path: string)
   switch (spec.kind) {
     case 'string': {
       if (typeof value !== 'string') throw new SecurityError(`${where} must be a string`);
-      const capped = spec.maxLength !== undefined ? value.slice(0, spec.maxLength) : value;
-      if (spec.pattern && !spec.pattern.test(capped)) throw new SecurityError(`${where} has an invalid format`);
-      return capped;
+      if (spec.maxLength !== undefined && value.length > spec.maxLength) {
+        throw new SecurityError(`${where} is too long (max ${spec.maxLength})`);
+      }
+      if (spec.pattern && !spec.pattern.test(value)) throw new SecurityError(`${where} has an invalid format`);
+      return value;
     }
     case 'int': {
       if (typeof value !== 'number' || !Number.isFinite(value) || !Number.isInteger(value)) {

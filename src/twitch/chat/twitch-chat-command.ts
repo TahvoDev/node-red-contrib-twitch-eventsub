@@ -3,6 +3,7 @@ import {
   buildCommandTrigger,
   getChatConnection,
   matchCommand,
+  normalizeChannel,
   verifyChatRole,
   type ChatCommandConfig,
   type TwitchChatMessage,
@@ -36,7 +37,9 @@ module.exports = function (RED: NodeAPI) {
       return;
     }
 
-    node.on('input', async (msg: TwitchChatMessage) => {
+    let warnedNoChannel = false;
+
+    const handle = async (msg: TwitchChatMessage): Promise<void> => {
       const raw =
         typeof msg.text === 'string'
           ? msg.text
@@ -49,6 +52,18 @@ module.exports = function (RED: NodeAPI) {
 
       if (wantsRole) {
         if (connection) {
+          // The verified check needs a channel to resolve the broadcaster. If an
+          // upstream node dropped msg.channel the check fails closed, which would
+          // otherwise silently swallow every message — say so once.
+          if (!normalizeChannel(msg.channel ?? config.channel)) {
+            if (!warnedNoChannel) {
+              warnedNoChannel = true;
+              node.warn(
+                'Permission checks are being skipped: set a Channel on this node (or keep msg.channel) so the sender can be verified.'
+              );
+            }
+            return;
+          }
           // Verified against Twitch: msg.isMod/isBroadcaster/isSubscriber/isVip
           // are ignored, so an upstream node cannot forge the role.
           if (!(await verifyChatRole(connection, config, msg))) return;
@@ -65,6 +80,16 @@ module.exports = function (RED: NodeAPI) {
       msg.command = command;
       msg.args = args;
       node.send(msg);
+    };
+
+    // Run one message at a time: the verified role check is async, so without
+    // this a later message could overtake an earlier one, and a rejection would
+    // escape the Node-RED input handler and take the runtime down.
+    let chain: Promise<void> = Promise.resolve();
+    node.on('input', (msg: TwitchChatMessage) => {
+      chain = chain
+        .then(() => handle(msg))
+        .catch((err) => node.error(err as Error, msg));
     });
   }
 

@@ -80,12 +80,24 @@ RED.nodes.registerType('twitch-chat-command', {
     <dt>text / payload <span class="property-type">string</span></dt>
     <dd>The message to match. <code>msg.text</code> is read first, then <code>msg.payload</code>.</dd>
 
+    <dt class="optional">channel / userId <span class="property-type">string</span></dt>
+    <dd>Used by the permission checks when a <b>Connection</b> is set: the channel is resolved to a
+    broadcaster and <code>userId</code> is the sender whose role is verified. Normally carried in
+    from <b>chat in</b>.</dd>
+
     <dt class="optional">isBroadcaster / isMod / isSubscriber / isVip <span class="property-type">boolean</span></dt>
-    <dd>The sender's status, read by the matching permission check.</dd>
+    <dd>The sender's status. These are only used when <b>no</b> Connection is configured; with a
+    Connection the role is checked against Twitch and these flags are ignored.</dd>
   </dl>
 
   <h3>Configuration</h3>
   <dl class="message-properties">
+    <dt>Connection <span class="property-type">twitch-chat-connection</span></dt>
+    <dd>Optional but recommended. When set, the permission checks ask Twitch whether the sender
+    really holds the required role, and fail closed if the check cannot be made. Without it the
+    checks trust the incoming <code>msg.isMod</code>/<code>msg.isBroadcaster</code>/… flags, which
+    any upstream node can set.</dd>
+
     <dt>command <span class="property-type">string</span></dt>
     <dd>The command without the prefix. Required.</dd>
 
@@ -93,7 +105,9 @@ RED.nodes.registerType('twitch-chat-command', {
     <dd>The trigger character. Defaults to <code>!</code>.</dd>
 
     <dt>Permission checks</dt>
-    <dd>If any checked requirement is not met, the message is dropped silently.</dd>
+    <dd>If any checked requirement is not met, the message is dropped. A verified check needs the
+    account to have <code>moderation:read</code> (mod), <code>channel:read:subscriptions</code>
+    (subscriber) and <code>channel:read:vips</code> (VIP) — already requested by the config node.</dd>
   </dl>
 
   <h3>Outputs</h3>

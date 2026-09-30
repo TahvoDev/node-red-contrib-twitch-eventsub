@@ -14,7 +14,7 @@ import {
   type HelixSpec,
 } from './helix/define';
 import { enabledTiers } from './helix/helix-core';
-import { buildUrl, sanitizeStatus, validateSchema, type Schema } from '../security';
+import { buildUrl, sanitizeLogLine, sanitizeStatus, validateSchema, type Schema } from '../security';
 
 /** A field reduced to the metadata the twitch-api editor needs. */
 function serializeField(field: HelixField) {
@@ -155,122 +155,114 @@ module.exports = function (RED: NodeAPI) {
   };
 
   /**
-   * Rejects an oversized admin body. The declared Content-Length is checked
-   * first; the actual parsed size is checked too, so a chunked or lying
-   * Content-Length cannot get past. Node-RED parses the body before this runs,
-   * so this is a post-parse guard rather than a streaming cap.
+   * Rejects an admin request whose declared size is over the cap, before doing
+   * any work. Node-RED parses admin bodies with its own `apiMaxLength` (5 MB by
+   * default) before a node route runs, so this is a lower bound on top of that,
+   * not the thing that stops a large body being buffered.
    */
   const bodyLimit = (maxBytes = MAX_ADMIN_BODY_BYTES) => (req: any, res: any, next: any) => {
     const declared = Number(req.headers?.['content-length'] ?? 0);
-    let actual: number;
-    try {
-      actual = req.body === undefined ? 0 : Buffer.byteLength(JSON.stringify(req.body));
-    } catch {
-      actual = maxBytes + 1;
-    }
-    if ((Number.isFinite(declared) && declared > maxBytes) || actual > maxBytes) {
+    if (Number.isFinite(declared) && declared > maxBytes) {
       res.status(413).json({ error: 'Request body too large' });
       return;
     }
     next();
   };
 
-  if (RED.httpAdmin) {
-    // Every scope a user could need, for the editor's Login with Twitch button.
-    RED.httpAdmin.get(
-      '/twitch-eventsub/helix/scopes',
-      needsPermission('flows.read'),
-      (_req: any, res: any) => {
-        res.json({ scopes: MOCK_SCOPES });
+  // Every scope a user could need, for the editor's Login with Twitch button.
+  RED.httpAdmin.get(
+    '/twitch-eventsub/helix/scopes',
+    needsPermission('flows.read'),
+    (_req: any, res: any) => {
+      res.json({ scopes: MOCK_SCOPES });
+    }
+  );
+
+  // The endpoint picker for the twitch-api node: every registry entry in an
+  // enabled tier.
+  RED.httpAdmin.get(
+    '/twitch-eventsub/helix/endpoints',
+    needsPermission('flows.read'),
+    (_req: any, res: any) => {
+      const tiers = enabledTiers((RED as any).settings);
+      const endpoints = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(
+        serializeEndpoint
+      );
+      res.json({ tiers, endpoints });
+    }
+  );
+
+  // --- Auth endpoints for Device Code Flow ---
+
+  RED.httpAdmin.post(
+    '/twitch-eventsub/auth/device',
+    needsPermission('flows.write'),
+    bodyLimit(),
+    async (req: any, res: any) => {
+      let body: { client_id: string; scopes: string };
+      try {
+        body = validateSchema(req.body, DEVICE_BODY, 'body');
+      } catch (error) {
+        res.status(400).json({ error: (error as Error).message });
+        return;
       }
-    );
-
-    // The endpoint picker for the twitch-api node: every registry entry in an
-    // enabled tier.
-    RED.httpAdmin.get(
-      '/twitch-eventsub/helix/endpoints',
-      needsPermission('flows.read'),
-      (_req: any, res: any) => {
-        const tiers = enabledTiers((RED as any).settings);
-        const endpoints = HELIX_SPECS.filter((spec) => tiers.indexOf(specTier(spec)) !== -1).map(
-          serializeEndpoint
-        );
-        res.json({ tiers, endpoints });
+      try {
+        const params = new URLSearchParams({ client_id: body.client_id, scopes: body.scopes });
+        const url = buildUrl('https://id.twitch.tv', '/oauth2/device', {}, {
+          hosts: ['id.twitch.tv'],
+          pathPrefixes: ['/oauth2/'],
+        });
+        const response = await fetch(url, {
+          method: 'POST',
+          body: params,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        res.status(response.status).json(await response.json());
+      } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
       }
-    );
+    }
+  );
 
-    // --- Auth endpoints for Device Code Flow ---
-
-    RED.httpAdmin.post(
-      '/twitch-eventsub/auth/device',
-      needsPermission('flows.write'),
-      bodyLimit(),
-      async (req: any, res: any) => {
-        let body: { client_id: string; scopes: string };
-        try {
-          body = validateSchema(req.body, DEVICE_BODY, 'body');
-        } catch (error) {
-          res.status(400).json({ error: (error as Error).message });
+  RED.httpAdmin.post(
+    '/twitch-eventsub/auth/token',
+    needsPermission('flows.write'),
+    bodyLimit(),
+    async (req: any, res: any) => {
+      let body: { client_id: string; device_code: string };
+      try {
+        body = validateSchema(req.body, TOKEN_BODY, 'body');
+      } catch (error) {
+        res.status(400).json({ error: (error as Error).message });
+        return;
+      }
+      try {
+        const params = new URLSearchParams({
+          client_id: body.client_id,
+          device_code: body.device_code,
+          grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
+        });
+        const url = buildUrl('https://id.twitch.tv', '/oauth2/token', {}, {
+          hosts: ['id.twitch.tv'],
+          pathPrefixes: ['/oauth2/'],
+        });
+        const response = await fetch(url, {
+          method: 'POST',
+          body: params,
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        const data = await response.json();
+        if (!response.ok) {
+          res.status(response.status).json(data);
           return;
         }
-        try {
-          const params = new URLSearchParams({ client_id: body.client_id, scopes: body.scopes });
-          const url = buildUrl('https://id.twitch.tv', '/oauth2/device', {}, {
-            hosts: ['id.twitch.tv'],
-            pathPrefixes: ['/oauth2/'],
-          });
-          const response = await fetch(url, {
-            method: 'POST',
-            body: params,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          });
-          res.status(response.status).json(await response.json());
-        } catch (error) {
-          res.status(500).json({ error: (error as Error).message });
-        }
+        const user = await fetchTwitchUser(data.access_token, body.client_id);
+        res.json({ ...data, twitch_user_id: user.id, twitch_user_login: user.login });
+      } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
       }
-    );
-
-    RED.httpAdmin.post(
-      '/twitch-eventsub/auth/token',
-      needsPermission('flows.write'),
-      bodyLimit(),
-      async (req: any, res: any) => {
-        let body: { client_id: string; device_code: string };
-        try {
-          body = validateSchema(req.body, TOKEN_BODY, 'body');
-        } catch (error) {
-          res.status(400).json({ error: (error as Error).message });
-          return;
-        }
-        try {
-          const params = new URLSearchParams({
-            client_id: body.client_id,
-            device_code: body.device_code,
-            grant_type: 'urn:ietf:params:oauth:grant-type:device_code',
-          });
-          const url = buildUrl('https://id.twitch.tv', '/oauth2/token', {}, {
-            hosts: ['id.twitch.tv'],
-            pathPrefixes: ['/oauth2/'],
-          });
-          const response = await fetch(url, {
-            method: 'POST',
-            body: params,
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-          });
-          const data = await response.json();
-          if (!response.ok) {
-            res.status(response.status).json(data);
-            return;
-          }
-          const user = await fetchTwitchUser(data.access_token, body.client_id);
-          res.json({ ...data, twitch_user_id: user.id, twitch_user_login: user.login });
-        } catch (error) {
-          res.status(500).json({ error: (error as Error).message });
-        }
-      }
-    );
-  }
+    }
+  );
 
   async function fetchTwitchUser(accessToken: string, clientId: string) {
     const url = buildUrl('https://api.twitch.tv', '/helix/users', {}, {
@@ -415,7 +407,7 @@ module.exports = function (RED: NodeAPI) {
         this.authProvider = authProvider;
         this.apiClient = new ApiClient({ authProvider, mockServerPort: mockPort });
         this.authReady = true;
-        this.log(sanitizeStatus(`Mock server on port ${mockPort} as user ${userId}`));
+        this.log(sanitizeLogLine(`Mock server on port ${mockPort} as user ${userId}`));
         this.updateStatus({ fill: 'blue', shape: 'ring', text: `Mock server :${mockPort}` });
       } catch (e: any) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: sanitizeStatus(`Mock init failed: ${e.message}`) });
