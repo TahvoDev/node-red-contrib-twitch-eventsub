@@ -72,7 +72,7 @@ RED.nodes.registerType('twitch-chat-command', {
   <h3>Inputs</h3>
   <dl class="message-properties">
     <dt>text / payload <span class="property-type">string</span></dt>
-    <dd>The message to match. <code>msg.text</code> is read first, then <code>msg.payload</code>.</dd>
+    <dd>The message to match. <code>msg.payload</code> is read first, then <code>msg.text</code>.</dd>
 
     <dt class="optional">isBroadcaster / isMod / isSubscriber / isVip <span class="property-type">boolean</span></dt>
     <dd>The sender's status, read by the matching permission check.</dd>

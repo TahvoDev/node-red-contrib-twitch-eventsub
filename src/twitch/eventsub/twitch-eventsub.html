@@ -96,4 +96,14 @@
     <dt>payload <span class="property-type">object</span></dt>
     <dd>The event data. Most events also include <code>rawEvent</code> with the full unmodified event.</dd>
   </dl>
+
+  <h3>Input normalization</h3>
+  <p>Every string that came from Twitch is normalized before it reaches the flow: line breaks become
+  spaces, C0/C1 control characters, zero-width characters and bidi controls are stripped, lone
+  surrogates become <code>U+FFFD</code>, and text is NFKC-folded (so a fancy display name may differ
+  from what Twitch shows; logins are unaffected). This is normalization, not escaping — shell, HTML
+  and template syntax survives, so escape for your own sink. <code>rawEvent</code> is left verbatim
+  and is not normalized. Every event that declares it always emits it — it is not opt-in — so the
+  original payload sits next to the sanitized fields in the same <code>msg.payload</code>. Treat it as
+  untrusted.</p>
 </script>

@@ -32,6 +32,32 @@ backed by one `twitch-api-config` account node, which holds the OAuth credential
 (real device-code login or the built-in mock) and owns the EventSub WebSocket and
 chat connections.
 
+## Input normalization
+
+Every string the nodes receive from Twitch — chat text, EventSub whisper text, display names,
+moderation reasons, poll and prediction options, reward titles, blocked terms, and Helix responses — is
+normalized before it reaches your flow. (Whispers are an EventSub event, not an IRC message, so they
+arrive normalized through `twitch events`, not through the chat nodes.) Line breaks become spaces;
+C0/C1 control characters, zero-width characters and bidi controls are stripped; lone surrogates become
+`U+FFFD`; and text is NFKC-folded (so a fancy display name may differ from what Twitch shows, while
+logins are unaffected). Nested structures are rebuilt as plain objects and arrays, with `__proto__`,
+`constructor` and `prototype` keys dropped.
+
+This is **normalization, not escaping**. Shell, HTML and template syntax survives, so you still have to
+escape for your own sink. It exists so an adversarial chatter cannot smuggle a log/IRC/shell line break,
+a spoofing zero-width or bidi character, an unbounded string, or a prototype-pollution key through a
+node.
+
+Two values are deliberately **not** normalized, and you should treat both as untrusted:
+
+- **`rawEvent`** on the `twitch events` node. Every event that declares it always carries it — it is
+  not opt-in and there is no switch — because it is the whole original Twitch payload. It sits next to
+  the sanitized fields in the same `msg.payload`, so if you log `msg.payload` or merge it downstream,
+  the raw strings go with it. Normalization of the mapped fields is a convenience, not a boundary.
+- **Helix `extra` values**, e.g. `msg.pagination.cursor`, which come from the response as-is.
+
+If you forward either to a sink that cares about line breaks or markup, normalize or escape it yourself.
+
 ## Twitch Chat
 
 The `twitch chat (irc)` nodes talk to chat over Twitch's IRC gateway using
@@ -79,7 +105,7 @@ the account in again so the new scope is granted.
 
 ### Nodes
 
-- **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …),
+- **chat in** — emits a message for each incoming chat message (channel, user, payload, badges, bits, …),
   with an optional **Ignore own messages** switch for the connection's own account.
 - **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
 - **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
