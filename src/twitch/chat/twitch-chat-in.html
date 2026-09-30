@@ -7,7 +7,6 @@ RED.nodes.registerType('twitch-chat-in', {
     connection: { type: 'twitch-chat-connection', required: true },
     channel: { value: '' },
     ignoreOwnMessages: { value: false },
-    escape: { value: 'none' },
   },
   inputs: 0,
   outputs: 1,
@@ -45,16 +44,6 @@ RED.nodes.registerType('twitch-chat-in', {
     <label for="node-input-ignoreOwnMessages"><i class="fa fa-eye-slash"></i> Ignore own messages</label>
     <input type="checkbox" id="node-input-ignoreOwnMessages" style="display:inline-block; width:auto; vertical-align:top;">
   </div>
-
-  <div class="form-row">
-    <label for="node-input-escape"><i class="fa fa-shield"></i> Escape text</label>
-    <select id="node-input-escape">
-      <option value="none">none</option>
-      <option value="html">HTML</option>
-      <option value="js">JavaScript</option>
-      <option value="shell">shell</option>
-    </select>
-  </div>
 </script>
 
 <script type="text/html" data-help-name="twitch-chat-in">
@@ -70,33 +59,7 @@ RED.nodes.registerType('twitch-chat-in', {
 
     <dt>Ignore own messages <span class="property-type">boolean</span></dt>
     <dd>Do not emit messages sent by the connection's own account. Off by default.</dd>
-
-    <dt>Escape text <span class="property-type">none | html | js | shell</span></dt>
-    <dd>Escapes <code>msg.payload</code> for a downstream sink, after normalization. <code>none</code>
-    (the default) leaves it as plain normalized text. Only the message text is escaped; the routing
-    fields (<code>topic</code>, <code>id</code>, <code>user</code>) are never touched.</dd>
   </dl>
-
-  <h3>Escaping</h3>
-  <ul>
-    <li><b>html</b> encodes <code>&amp; &lt; &gt; " '</code>, enough for HTML text and quoted
-    attributes. It is not enough for a URL, CSS, an unquoted attribute or a script.</li>
-    <li><b>js</b> escapes a value for a JavaScript string literal, including <code>$</code> and
-    <code>&lt;/script&gt;</code>. Use it when a function node builds code, not when it just reads the
-    value as data.</li>
-    <li><b>shell</b> wraps the value as a single POSIX shell argument. Use it only when the sink runs
-    a shell command string — the <b>exec</b> node's default mode. The exec node's <b>spawn</b> mode
-    splits on whitespace and strips only double quotes, so it receives the single quotes literally and
-    splits the argument; do not use <code>shell</code> there. Quoting stops command injection but not
-    argument injection — a payload like <code>-rf</code> is still an option, so put <code>--</code>
-    before the value.</li>
-    <li>Escaping is sink-specific and applied exactly once: a <b>template</b> or dashboard node that
-    escapes on its own will double-escape, so leave this on <code>none</code> there.</li>
-    <li>The 10000-character cap is applied before escaping, so an escaped value can be longer than
-    10000 characters.</li>
-    <li>Only the message text is escaped. If you render <code>displayName</code>, a badge or an emote
-    name, escape those too.</li>
-  </ul>
 
   <h3>Outputs</h3>
   <dl class="message-properties">
@@ -155,7 +118,6 @@ RED.nodes.registerType('twitch-chat-in', {
 
   <p>Every string that came from Twitch is normalized: line breaks become spaces, invisible and
   control characters are stripped, lone surrogates become <code>U+FFFD</code> and the text is
-  NFKC-folded. Normalization is not escaping; set <b>Escape text</b> to escape the message text for
-  your sink, or escape it yourself after the node. The sender's raw Twurple message is not
-  emitted.</p>
+  NFKC-folded. This is normalization, not escaping, so escape for your own shell/HTML sink. The
+  sender's raw Twurple message is not emitted.</p>
 </script>

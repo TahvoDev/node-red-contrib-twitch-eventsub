@@ -20,13 +20,6 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   class instances (`autoMod`, `blockedTerms`, `reward`, `powerUp`, the charity amounts, the
   hype-train `topContributors`/`sharedTrainParticipants` and the shared-chat `participants`) to plain
   objects, so their strings are normalized too.
-### Added
-- `twitch-chat-in` has an **Escape text** option (`none`, `html`, `js`, `shell`) that escapes
-  `msg.payload` for a downstream sink after normalization. It is opt-in (default `none`), applies only
-  to the message text (never `topic`/`id`/`user`), and is applied exactly once: a template or
-  dashboard node that escapes on its own will double-escape. `html` covers HTML text and quoted
-  attributes; `js` covers a JavaScript string literal; `shell` wraps the value as one POSIX shell
-  argument (a shell command string only — quoting does not stop argument injection, so use `--`).
 ### Removed
 - The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 ### Changed
