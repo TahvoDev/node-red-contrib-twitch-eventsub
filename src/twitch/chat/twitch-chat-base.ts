@@ -258,9 +258,9 @@ export async function sendChatMessage(
       return;
     }
 
-    // twitch-chat-in sets both text and payload; accept either so a message
-    // straight off the wire does not have to be reshaped first. Newlines are
-    // stripped and the text capped before it reaches the IRC socket.
+    // twitch-chat-in sets payload; msg.text is accepted as an input alias so a
+    // message does not have to be reshaped first. Newlines are stripped and the
+    // text capped before it reaches the IRC socket.
     const text = sanitizeChatText(messageText(msg));
     if (!text.trim()) {
       node.error('No message text — set msg.payload or msg.text to a string', msg);
