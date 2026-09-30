@@ -65,20 +65,25 @@ const CASES = [
 // Runs inside Node-RED: recurse the payload and fail on anything that is not
 // plain data (Date, Buffer, typed array, plain object, array or primitive).
 const PLAIN_OUTPUT_CHECK = `
+// A function node runs in Node-RED's own vm context, so identity checks like
+// proto === Object.prototype and instanceof Date fail across realms. Detect by
+// type tag and the prototype's constructor name instead.
 const bad = [];
-const seen = new WeakSet();
+function typeTag(value) { return Object.prototype.toString.call(value); }
+function constructorName(value) {
+    const proto = Object.getPrototypeOf(value);
+    return proto === null ? null : (proto.constructor && proto.constructor.name) || 'null';
+}
 function walk(value, where) {
     if (value === null || value === undefined) return;
     const type = typeof value;
     if (type === 'string' || type === 'number' || type === 'boolean') return;
-    if (value instanceof Date || (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) || ArrayBuffer.isView(value)) return;
+    if (typeTag(value) === '[object Date]') return;
+    if (Buffer.isBuffer(value) || ArrayBuffer.isView(value)) return;
     if (Array.isArray(value)) { value.forEach(function (item, i) { walk(item, where + '[' + i + ']'); }); return; }
     if (type !== 'object') { bad.push(where + ': ' + type); return; }
-    const proto = Object.getPrototypeOf(value);
-    if (proto !== null && proto !== Object.prototype) {
-        bad.push(where + ': ' + (value.constructor && value.constructor.name));
-        return;
-    }
+    const name = constructorName(value);
+    if (name !== null && name !== 'Object') { bad.push(where + ': ' + name); return; }
     Object.keys(value).forEach(function (key) { walk(value[key], where + '.' + key); });
 }
 walk(msg.payload, 'payload');
