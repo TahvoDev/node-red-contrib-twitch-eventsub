@@ -62,6 +62,30 @@ const CASES = [
     { endpoint: 'twitch-helix-chat-badges', method: 'GET', path: '/mock/chat/badges' },
 ]
 
+// Runs inside Node-RED: recurse the payload and fail on anything that is not
+// plain data (Date, Buffer, typed array, plain object, array or primitive).
+const PLAIN_OUTPUT_CHECK = `
+const bad = [];
+const seen = new WeakSet();
+function walk(value, where) {
+    if (value === null || value === undefined) return;
+    const type = typeof value;
+    if (type === 'string' || type === 'number' || type === 'boolean') return;
+    if (value instanceof Date || (typeof Buffer !== 'undefined' && Buffer.isBuffer(value)) || ArrayBuffer.isView(value)) return;
+    if (Array.isArray(value)) { value.forEach(function (item, i) { walk(item, where + '[' + i + ']'); }); return; }
+    if (type !== 'object') { bad.push(where + ': ' + type); return; }
+    const proto = Object.getPrototypeOf(value);
+    if (proto !== null && proto !== Object.prototype) {
+        bad.push(where + ': ' + (value.constructor && value.constructor.name));
+        return;
+    }
+    Object.keys(value).forEach(function (key) { walk(value[key], where + '.' + key); });
+}
+walk(msg.payload, 'payload');
+if (bad.length) { node.error('PLAIN-OUTPUT-FAIL ' + bad.join(', '), msg); return null; }
+return msg;
+`
+
 const engine = process.env.CONTAINER_ENGINE || ['podman', 'docker'].find(hasEngine)
 const isPodman = engine === 'podman'
 const userns = isPodman ? ['--userns=keep-id'] : []
@@ -167,10 +191,18 @@ function buildFlow(credentials) {
         if (testCase.endpoint === 'twitch-helix-get-users') fields.userIds = credentials.userId
 
         const id = `helix-e2e-node-${index}`
+        const checkId = `helix-e2e-check-${index}`
         const debugId = `helix-e2e-debug-${index}`
         nodes.push({
             id, type: 'twitch-api', z: tab, name: testCase.endpoint, config: configId,
-            endpoint: testCase.endpoint, fields, x: 380, y: 100 + index * 60, wires: [[debugId]],
+            endpoint: testCase.endpoint, fields, x: 380, y: 100 + index * 60, wires: [[checkId]],
+        })
+        // Between the node and debug, fail loudly on any non-plain payload (a
+        // leaked Twurple DataObject) so the runner can see it in the catch log.
+        nodes.push({
+            id: checkId, type: 'function', z: tab, name: `check ${index}`,
+            func: PLAIN_OUTPUT_CHECK, outputs: 1, noerr: 0,
+            x: 560, y: 100 + index * 60, wires: [[debugId]],
         })
         nodes.push({
             id: debugId, type: 'debug', z: tab, name: `${testCase.endpoint} out`, active: true,
@@ -293,6 +325,8 @@ async function main() {
         }
 
         const nrLog = containerLogs(NR_CONTAINER)
+        const plainFailure = /PLAIN-OUTPUT-FAIL[^\n]*/.exec(nrLog)
+        if (plainFailure) throw new Error(`a Helix payload was not plain: ${plainFailure[0]}`)
         const rawThrow = /TypeError|ReferenceError|UnhandledPromiseRejection|Uncaught/.exec(nrLog)
         if (rawThrow) throw new Error(`Node-RED logged a raw error: ${rawThrow[0]}`)
 

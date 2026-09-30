@@ -1,4 +1,5 @@
 import type { EventSubEventDefinition, EventSubField } from './eventsub-registry';
+import { sanitizeInbound } from '../twitch-shared';
 
 /**
  * Resolves one field mapping against a Twurple event and returns the payload key
@@ -26,11 +27,16 @@ function resolveField(field: EventSubField, event: any): [string, unknown] {
   return [field.key, value];
 }
 
+/**
+ * `rawEvent` stays verbatim: it is the unmodified Twitch payload, and consumers
+ * that want the original bytes opt into it explicitly. Every other value is
+ * normalised so no Twitch-sourced string reaches a flow unsanitized.
+ */
 export function mapEvent(definition: EventSubEventDefinition, event: any): Record<string, unknown> {
   const payload: Record<string, unknown> = {};
   for (const field of definition.fields) {
     const [key, value] = resolveField(field, event);
-    payload[key] = value;
+    payload[key] = key === 'rawEvent' ? value : sanitizeInbound(value);
   }
   return payload;
 }

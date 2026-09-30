@@ -37,6 +37,81 @@ export interface EventSubEventDefinition {
  */
 type EventSubEventInput = Omit<EventSubEventDefinition, 'category'>;
 
+/**
+ * Twurple returns several EventSub fields as DataObject instances whose data is
+ * hidden behind a symbol, so they neither serialise nor respond to the mapper's
+ * string normalisation. These flatten them to plain records; the mapper then
+ * normalises the strings inside. Keep in sync with the registry lint in
+ * `test/unit/plain-output.test.js`.
+ */
+const mapCharityAmount = (amount: any): unknown =>
+  amount
+    ? {
+        value: amount.value,
+        decimalPlaces: amount.decimalPlaces,
+        localizedValue: amount.localizedValue,
+        currency: amount.currency,
+      }
+    : null;
+
+const mapBroadcasterRef = (ref: any): unknown => ({
+  broadcasterId: ref.broadcasterId,
+  broadcasterName: ref.broadcasterName,
+  broadcasterDisplayName: ref.broadcasterDisplayName,
+});
+
+const mapAutoMod = (autoMod: any): unknown =>
+  autoMod
+    ? {
+        category: autoMod.category,
+        level: autoMod.level,
+        boundaries: (autoMod.boundaries ?? []).map((boundary: any) => ({
+          start: boundary.start,
+          end: boundary.end,
+          text: boundary.text,
+        })),
+      }
+    : null;
+
+const mapBlockedTerms = (terms: any): unknown =>
+  terms
+    ? terms.map((term: any) => ({
+        id: term.id,
+        start: term.start,
+        end: term.end,
+        text: term.text,
+        ownerBroadcasterId: term.ownerBroadcasterId,
+        ownerBroadcasterName: term.ownerBroadcasterName,
+        ownerBroadcasterDisplayName: term.ownerBroadcasterDisplayName,
+      }))
+    : null;
+
+const mapAutomaticReward = (reward: any): unknown =>
+  reward
+    ? {
+        type: reward.type,
+        channelPoints: reward.channelPoints,
+        emote: reward.emote ? { id: reward.emote.id, name: reward.emote.name } : null,
+      }
+    : null;
+
+const mapPowerUp = (powerUp: any): unknown =>
+  powerUp
+    ? {
+        type: powerUp.type,
+        emote: powerUp.emote ? { id: powerUp.emote.id, name: powerUp.emote.name } : null,
+        messageEffectId: powerUp.messageEffectId,
+      }
+    : null;
+
+const mapHypeContributor = (contributor: any): unknown => ({
+  userId: contributor.userId,
+  userName: contributor.userName,
+  userDisplayName: contributor.userDisplayName,
+  type: contributor.type,
+  total: contributor.total,
+});
+
 const EVENT_LIST: EventSubEventInput[] = [
   {
     type: "twitch-eventsub-automod-message-hold",
@@ -54,8 +129,8 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageText",
       "messageParts",
       "reason",
-      "autoMod",
-      "blockedTerms",
+      { key: 'autoMod', map: (e: any) => mapAutoMod(e.autoMod) },
+      { key: 'blockedTerms', map: (e: any) => mapBlockedTerms(e.blockedTerms) },
       "holdDate",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
@@ -79,8 +154,8 @@ const EVENT_LIST: EventSubEventInput[] = [
       "messageText",
       "messageParts",
       "reason",
-      "autoMod",
-      "blockedTerms",
+      { key: 'autoMod', map: (e: any) => mapAutoMod(e.autoMod) },
+      { key: 'blockedTerms', map: (e: any) => mapBlockedTerms(e.blockedTerms) },
       "status",
       "holdDate",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
@@ -159,7 +234,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "userId",
       "userName",
       "userDisplayName",
-      "reward",
+      { key: 'reward', map: (e: any) => mapAutomaticReward(e.reward) },
       "messageText",
       "messageParts",
       "redemptionDate",
@@ -204,7 +279,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "bits",
       "messageText",
       "messageParts",
-      "powerUp",
+      { key: 'powerUp', map: (e: any) => mapPowerUp(e.powerUp) },
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
@@ -222,8 +297,8 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityDescription",
       "charityLogo",
       "charityWebsite",
-      "currentAmount",
-      "targetAmount",
+      { key: 'currentAmount', map: (e: any) => mapCharityAmount(e.currentAmount) },
+      { key: 'targetAmount', map: (e: any) => mapCharityAmount(e.targetAmount) },
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
@@ -241,8 +316,8 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityDescription",
       "charityLogo",
       "charityWebsite",
-      "currentAmount",
-      "targetAmount",
+      { key: 'currentAmount', map: (e: any) => mapCharityAmount(e.currentAmount) },
+      { key: 'targetAmount', map: (e: any) => mapCharityAmount(e.targetAmount) },
       "startDate",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
@@ -261,8 +336,8 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityDescription",
       "charityLogo",
       "charityWebsite",
-      "currentAmount",
-      "targetAmount",
+      { key: 'currentAmount', map: (e: any) => mapCharityAmount(e.currentAmount) },
+      { key: 'targetAmount', map: (e: any) => mapCharityAmount(e.targetAmount) },
       "endDate",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
@@ -284,7 +359,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "charityDescription",
       "charityLogo",
       "charityWebsite",
-      "amount",
+      { key: 'amount', map: (e: any) => mapCharityAmount(e.amount) },
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
@@ -585,9 +660,9 @@ const EVENT_LIST: EventSubEventInput[] = [
       "total",
       "progress",
       "goal",
-      "topContributors",
+      { key: 'topContributors', map: (e: any) => (e.topContributors ?? []).map(mapHypeContributor) },
       "isSharedTrain",
-      "sharedTrainParticipants",
+      { key: 'sharedTrainParticipants', map: (e: any) => (e.sharedTrainParticipants ?? []).map(mapBroadcasterRef) },
       "allTimeHighLevel",
       "allTimeHighTotal",
       "startDate",
@@ -608,9 +683,9 @@ const EVENT_LIST: EventSubEventInput[] = [
       "type",
       "level",
       "total",
-      "topContributors",
+      { key: 'topContributors', map: (e: any) => (e.topContributors ?? []).map(mapHypeContributor) },
       "isSharedTrain",
-      "sharedTrainParticipants",
+      { key: 'sharedTrainParticipants', map: (e: any) => (e.sharedTrainParticipants ?? []).map(mapBroadcasterRef) },
       "startDate",
       "endDate",
       "cooldownEndDate",
@@ -632,9 +707,9 @@ const EVENT_LIST: EventSubEventInput[] = [
       "total",
       "progress",
       "goal",
-      "topContributors",
+      { key: 'topContributors', map: (e: any) => (e.topContributors ?? []).map(mapHypeContributor) },
       "isSharedTrain",
-      "sharedTrainParticipants",
+      { key: 'sharedTrainParticipants', map: (e: any) => (e.sharedTrainParticipants ?? []).map(mapBroadcasterRef) },
       "startDate",
       "expiryDate",
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
@@ -1013,7 +1088,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "hostBroadcasterId",
       "hostBroadcasterName",
       "hostBroadcasterDisplayName",
-      "participants",
+      { key: 'participants', map: (e: any) => (e.participants ?? []).map(mapBroadcasterRef) },
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },
@@ -1046,7 +1121,7 @@ const EVENT_LIST: EventSubEventInput[] = [
       "hostBroadcasterId",
       "hostBroadcasterName",
       "hostBroadcasterDisplayName",
-      "participants",
+      { key: 'participants', map: (e: any) => (e.participants ?? []).map(mapBroadcasterRef) },
       { key: 'rawEvent', map: (e: any) => getRawData(e) },
     ],
   },

@@ -68,7 +68,6 @@ export interface TwitchChatMessage extends NodeMessageInFlow {
   isBroadcaster?: boolean;
   emotes?: Array<{ name: string; positions: string[] }>;
   badges?: Array<{ name: string; version: string }>;
-  _raw?: unknown;
 }
 
 /**

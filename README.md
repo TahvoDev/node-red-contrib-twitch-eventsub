@@ -32,6 +32,23 @@ backed by one `twitch-api-config` account node, which holds the OAuth credential
 (real device-code login or the built-in mock) and owns the EventSub WebSocket and
 chat connections.
 
+## Input normalization
+
+Every string the nodes receive from Twitch — chat and whisper text, display names, moderation reasons,
+poll and prediction options, reward titles, blocked terms, and Helix responses — is normalized before
+it reaches your flow. Line breaks become spaces; C0/C1 control characters, zero-width characters and
+bidi controls are stripped; lone surrogates become `U+FFFD`; and text is NFKC-folded (so a fancy
+display name may differ from what Twitch shows, while logins are unaffected). Nested structures are
+rebuilt as plain objects and arrays, with `__proto__`, `constructor` and `prototype` keys dropped.
+
+This is **normalization, not escaping**. Shell, HTML and template syntax survives, so you still have to
+escape for your own sink. It exists so an adversarial chatter cannot smuggle a log/IRC/shell line break,
+a spoofing zero-width or bidi character, an unbounded string, or a prototype-pollution key through a
+node.
+
+`rawEvent` on the `twitch events` node is the exception: it is the original Twitch payload, left
+verbatim. It is documented and opt-in; if you merge it into a message, its handling is yours.
+
 ## Twitch Chat
 
 The `twitch chat (irc)` nodes talk to chat over Twitch's IRC gateway using

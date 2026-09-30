@@ -1,5 +1,6 @@
 import type { NodeAPI } from 'node-red';
 import { helixErrorMessage, shortStatus } from './twitch-helix-utils';
+import { sanitizeInbound } from '../twitch-shared';
 
 /**
  * A handler runs inside the base's try/catch. It may return:
@@ -24,13 +25,13 @@ function applyResult(msg: any, result: any): void {
     !Array.isArray(result) &&
     Object.prototype.hasOwnProperty.call(result, 'payload')
   ) {
-    msg.payload = result.payload;
+    msg.payload = sanitizeInbound(result.payload);
     if (result.extra && typeof result.extra === 'object') {
       Object.assign(msg, result.extra);
     }
     return;
   }
-  msg.payload = result;
+  msg.payload = sanitizeInbound(result);
 }
 
 export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: HelixHandler) {

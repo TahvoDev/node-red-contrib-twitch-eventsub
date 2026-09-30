@@ -4,10 +4,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-09-29
+### Security
+- Every string received from Twitch is normalized at the ingress boundary (chat and whisper text,
+  display names, moderation reasons, poll/prediction/reward titles, blocked terms, Helix responses):
+  line breaks become spaces; C0/C1 control characters, zero-width characters and bidi controls are
+  stripped; lone surrogates become `U+FFFD`; text is NFKC-folded and capped at 10000 code points.
+  Nested structures are rebuilt as plain objects and arrays with `__proto__`, `constructor` and
+  `prototype` keys dropped, and the walk is depth- and cycle-bounded. This is normalization, not
+  escaping: shell, HTML and template syntax survives. `result.extra` and EventSub `rawEvent` stay
+  verbatim.
+- The EventSub mapper now flattens the Twurple `DataObject` fields that used to pass through as
+  class instances (`autoMod`, `blockedTerms`, `reward`, `powerUp`, the charity amounts, the
+  hype-train `topContributors`/`sharedTrainParticipants` and the shared-chat `participants`) to plain
+  objects, so their strings are normalized too.
 ### Removed
 - The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 ### Changed
+- **Breaking:** `twitch-chat-in` no longer emits `_raw`, the full Twurple message. It was a class
+  instance that carried the unnormalized message and could not be serialized cleanly; re-attach any
+  field you actually needed from the documented message properties instead.
 - **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
   spec-to-node factory/build-generation are gone. Endpoints are registry entries under
   `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (endpoint → action

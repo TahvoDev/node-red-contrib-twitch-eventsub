@@ -152,4 +152,8 @@
     <dt>payload <span class="property-type">object | array</span></dt>
     <dd>The result as a plain object (or array for list endpoints), with <code>msg.pagination</code>/<code>msg.total</code>.</dd>
   </dl>
+  <h3>Input normalization</h3>
+  <p>Strings that came from Twitch are normalized: line breaks become spaces, control and invisible
+  characters are stripped and text is NFKC-folded. This is not escaping — shell, HTML and template
+  syntax survives — so escape for your own sink.</p>
 </script>

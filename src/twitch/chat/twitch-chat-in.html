@@ -67,7 +67,10 @@ RED.nodes.registerType('twitch-chat-in', {
     <dd><code>twitch/chat/{channel}/{user}</code>.</dd>
 
     <dt>text / payload <span class="property-type">string</span></dt>
-    <dd>The raw chat message text.</dd>
+    <dd>The chat message text, normalized: line breaks become spaces, invisible and control characters
+    are stripped, lone surrogates become <code>U+FFFD</code> and the text is NFKC-folded. This is not
+    escaping, so escape for your own shell/HTML sink. The sender's raw Twurple message is no longer
+    emitted (<code>_raw</code> was removed).</dd>
 
     <dt>user / displayName / userId <span class="property-type">string</span></dt>
     <dd>The sender's login, display name and numeric user ID.</dd>
