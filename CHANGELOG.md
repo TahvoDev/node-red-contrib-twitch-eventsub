@@ -12,8 +12,10 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   stripped; lone surrogates become `U+FFFD`; text is NFKC-folded and capped at 10000 code points.
   Nested structures are rebuilt as plain objects and arrays with `__proto__`, `constructor` and
   `prototype` keys dropped, and the walk is depth- and cycle-bounded. This is normalization, not
-  escaping: shell, HTML and template syntax survives. `result.extra` and EventSub `rawEvent` stay
-  verbatim.
+  escaping: shell, HTML and template syntax survives. Helix `result.extra` (e.g. the pagination
+  cursor) and EventSub `rawEvent` stay verbatim and are not a boundary: `rawEvent` is emitted by every
+  event that declares it, not opt-in, so it carries the original attacker-controlled payload alongside
+  the sanitized fields.
 - The EventSub mapper now flattens the Twurple `DataObject` fields that used to pass through as
   class instances (`autoMod`, `blockedTerms`, `reward`, `powerUp`, the charity amounts, the
   hype-train `topContributors`/`sharedTrainParticipants` and the shared-chat `participants`) to plain

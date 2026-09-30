@@ -46,10 +46,9 @@ const LONE_SURROGATE_RE =
  * Line breaks become spaces and invisible/format characters are dropped, so a
  * viewer cannot smuggle a newline (log/IRC/shell injection) or a zero-width or
  * bidi character (display spoofing) through a Twitch-sourced string. ZWNJ and
- * ZWJ are kept: they are legitimate in emoji and some scripts. The runs on the
- * right of that arrow are the ones that matter — a single pass is not enough
- * because NFKC can compose a character with a combining mark that a stripped
- * zero-width character was separating.
+ * ZWJ are kept: they are legitimate in emoji and some scripts. This runs before
+ * NFKC, which is what lets a stripped zero-width character stop blocking
+ * composition (`a` + ZWSP + U+0301 folds to `á`).
  */
 function stripTwitchText(value: string): string {
   return value
@@ -64,7 +63,7 @@ function stripTwitchText(value: string): string {
  * Normalises one string from a Twitch payload. This is *normalization, not
  * escaping*: shell, HTML and template syntax survive unchanged so downstream
  * code still has to escape for its own sink. Order is fixed for idempotence:
- * make well formed → strip+fold → NFKC → strip+fold again → cap.
+ * make well formed → strip+fold → NFKC → cap.
  */
 export function sanitizeInboundString(value: unknown): string {
   const raw = value === null || value === undefined ? '' : String(value);
@@ -73,7 +72,14 @@ export function sanitizeInboundString(value: unknown): string {
       ? (raw as any).toWellFormed()
       : raw.replace(LONE_SURROGATE_RE, '\uFFFD');
   const folded = stripTwitchText(wellFormed).normalize('NFKC');
-  return Array.from(stripTwitchText(folded)).slice(0, MAX_INBOUND_STRING_LENGTH).join('');
+  // Cheap path: a string within the cap in UTF-16 units is within it in code
+  // points, so nothing to count. Otherwise every code point is at most two
+  // units, so the first 2*cap units hold at least `cap` code points; walking
+  // that window (instead of the whole string) and joining the first `cap`
+  // still counts code points, so a pair is never split.
+  if (folded.length <= MAX_INBOUND_STRING_LENGTH) return folded;
+  const window = folded.slice(0, MAX_INBOUND_STRING_LENGTH * 2);
+  return Array.from(window).slice(0, MAX_INBOUND_STRING_LENGTH).join('');
 }
 
 const FORBIDDEN_KEYS = new Set(['__proto__', 'constructor', 'prototype']);

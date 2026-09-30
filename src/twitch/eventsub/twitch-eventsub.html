@@ -103,5 +103,7 @@
   surrogates become <code>U+FFFD</code>, and text is NFKC-folded (so a fancy display name may differ
   from what Twitch shows; logins are unaffected). This is normalization, not escaping — shell, HTML
   and template syntax survives, so escape for your own sink. <code>rawEvent</code> is left verbatim
-  and is not normalized. If you merge <code>rawEvent</code> into a message, you own its handling.</p>
+  and is not normalized. Every event that declares it always emits it — it is not opt-in — so the
+  original payload sits next to the sanitized fields in the same <code>msg.payload</code>. Treat it as
+  untrusted.</p>
 </script>

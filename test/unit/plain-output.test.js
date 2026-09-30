@@ -62,6 +62,7 @@ function assertPlainOutput(value, where) {
 function readDataObjectGetters(base) {
   const classExtends = {}
   const gettersByClass = {}
+  let gettersParsed = 0
   const walk = (dir) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name)
@@ -80,7 +81,10 @@ function readDataObjectGetters(base) {
           continue
         }
         const getter = line.match(/^\s*get (\w+)\(\)\s*:\s*([^;]+);/)
-        if (getter && current) gettersByClass[current].push({ name: getter[1], type: getter[2].trim() })
+        if (getter && current) {
+          gettersParsed++
+          gettersByClass[current].push({ name: getter[1], type: getter[2].trim() })
+        }
       }
     }
   }
@@ -112,11 +116,18 @@ function readDataObjectGetters(base) {
   const badGettersFor = (eventClass) =>
     (gettersByClass[eventClass] || []).filter((getter) => returnsDataObject(getter.type)).map((getter) => getter.name)
 
-  return { badGettersFor, methodToClass }
+  return { badGettersFor, methodToClass, gettersParsed }
 }
 
 const twurpleBase = path.join(root, 'node_modules', '@twurple', 'eventsub-base', 'lib')
-const { badGettersFor, methodToClass } = readDataObjectGetters(twurpleBase)
+const { badGettersFor, methodToClass, gettersParsed } = readDataObjectGetters(twurpleBase)
+
+// Without this tripwire a Twurple syntax change could silently stop the getter
+// parser, leaving every field check vacuously true while still printing ok.
+assert.ok(
+  gettersParsed > 500,
+  `the getter parser found too few getters (${gettersParsed}); the Twurple declarations likely changed shape`
+)
 
 let linted = 0
 for (const definition of EVENTS) {
@@ -127,10 +138,14 @@ for (const definition of EVENTS) {
   linted++
   const bad = new Set(badGettersFor(eventClass))
   for (const field of definition.fields) {
-    if (typeof field !== 'string') continue
+    // `map` fields flatten the value themselves; every other form (a bare
+    // string, or { key, from, default }) copies a getter straight through and
+    // must not name a DataObject-returning one.
+    if (typeof field !== 'string' && 'map' in field) continue
+    const source = typeof field === 'string' ? field : field.from || field.key
     assert.ok(
-      !bad.has(field),
-      `${definition.type}: field "${field}" returns a DataObject (${eventClass}.${field}) but has no map`
+      !bad.has(source),
+      `${definition.type}: field "${source}" returns a DataObject (${eventClass}.${source}) but has no map`
     )
   }
 }
