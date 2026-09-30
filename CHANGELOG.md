@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - **Breaking:** `twitch-chat-in` no longer emits `_raw`, the full Twurple message. It was a class
   instance that carried the unnormalized message and could not be serialized cleanly; re-attach any
   field you actually needed from the documented message properties instead.
+- **Breaking:** `twitch-chat-in` no longer emits `msg.text`; the message text is `msg.payload` only.
+  The two were always the same string, and every outbound chat node reads `msg.payload`.
 - **Collapsed the Helix palette to one `twitch-api` node.** The per-endpoint nodes and the
   spec-to-node factory/build-generation are gone. Endpoints are registry entries under
   `src/twitch/helix/specs/`; a single hand-written `twitch-api` node (endpoint → action

@@ -16,7 +16,6 @@ function buildChatMessage(channel: string, text: string, message: any): Record<s
     user: userInfo.userName,
     displayName: userInfo.displayName,
     userId: userInfo.userId,
-    text,
     payload: text,
     id: message.id,
     emotes: Array.from(message.emoteOffsets, ([name, positions]) => ({ name, positions })),

@@ -105,7 +105,7 @@ the account in again so the new scope is granted.
 
 ### Nodes
 
-- **chat in** — emits a message for each incoming chat message (channel, user, text, badges, bits, …),
+- **chat in** — emits a message for each incoming chat message (channel, user, payload, badges, bits, …),
   with an optional **Ignore own messages** switch for the connection's own account.
 - **chat send** — sends `msg.payload` to a channel, or `msg.text` if there is no payload.
 - **chat reply** — like **chat send**, but threads the message using `msg.replyTo`, or the
