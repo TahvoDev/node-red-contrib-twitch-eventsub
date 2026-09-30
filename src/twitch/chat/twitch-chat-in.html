@@ -63,31 +63,64 @@ RED.nodes.registerType('twitch-chat-in', {
 
   <h3>Outputs</h3>
   <dl class="message-properties">
+    <dt>payload <span class="property-type">string</span></dt>
+    <dd>The chat message text.</dd>
+
+    <dt>text <span class="property-type">string</span></dt>
+    <dd>The chat message text, the same value as <code>msg.payload</code>.</dd>
+
     <dt>topic <span class="property-type">string</span></dt>
-    <dd><code>twitch/chat/{channel}/{user}</code>.</dd>
+    <dd>A <code>twitch/chat/{channel}/{user}</code> string built from <code>msg.channel</code> and
+    <code>msg.user</code>. The braces are placeholders, not part of the value.</dd>
 
-    <dt>text / payload <span class="property-type">string</span></dt>
-    <dd>The chat message text, normalized: line breaks become spaces, invisible and control characters
-    are stripped, lone surrogates become <code>U+FFFD</code> and the text is NFKC-folded. This is not
-    escaping, so escape for your own shell/HTML sink. The sender's raw Twurple message is no longer
-    emitted (<code>_raw</code> was removed).</dd>
+    <dt>channel <span class="property-type">string</span></dt>
+    <dd>The channel login the message was received on.</dd>
 
-    <dt>user / displayName / userId <span class="property-type">string</span></dt>
-    <dd>The sender's login, display name and numeric user ID.</dd>
+    <dt>user <span class="property-type">string</span></dt>
+    <dd>The sender's login.</dd>
+
+    <dt>displayName <span class="property-type">string</span></dt>
+    <dd>The sender's display name.</dd>
+
+    <dt>userId <span class="property-type">string</span></dt>
+    <dd>The sender's numeric Twitch user ID.</dd>
 
     <dt>id <span class="property-type">string</span></dt>
     <dd>The Twitch message ID, accepted by <b>chat reply</b> and <b>chat delete message</b>.</dd>
 
-    <dt>emotes / badges <span class="property-type">object[]</span></dt>
-    <dd>Emotes used in the message and the sender's chat badges.</dd>
+    <dt>emotes <span class="property-type">object[]</span></dt>
+    <dd>The emotes used in the message, each <code>{ name, positions: string[] }</code>.</dd>
 
-    <dt>bits / isCheer <span class="property-type">number | boolean</span></dt>
-    <dd>Bits cheered and whether the message is a cheer.</dd>
+    <dt>badges <span class="property-type">object[]</span></dt>
+    <dd>The sender's chat badges, each <code>{ name, version }</code>.</dd>
 
-    <dt>isMod / isSubscriber / isVip / isBroadcaster <span class="property-type">boolean</span></dt>
-    <dd>The sender's status in the channel.</dd>
+    <dt>bits <span class="property-type">number</span></dt>
+    <dd>The bits cheered, or <code>0</code> when the message is not a cheer.</dd>
 
-    <dt>color <span class="property-type">string</span></dt>
-    <dd>The sender's chosen chat colour, if set.</dd>
+    <dt>isCheer <span class="property-type">boolean</span></dt>
+    <dd>Whether the message is a cheer.</dd>
+
+    <dt>isMod <span class="property-type">boolean</span></dt>
+    <dd>Whether the sender is a moderator.</dd>
+
+    <dt>isSubscriber <span class="property-type">boolean</span></dt>
+    <dd>Whether the sender is a subscriber.</dd>
+
+    <dt>isVip <span class="property-type">boolean</span></dt>
+    <dd>Whether the sender is a VIP.</dd>
+
+    <dt>isBroadcaster <span class="property-type">boolean</span></dt>
+    <dd>Whether the sender is the broadcaster.</dd>
+
+    <dt class="optional">color <span class="property-type">string</span></dt>
+    <dd>The sender's chosen chat colour (for example <code>#FF0000</code>), if set.</dd>
+
+    <dt>timestamp <span class="property-type">Date</span></dt>
+    <dd>When the node received the message.</dd>
   </dl>
+
+  <p>Every string that came from Twitch is normalized: line breaks become spaces, invisible and
+  control characters are stripped, lone surrogates become <code>U+FFFD</code> and the text is
+  NFKC-folded. This is normalization, not escaping, so escape for your own shell/HTML sink. The
+  sender's raw Twurple message is not emitted.</p>
 </script>
