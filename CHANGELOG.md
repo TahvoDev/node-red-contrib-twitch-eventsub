@@ -42,10 +42,9 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Tooling: `tsc` runs with `noImplicitAny`; ESLint (`eslint-plugin-security`,
   `eslint-plugin-no-unsanitized`) and a forbidden-pattern sink check run in `npm run check`;
   the security tests enforce ≥90% line/function coverage as part of `npm run check`; `npm
-  audit` is clean and `package-lock.json` is committed. `ci/github-actions.yml` wires the
-  same checks plus CodeQL and Semgrep into GitHub Actions — copy it to
-  `.github/workflows/ci.yml` (or push it with a token that has `workflows: write`) to
-  activate it.
+  audit` is clean and `package-lock.json` is committed. GitHub Actions runs the same checks
+  on Node 22 and 24 (`.github/workflows/ci.yml`, added in a separate PR), and `prepublishOnly`
+  runs build plus `npm run check` so a release cannot skip the gates.
 
 ### Removed
 - The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
