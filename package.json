@@ -1,10 +1,10 @@
 {
-  "name": "@tahvo/node-red-contrib-twitch-eventsub",
+  "name": "@tahvo/node-red-contrib-twitch",
   "version": "0.2.0",
-  "description": "Connect to Twitch API",
+  "description": "Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC",
   "main": "index.js",
-  "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
-  "repository": "https://github.com/TahvoDev/node-red-contrib-twitch-eventsub",
+  "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch",
+  "repository": "https://github.com/TahvoDev/node-red-contrib-twitch",
   "scripts": {
     "build": "rm -rf dist && tsc && node scripts/generate-chat-icons.js && node scripts/copy-static-assets.js && node scripts/generate-eventsub-editor.js && node scripts/check-main-entry.js && node scripts/check-editor-scripts.js && npm run test:unit",
     "collect-glyphs": "node scripts/collect-glyphs.js",

@@ -1,4 +1,4 @@
-# node-red-contrib-twitch-eventsub
+# node-red-contrib-twitch
 
 Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC, sharing a single `twitch-api-config` account node.
 Not officially endorsed by Twitch 
