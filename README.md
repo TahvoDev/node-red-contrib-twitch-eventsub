@@ -1,8 +1,9 @@
 # node-red-contrib-twitch-eventsub
 
-Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC,
-sharing a single `twitch-api-config` account node.
+Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC, sharing a single `twitch-api-config` account node.
+
 <img width="309" height="741" alt="image" src="https://github.com/user-attachments/assets/ce6b67f3-eac6-4743-a2e5-783b1dd6b044" />
+
 
 > **AI Disclosure**
 > Contains AI generated code. I've done agent reviews, spot checks, and made efforts to reduce the bloat - but wouldn't consider it battle-tested yet. 
