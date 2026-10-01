@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-09-29
+## [0.1.0] - 2026-10-01
 ### Security
 - Every string received from Twitch is normalized at the ingress boundary (chat and whisper text,
   display names, moderation reasons, poll/prediction/reward titles, blocked terms, Helix responses):
@@ -160,6 +160,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - `chat announce` no longer fails with `Invalid announcement color` when it is wired straight onto a `chat in` message: `msg.color` is the sender's chat colour there, not one of Twitch's five announcement colours, so the announcement now falls back to `primary`. Set `msg.announceColor` to pick a colour
 - `chat reply` and `chat delete message` rejected every message coming from `chat in`, because they asked for `msg.replyTo` and `msg.messageId` while `chat in` emits `msg.id`. Both accept `msg.id` now, so the two can be wired directly onto a chat message
 - `chat send` ignored `msg.text` and sent an empty message when a message had no payload, where `chat command` already accepted either. It reads `msg.text` as a fallback and reports an error on empty text instead of calling the API
+
+## Upstream history
+
+The entries below predate this fork. They were released by xurei as
+`@xureilab/node-red-twitch-eventsub`, and their version numbers belong to that
+package only — they are not releases of `@tahvo/node-red-contrib-twitch`.
 
 ## [0.1.1] - 2024-10-21
 ### Added

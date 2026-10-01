@@ -1,6 +1,6 @@
 {
   "name": "@tahvo/node-red-contrib-twitch",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Node-RED nodes for Twitch: EventSub events, the Helix REST API and chat over IRC",
   "main": "index.js",
   "homepage": "https://github.com/TahvoDev/node-red-contrib-twitch",
