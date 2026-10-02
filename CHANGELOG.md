@@ -149,6 +149,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - The per-subscription retry after a WebSocket reconnect now backs off exponentially (capped) instead of retrying on a fixed delay.
 
 ### Fixed
+- **Login with Twitch failed with `400 invalid scope requested: 'channel:read:emotes'`.** The login asks for every scope the palette can need in one request, and Twitch rejects the whole request when any scope name is unknown, so two invented names (`channel:read:emotes` — emote scopes are `user:read:emotes`, already requested — and `moderator:read:whispers`, which is `user:read:whispers`) locked every user out. Both are gone or corrected, and `npm run test:unit` now fails the build if any requested scope is not one Twitch documents
 - The Twitch Chat connection no longer hangs on `Connecting...` when the account's auth fails. An auth error (for example an invalid refresh token) now sets a red `Auth failed` status on the connection and on every chat node instead of being logged and leaving the nodes waiting forever
 - Event node icons fell back to the default Node-RED arrow because they lived outside the `icons` directory Node-RED scans for the package
 - The combined event nodes only ever emitted their last registered event, and their `eventType` field was always `unknown`

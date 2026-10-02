@@ -11,7 +11,7 @@
     "check": "npm run test:unit",
     "test": "npm run test:unit && npm run test:e2e",
     "test:e2e": "node test/e2e/run-e2e.js",
-    "test:unit": "node test/unit/sanitize-inbound.test.js && node test/unit/plain-output.test.js && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js && node test/unit/eventsub-nodes.test.js && node test/unit/eventsub-service.test.js",
+    "test:unit": "node test/unit/sanitize-inbound.test.js && node test/unit/plain-output.test.js && node test/unit/chat-nodes.test.js && node test/unit/helix-nodes.test.js && node test/unit/eventsub-nodes.test.js && node test/unit/eventsub-service.test.js && node test/unit/oauth-scopes.test.js",
     "prepare": "npm run build",
     "prepublishOnly": "npm run build",
     "node-red-check": "node-red-dev validate",
