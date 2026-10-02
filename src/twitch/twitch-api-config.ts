@@ -91,7 +91,7 @@ const CORE_SCOPES = [
   'channel:manage:moderators', 'channel:manage:polls', 'channel:manage:predictions',
   'channel:manage:raids', 'channel:manage:redemptions', 'channel:manage:schedule',
   'channel:manage:videos', 'channel:manage:vips', 'channel:moderate',
-  'channel:read:ads', 'channel:read:charity', 'channel:read:emotes', 'channel:read:goals',
+  'channel:read:ads', 'channel:read:charity', 'channel:read:goals',
   'channel:read:guest_star', 'channel:read:hype_train', 'channel:read:polls',
   'channel:read:predictions', 'channel:read:redemptions', 'channel:read:stream_key',
   'channel:read:subscriptions', 'channel:read:vips',
@@ -105,12 +105,19 @@ const CORE_SCOPES = [
   'moderator:read:chatters', 'moderator:read:followers', 'moderator:read:guest_star',
   'moderator:read:shield_mode', 'moderator:read:shoutouts',
   'moderator:read:suspicious_users', 'moderator:read:unban_requests',
-  'moderator:read:whispers',
   'user:edit', 'user:edit:broadcast', 'user:read:blocked_users',
   'user:read:broadcast', 'user:read:chat', 'user:read:email', 'user:read:follows',
-  'user:read:subscriptions', 'user:write:chat', 'user:manage:blocked_users',
-  'user:manage:whispers',
+  'user:read:subscriptions', 'user:read:whispers', 'user:write:chat',
+  'user:manage:blocked_users', 'user:manage:whispers',
 ];
+
+// Twitch has no `channel:read:emotes` (emote scopes are `user:read:emotes`,
+// already covered by the Helix specs) and no `moderator:read:whispers` (it is
+// `user:read:whispers`). Both were requested anyway, and Twitch rejects the
+// whole device-code request when one scope is unknown: 400
+// "invalid scope requested", so no user could log in at all. A name that Twitch
+// does not list is a bug here, not a permission the user declines — check any new
+// scope against dev.twitch.tv/docs/authentication/scopes.
 
 // Every scope the Helix registry can need, plus the EventSub/chat ones above.
 // Fixed at startup so a tier change never forces a re-login.
