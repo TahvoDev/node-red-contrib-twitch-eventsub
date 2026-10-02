@@ -1,4 +1,13 @@
 <script type="text/javascript">
+// Wrapped, because Node-RED evaluates every node's editor script in the one page
+// scope: a top-level `let` here would collide with the same name in any other
+// node type's script and throw before either registered.
+(function () {
+// Per-dialog teardown, so a cancelled *new* node — which the editor hands a
+// throwaway `{id}` instead of the object the dialog was opened on — still releases
+// the subscription this dialog opened.
+let releaseActiveStatus = function () {};
+
 RED.nodes.registerType('twitch-api-config', {
   category: 'config',
   defaults: {
@@ -20,7 +29,9 @@ RED.nodes.registerType('twitch-api-config', {
     return this.name;
   },
   oneditprepare: function () {
+    const node = this;
     let pollInterval = null;
+    let unsubStatus = null;
 
     function stopPolling() {
       if (pollInterval) {
@@ -32,19 +43,148 @@ RED.nodes.registerType('twitch-api-config', {
     function setAuthStatus(text, state) {
       const el = $('#twitch-auth-status');
       el
-        .removeClass('auth-ok auth-warn auth-wait')
+        .removeClass('auth-ok auth-warn auth-wait auth-err')
         .addClass(state || '')
         .text(text);
     }
 
-    $('#node-config-btn-twitch-auth').click(function () {
-      const clientId = $('#node-config-input-twitch_client_id').val();
+    // --- Runtime status ---
+    //
+    // The node's own status is the only claim here that means anything: it is
+    // what the runtime published over the retained status/<id> message after a
+    // real token check, and this dialog has no way to verify anything itself.
+    // "Logged in as X" from the saved fields was a guess dressed as a fact, and
+    // it stayed green while the canvas showed red.
+    const FILL_CLASS = {
+      green: 'auth-ok',
+      yellow: 'auth-wait',
+      red: 'auth-err',
+      grey: 'auth-warn',
+      blue: 'auth-wait',
+    };
 
-      if (!clientId) {
-        RED.notify('Please enter a Client ID first.', 'error');
+    // Comms callbacks get the raw message; only the editor's own status/# handler
+    // translates, so do it here rather than depend on handler ordering.
+    //
+    // Only key-shaped text goes to the translator. i18next reads a colon as a
+    // namespace separator, and status text routinely carries one — "Mock server
+    // :8080", "WebSocket error: …", "Disconnected: …" — so passing those through
+    // would look them up as namespace "Mock server " and throw the wording away.
+    // Wording we did not add, such as a third-party error message, is shown as-is.
+    const I18N_KEY = /^[^:\s]+:[^:\s]+$/;
+
+    function translate(text) {
+      const value = text == null ? '' : String(text);
+      if (!I18N_KEY.test(value)) return value;
+      return node._(value, { defaultValue: value });
+    }
+
+    function renderRuntimeStatus(status) {
+      if (!status || status.text == null) return false;
+      setAuthStatus(translate(status.text), FILL_CLASS[status.fill] || 'auth-warn');
+      return true;
+    }
+
+    // The runtime publishes nothing before the first user node starts, and keeps
+    // nothing across a restart, so this is also a config node with no users. Both
+    // mean the same thing to the reader: nothing is connected.
+    function showNoRuntimeStatus() {
+      setAuthStatus('Not connected', 'auth-warn');
+    }
+
+    function subscribeToStatus() {
+      // The editor routes retained status messages through RED.nodes.node(id) for
+      // config nodes too, so the wrapper already carries the current one.
+      renderRuntimeStatus(node.status) || showNoRuntimeStatus();
+
+      // Registered before the guard: even with no comms to subscribe to, this
+      // dialog is the one that must be released.
+      releaseActiveStatus = releaseStatus;
+      if (!RED.comms || !RED.comms.subscribe) return;
+
+      unsubStatus = function (topic, status) {
+        renderRuntimeStatus(status);
+      };
+      RED.comms.subscribe('status/' + node.id, unsubStatus);
+    }
+
+    // Esc and the dialog close button bypass click handlers, so the hooks are the
+    // only teardown that always runs. Unsubscribe with the same function reference
+    // that was subscribed.
+    function releaseStatus() {
+      if (unsubStatus && RED.comms && RED.comms.unsubscribe) {
+        RED.comms.unsubscribe('status/' + node.id, unsubStatus);
+      }
+      unsubStatus = null;
+    }
+
+    // Saved-account facts, kept out of the status line: a stored id is what is in
+    // the config, not proof that it still works.
+    function showSavedAccount() {
+      if (node.twitch_user_id || node.twitch_user_login) {
+        $('#twitch-saved-account')
+          .text(
+            'Token saved for ' +
+              (node.twitch_user_login || node.twitch_user_id) +
+              (node.twitch_user_id ? ' (' + node.twitch_user_id + ')' : '')
+          )
+          .show();
+      }
+    }
+
+    // Node-RED never sends a stored password back to the editor: it fills the
+    // field with this placeholder, which oneditsave reads as "keep what is
+    // saved". There is no secret to check in that case, so verification is
+    // skipped rather than posting the placeholder to Twitch.
+    const SAVED_SECRET = '__PWRD__';
+
+    $('#node-config-btn-twitch-auth').click(function () {
+      const $clientId = $('#node-config-input-twitch_client_id');
+      const clientId = ($clientId.val() || '').trim();
+      const clientSecret = ($('#node-config-input-twitch_client_secret').val() || '').trim();
+
+      if (!clientId || !clientSecret) {
+        RED.notify('Please enter a Client ID and Client Secret first.', 'error');
         return;
       }
 
+      // Pasted ids often carry a stray newline, and a secret typed over the saved
+      // one is otherwise never used until a runtime refresh, so check the pair now.
+      $clientId.val(clientId);
+      $('#node-config-input-twitch_client_secret').val(clientSecret);
+
+      if (clientSecret === SAVED_SECRET) {
+        loadScopes(clientId);
+        return;
+      }
+
+      setAuthStatus('Checking credentials…', 'auth-wait');
+
+      $.ajax({
+        url: 'twitch-eventsub/auth/verify',
+        type: 'POST',
+        data: { client_id: clientId, client_secret: clientSecret },
+        success: function () {
+          loadScopes(clientId);
+        },
+        error: function (xhr) {
+          // 400 and 401 are the route's answers for a pair Twitch refused: the
+          // runtime reads the same two as a refused token, and a 401 labelled
+          // "Could not reach Twitch" would be nonsense. Anything else is Twitch
+          // being unreachable, rate limiting or the runtime restarting under us,
+          // and calling that a bad secret sends people off to re-copy it.
+          const refused = xhr.status === 400 || xhr.status === 401;
+          setAuthStatus(
+            refused
+              ? 'Client ID or Client Secret is not valid'
+              : `Could not reach Twitch (${xhr.status || 0})`,
+            'auth-err'
+          );
+        },
+      });
+    });
+
+    function loadScopes(clientId) {
       // The scopes come from the Helix specs at build time, so the login button
       // always requests exactly what the palette's nodes need.
       $.ajax({
@@ -57,7 +197,7 @@ RED.nodes.registerType('twitch-api-config', {
           startDeviceAuth(clientId, '');
         },
       });
-    });
+    }
 
     function startDeviceAuth(clientId, scopes) {
       $.ajax({
@@ -98,10 +238,14 @@ RED.nodes.registerType('twitch-api-config', {
               $('#node-config-input-twitch_user_id').val(resp.twitch_user_id);
               $('#node-config-input-twitch_user_login').val(resp.twitch_user_login);
 
-              setAuthStatus(
-                `Logged in as ${resp.twitch_user_login} (${resp.twitch_user_id})`,
-                'auth-ok'
-              );
+              // A new token is saved to the form, not to the running node: the
+              // runtime only sees it on Deploy. Say that, rather than claiming a
+              // connection that does not exist yet.
+              setAuthStatus('Connected — deploy to use it', 'auth-ok');
+
+              $('#twitch-saved-account')
+                .text('Token saved for ' + resp.twitch_user_login + ' (' + resp.twitch_user_id + ')')
+                .show();
 
               $('#auth-step-verify').hide();
               $('#auth-step-login').show();
@@ -123,16 +267,20 @@ RED.nodes.registerType('twitch-api-config', {
     $('#node-config-dialog-cancel').click(stopPolling);
     $('#node-config-dialog-ok').click(stopPolling);
 
-    if (this.twitch_user_id && this.twitch_user_login) {
-      setAuthStatus(
-        `Logged in as ${this.twitch_user_login} (${this.twitch_user_id})`,
-        'auth-ok'
-      );
-    } else {
-      setAuthStatus('Not logged in', 'auth-warn');
-    }
+    subscribeToStatus();
+    showSavedAccount();
+  },
+  oneditsave: function () {
+    releaseActiveStatus();
+  },
+  oneditcancel: function () {
+    releaseActiveStatus();
+  },
+  oneditdelete: function () {
+    releaseActiveStatus();
   },
 });
+})();
 </script>
 
 <style>
@@ -145,6 +293,12 @@ RED.nodes.registerType('twitch-api-config', {
   }
   .twitch-api-config-form a:hover {
     text-decoration: underline;
+  }
+  /* Two classes: the editor's own `.red-ui-editor-dialog p` margin rule is more
+     specific than a lone class, so this would lose without them. The 134px is the
+     130px label width plus the whitespace gap before the input. */
+  .twitch-api-config-form .twitch-get-creds {
+    margin: 14px 0 8px 134px;
   }
   .auth-box {
     background: #f3f3f3;
@@ -167,24 +321,44 @@ RED.nodes.registerType('twitch-api-config', {
     margin-top: 10px;
     font-weight: bold;
   }
+  /* The shape carries the meaning here: Node-RED readers judge connection state
+     from ring vs dot, so colour alone would read as "looks fine". Connected is
+     the only state drawn as a filled dot. */
+  .auth-status::before {
+    content: '';
+    display: inline-block;
+    width: 9px;
+    height: 9px;
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    margin-right: 6px;
+  }
+  .auth-ok::before { background: currentColor; }
+  /* A fact about the saved config, not the connection state, so it is quiet. */
+  .auth-saved-account {
+    font-size: 0.9em;
+    opacity: 0.75;
+    margin-top: 2px;
+  }
   .auth-ok { color: #2ca02c; }
   .auth-warn { color: #999; }
+  .auth-err { color: #c00; }
   .auth-wait { color: #ff7f0e; }
 </style>
 
 <script type="text/html" data-template-name="twitch-api-config">
   <div class="twitch-api-config-form">
 
-    <p class="red-ui-help">
-      Create an app at
-      <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">dev.twitch.tv/console/apps</a>
-      and paste its Client ID and Client Secret below.
-    </p>
-
     <div class="form-row">
       <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
       <input type="text" id="node-config-input-name">
     </div>
+
+    <p class="red-ui-help twitch-get-creds">
+      Create an app at
+      <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">dev.twitch.tv/console/apps</a>
+      and paste its Client ID and Client Secret below, then connect.
+    </p>
 
     <div class="form-row">
       <label for="node-config-input-twitch_client_id">
@@ -205,7 +379,7 @@ RED.nodes.registerType('twitch-api-config', {
     <div class="auth-box">
       <div id="auth-step-login">
         <a class="red-ui-button" id="node-config-btn-twitch-auth">
-          <i class="fa fa-twitch"></i> Login with Twitch
+          <i class="fa fa-twitch"></i> Connect to Twitch
         </a>
       </div>
 
@@ -219,15 +393,16 @@ RED.nodes.registerType('twitch-api-config', {
       <!-- Outside both steps: the device flow hides the login step while it waits
            for approval, and "Waiting for Twitch authorization…" is the message the
            user needs to see while that is happening. -->
-      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
+      <div id="twitch-auth-status" class="auth-status">Not connected</div>
+      <div id="twitch-saved-account" class="auth-saved-account" style="display:none;"></div>
     </div>
 
     <input type="hidden" id="node-config-input-twitch_user_id">
     <input type="hidden" id="node-config-input-twitch_user_login">
 
-    <!-- Not a manual entry: "Login with Twitch" writes the refresh token it gets
-         back into this field, and the runtime reads it from there. Hidden for the
-         same reason the ids above it are. -->
+    <!-- Not a manual entry: the device flow writes the refresh token it gets back
+         into this field, and the runtime reads it from there. Hidden for the same
+         reason the ids above it are. -->
     <input type="hidden" id="node-config-input-twitch_refresh_token">
 
     <details style="margin-top:10px;">

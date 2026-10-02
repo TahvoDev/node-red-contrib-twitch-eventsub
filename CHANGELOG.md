@@ -4,6 +4,25 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+### Added
+- The config dialog shows what the connection is doing, live: the runtime publishes the
+  connection state and the dialog renders it as it changes, so the dialog and the node's badge
+  always agree. Waiting for approval, verifying, connected, retrying and errors are all shown
+  next to the connect button.
+### Changed
+- `Connect to Twitch` checks the Client ID / Client Secret pair before starting the device flow
+  (new `POST /twitch-eventsub/auth/verify`, which uses Twitch's `client_credentials` grant) and
+  trims the pasted id. A wrong secret previously passed the dialog and only surfaced as a red
+  node once the first token refresh ran; it now fails inline. The device flow itself needs only
+  a client id, so a config that only ever pasted an id must now add the secret as well — without
+  it the config node cannot refresh tokens at runtime. The check only runs on a secret that was
+  just typed: Node-RED never sends a stored password back to the editor (the field holds the
+  `__PWRD__` placeholder), and re-authenticating with the saved secret skips the check rather than
+  posting the placeholder to Twitch. Only a 400 from the check is reported as a bad pair; an
+  unreachable Twitch, a rate limit or a runtime restart reports a connection failure instead, so
+  the two are no longer confused.
+
 ## [0.1.0] - 2026-10-01
 ### Security
 - Every string received from Twitch is normalized at the ingress boundary (chat and whisper text,

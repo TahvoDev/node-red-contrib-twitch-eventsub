@@ -14,6 +14,7 @@ import {
   type HelixSpec,
 } from './helix/define';
 import { enabledTiers } from './helix/helix-core';
+import { shortStatus } from './helix/twitch-helix-utils';
 
 /** A field reduced to the metadata the twitch-api editor needs. */
 function serializeField(field: HelixField) {
@@ -121,6 +122,68 @@ const HELIX_SPEC_SCOPES = [...new Set(HELIX_SPECS.flatMap((spec) => specScopes(s
 // list is unknown, so the mock provider has to claim a full set up front.
 const MOCK_SCOPES = [...new Set([...CORE_SCOPES, ...HELIX_SPEC_SCOPES])].sort();
 
+/**
+ * Status vocabulary, following core's MQTT node (10-mqtt.js:414-422): a ring is
+ * not connected, a dot is, so green only ever appears with a dot. The editor
+ * reads this same text back out of the retained status/<id> message, so the
+ * wording here is also the wording the config dialog shows.
+ */
+const STATUS = {
+  idle: { fill: 'grey', shape: 'ring', text: 'Not connected' },
+  waitingLogin: { fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch login…' },
+  connecting: { fill: 'yellow', shape: 'ring', text: 'Connecting…' },
+  subscribing: { fill: 'yellow', shape: 'ring', text: 'Subscribing to events…' },
+  reauthNeeded: { fill: 'red', shape: 'ring', text: 'Re-authenticate needed' },
+  badClientSecret: { fill: 'red', shape: 'ring', text: 'Check client secret' },
+  gaveUp: { fill: 'red', shape: 'ring', text: 'Gave up — redeploy' },
+} as const;
+
+/** The one green status, and it wears a dot: the token works and EventSub is up. */
+const connectedStatus = (user: string): Status => ({
+  fill: 'green',
+  shape: 'dot',
+  text: `Connected as ${user}`,
+});
+
+/** Deliberately not a countdown: that would publish a status message a second
+ * at a time over comms for no new information. */
+const reconnectingStatus = (attempt: number): Status => ({
+  fill: 'yellow',
+  shape: 'ring',
+  text: `Reconnecting (attempt ${attempt})`,
+});
+
+/**
+ * Why a token refresh failed. Twitch answers 400 for both "invalid refresh
+ * token" and "invalid client", and only the body separates them: a revoked token
+ * needs the user to log in again, a wrong client secret needs neither a retry
+ * nor a re-login, and anything unclassifiable is worth another go.
+ *
+ * ponytail: matches Twitch's own error wording, so reworded text would send a
+ * revoked token round the retry ladder. Switch on status codes alone if that
+ * ever happens.
+ */
+function classifyRefreshFailure(e: any): 'bad-secret' | 'revoked' | 'transient' {
+  const code = e?.statusCode;
+  if (code === 429) return 'transient'; // rate limited, so back off rather than stop
+  if (code === 400 || code === 401) {
+    return /invalid client/i.test(String(e?.body ?? '')) ? 'bad-secret' : 'revoked';
+  }
+  return 'transient'; // no status code means the request never got an answer
+}
+
+// 15s, 30s, 60s, then every 5 minutes. Twenty attempts is about 90 minutes,
+// after which a redeploy is cheaper than more waiting.
+const RETRY_DELAYS = [15_000, 30_000, 60_000];
+const RETRY_CAP = 300_000;
+const MAX_RETRY_ATTEMPTS = 20;
+
+function retryDelay(attempt: number): number {
+  const base = RETRY_DELAYS[attempt - 1] ?? RETRY_CAP;
+  // Jitter, so config nodes that lost the network together do not retry in step.
+  return Math.round(base * (0.9 + Math.random() * 0.2));
+}
+
 module.exports = function (RED: NodeAPI) {
 
   // Every scope a user could need, for the editor's Login with Twitch button.
@@ -139,6 +202,46 @@ module.exports = function (RED: NodeAPI) {
   });
 
   // --- Auth endpoints for Device Code Flow ---
+
+  // The device flow only needs a client id, so a wrong client secret would
+  // otherwise not surface until the first runtime token refresh. The
+  // client_credentials grant is the cheapest way to check the pair up front.
+  RED.httpAdmin.post('/twitch-eventsub/auth/verify', async (req: any, res: any) => {
+    const { client_id, client_secret } = req.body;
+    if (!client_id || !client_secret) {
+      res.status(400).json({ error: 'Missing client_id or client_secret' });
+      return;
+    }
+    try {
+      const params = new URLSearchParams({
+        client_id,
+        client_secret,
+        grant_type: 'client_credentials',
+      });
+      const response = await fetch('https://id.twitch.tv/oauth2/token', {
+        method: 'POST',
+        body: params,
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        // The editor waits on this one behind a button, so a hung call would leave
+        // it stuck on "Checking credentials…" forever.
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!response.ok) {
+        // Pass the status through: the editor reads 400 and 401 as a bad pair and
+        // anything else as a connectivity problem, so the status has to survive.
+        res.status(response.status).json({
+          error:
+            response.status === 400 || response.status === 401
+              ? 'Client ID or Client Secret is not valid'
+              : `Twitch returned ${response.status}`,
+        });
+        return;
+      }
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: (error as Error).message });
+    }
+  });
 
   RED.httpAdmin.post('/twitch-eventsub/auth/device', async (req: any, res: any) => {
     const { client_id, scopes } = req.body;
@@ -210,13 +313,25 @@ module.exports = function (RED: NodeAPI) {
     eventsubService?: TwitchEventsubService;
     // Null-prototype maps: the keys are node ids, and a plain object would let a
     // key like "__proto__" resolve to Object.prototype.
-    nodeListeners: { [key: string]: any } = Object.create(null);
-    currentStatus: Status = { fill: 'grey', shape: 'ring', text: 'Connecting...' };
+    // The user nodes, with the event each one registered. The types are kept here
+    // because the service clears its own counts on stop(), so a service rebuilt
+    // after an auth failure would otherwise come back with no subscriptions.
+    nodeListeners: { [key: string]: { node: any; type: string } } = Object.create(null);
+    currentStatus: Status = { ...STATUS.idle };
     authReady = false;
     userId?: string;
     mockServerPort?: number;
 
     private authInitPromise?: Promise<void>;
+    private retryTimer?: ReturnType<typeof setTimeout>;
+    private retryAttempt = 0;
+    // Bumped on close. An initAuth() that is still awaiting Twitch when the node
+    // closes must not revive it, so every await checks this against its own copy.
+    private generation = 0;
+    private closed = false;
+    // Set by handleAuthFailure: it has already reported the failure as a terminal
+    // status or a retry. Callers catching that same error must not overwrite it.
+    private authFailureReported = false;
 
     constructor(config: TwitchApiConfigProps) {
       RED.nodes.createNode(this as any, config as any);
@@ -224,12 +339,13 @@ module.exports = function (RED: NodeAPI) {
       this.credentials = RED.nodes.getCredentials(config.id) as TwitchApiCredentials;
 
       this.on('close', (done: () => void) => {
-        this.takedown().then(done);
+        this.shutdown().then(done);
       });
     }
 
     async initAuth(): Promise<void> {
       if (this.authReady) return;
+      if (this.closed) return;
       if (this.authInitPromise) return this.authInitPromise;
 
       this.authInitPromise = this._doAuth().finally(() => {
@@ -240,6 +356,7 @@ module.exports = function (RED: NodeAPI) {
     }
 
     private async _doAuth(): Promise<void> {
+      this.authFailureReported = false;
       const mockPort = this.parseMockServerPort();
 
       if (mockPort) {
@@ -250,9 +367,12 @@ module.exports = function (RED: NodeAPI) {
       const { twitch_refresh_token, twitch_client_secret } = this.credentials ?? {};
 
       if (!twitch_refresh_token || !this.config.twitch_user_id) {
-        this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Waiting for Twitch login…' });
+        this.updateStatus(STATUS.waitingLogin);
         return;
       }
+
+      this.updateStatus(STATUS.connecting);
+      const generation = this.generation;
 
       try {
         const authProvider = new RefreshingAuthProvider({
@@ -260,11 +380,18 @@ module.exports = function (RED: NodeAPI) {
           clientSecret: twitch_client_secret,
         });
 
-        authProvider.onRefreshFailure(() => {
+        authProvider.onRefreshFailure((_userId: string, error: Error) => {
+          // The ladder builds a fresh provider after a failure, and anything still
+          // holding the old one — an ApiClient, an EventSub listener, a chat
+          // connection — can emit here again. That must not tear down the healthy
+          // provider which replaced it. authProvider is still unset during
+          // addUserForToken below, and that failure is reported by the catch.
+          if (this.authProvider && this.authProvider !== authProvider) return;
+
           this.authReady = false;
           this.authProvider = undefined;
           this.apiClient = undefined;
-          this.updateStatus({ fill: 'red', shape: 'ring', text: 'Token refresh failed — re-authenticate' });
+          this.handleAuthFailure(error);
         });
 
         await authProvider.addUserForToken(
@@ -277,16 +404,156 @@ module.exports = function (RED: NodeAPI) {
           [this.config.twitch_user_id]
         );
 
+        // A redeploy while Twitch was answering leaves this node dead; assigning
+        // the provider now would publish a connected status for a closed node.
+        if (this.closed || generation !== this.generation) return;
+
         this.userId = this.config.twitch_user_id;
         this.authProvider = authProvider;
         this.apiClient = new ApiClient({ authProvider });
         this.authReady = true;
         this.log('Auth ready');
-        this.updateStatus({ fill: 'green', shape: 'ring', text: 'Auth ready' });
       } catch (e: any) {
-        this.updateStatus({ fill: 'red', shape: 'ring', text: `Auth failed: ${e.message}` });
+        // shutdown() bumps the generation, so this is also the closed check: a
+        // failure that lands after a close has nothing left to report to.
+        if (generation === this.generation) this.handleAuthFailure(e);
         throw e;
       }
+    }
+
+    /**
+     * The single place that decides what a failed token means, so a revoked token
+     * at startup is not retried 20 times. Anything terminal clears the provider and
+     * stops; anything unclassified goes back on the ladder.
+     */
+    private handleAuthFailure(e: any) {
+      // onRefreshFailure can fire while shutdown() is tearing the node down, and a
+      // red status on a node that is already gone tells the editor nothing.
+      if (this.closed) return;
+
+      const kind = classifyRefreshFailure(e);
+      this.authFailureReported = true;
+
+      if (kind === 'bad-secret') {
+        this.clearRetry();
+        this.dropAuth();
+        this.warn(`Twitch rejected the client secret: ${shortStatus(e?.message ?? '')}`);
+        this.updateStatus(STATUS.badClientSecret);
+        return;
+      }
+
+      if (kind === 'revoked') {
+        this.clearRetry();
+        this.dropAuth();
+        this.warn(`Twitch rejected the refresh token: ${shortStatus(e?.message ?? '')}`);
+        this.updateStatus(STATUS.reauthNeeded);
+        return;
+      }
+
+      this.scheduleRetry();
+    }
+
+    /**
+     * Terminal auth failure. The EventSub service has to go with the provider: its
+     * listener holds the ApiClient that just failed, so leaving it running keeps
+     * Twuple refreshing against a provider that is already known-bad, and every one
+     * of those attempts emits a failure at a node that has already reported red.
+     */
+    private dropAuth() {
+      this.authReady = false;
+      this.authProvider = undefined;
+      this.apiClient = undefined;
+      if (!this.eventsubService) return;
+      const service = this.eventsubService;
+      this.eventsubService = undefined;
+      service.stop().catch(() => {});
+    }
+
+    private scheduleRetry() {
+      if (this.closed) return;
+
+      if (this.retryAttempt >= MAX_RETRY_ATTEMPTS) {
+        this.warn(`Gave up after ${MAX_RETRY_ATTEMPTS} attempts to reach Twitch; redeploy to try again`);
+        this.updateStatus(STATUS.gaveUp);
+        return;
+      }
+
+      this.retryAttempt += 1;
+      this.updateStatus(reconnectingStatus(this.retryAttempt));
+
+      // Only the newest timer is tracked, so a pending one from an earlier failure
+      // would survive close() and keep this node's auth alive after its deploy.
+      this.clearRetryTimer();
+      this.retryTimer = setTimeout(() => {
+        this.retryTimer = undefined;
+        this.retryAuth();
+      }, retryDelay(this.retryAttempt));
+    }
+
+    /**
+     * Retrying has to go back through initAuth: Twurple records a failed refresh
+     * per user and then throws CachedRefreshFailureError without trying again
+     * (RefreshingAuthProvider.ts:231), and only addUserForToken clears it (:68).
+     */
+    private async retryAuth() {
+      try {
+        await this.initAuth();
+      } catch {
+        // initAuth already set the next retry or a terminal status.
+        return;
+      }
+
+      // Deliberate asymmetry: the retry ladder is for auth, where Twitch decides
+      // whether a later attempt can succeed and backoff is the right answer. An
+      // EventSub setup failure is reported red and not retried, because the usual
+      // causes (bad secret, no subscriptions for this app) need the user, not
+      // time. The ladder does resume from the next auth failure either way.
+      try {
+        await this.rebuildEventsub();
+      } catch (e: any) {
+        // Auth is fine here, so this is a plain EventSub failure and nothing has
+        // reported it yet.
+        this.handleEventsubFailure(e);
+        return;
+      }
+
+      // Only a service that actually came back up clears the counter. initAuth and
+      // initEventsub both return immediately once closed, so this only resets the
+      // count; no guard is needed to stop a closed node reporting progress.
+      this.retryAttempt = 0;
+    }
+
+    /**
+     * A failed refresh poisons that auth provider for the user (Twurple keeps the
+     * failure in _cachedRefreshFailures and only addUserForToken on that same
+     * instance clears it), and a running service still holds the old ApiClient
+     * through its EventSubWsListener. Reusing it would leave the node green while
+     * every resubscribe threw CachedRefreshFailureError, so the service is stopped
+     * and rebuilt against the ApiClient initAuth() just created.
+     */
+    private async rebuildEventsub() {
+      if (this.eventsubService) {
+        await this.eventsubService.stop();
+        this.eventsubService = undefined;
+      }
+
+      await this.initEventsub();
+
+      Object.values(this.nodeListeners).forEach(({ type }) => {
+        this.eventsubService?.addSubscription(type);
+      });
+    }
+
+    private clearRetryTimer() {
+      if (this.retryTimer) {
+        clearTimeout(this.retryTimer);
+        this.retryTimer = undefined;
+      }
+    }
+
+    private clearRetry() {
+      this.clearRetryTimer();
+      this.retryAttempt = 0;
     }
 
     private parseMockServerPort(): number | undefined {
@@ -324,7 +591,7 @@ module.exports = function (RED: NodeAPI) {
         this.apiClient = new ApiClient({ authProvider, mockServerPort: mockPort });
         this.authReady = true;
         this.log(`Mock server on port ${mockPort} as user ${userId}`);
-        this.updateStatus({ fill: 'blue', shape: 'ring', text: `Mock server :${mockPort}` });
+        this.updateStatus({ fill: 'blue', shape: 'ring', text: `Mock server ${mockPort}` });
       } catch (e: any) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: `Mock init failed: ${e.message}` });
         throw e;
@@ -341,18 +608,24 @@ module.exports = function (RED: NodeAPI) {
       );
 
       this.eventsubService.onEventCb = (e, subscriptionType) => {
-        Object.values(this.nodeListeners).forEach((node) => {
+        Object.values(this.nodeListeners).forEach(({ node }) => {
           node.triggerTwitchEvent(e, subscriptionType);
         });
       };
 
-      this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
-      await this.eventsubService.start();
-      this.updateStatus({
-        fill: 'green',
-        shape: 'dot',
-        text: `Logged in as ${this.describeUser()}`,
-      });
+      this.updateStatus(STATUS.subscribing);
+      try {
+        await this.eventsubService.start();
+      } catch (e) {
+        // start() can throw with the listener half-wired. Stopping it first releases
+        // that socket; then dropping it means a later attempt rebuilds, instead of
+        // the early return above skipping a retry that would leave the nodes
+        // silently unsubscribed.
+        await this.eventsubService.stop().catch(() => {});
+        this.eventsubService = undefined;
+        throw e;
+      }
+      this.updateStatus(connectedStatus(this.describeUser()));
     }
 
     /**
@@ -370,6 +643,18 @@ module.exports = function (RED: NodeAPI) {
       return login || id || 'unknown user';
     }
 
+    /**
+     * The node is being unloaded: nothing may set a status or revive the provider
+     * afterwards, and no retry timer survives. Separate from takedown(), which
+     * removeNode() also calls while the node stays deployed and usable again.
+     */
+    async shutdown() {
+      this.closed = true;
+      this.generation += 1;
+      this.clearRetry();
+      await this.takedown();
+    }
+
     async takedown() {
       if (this.eventsubService) {
         await this.eventsubService.stop();
@@ -378,7 +663,13 @@ module.exports = function (RED: NodeAPI) {
       this.apiClient = undefined;
       this.authProvider = undefined;
       this.authReady = false;
-      this.updateStatus({ fill: 'grey', shape: 'ring', text: 'Disconnected' });
+
+      // shutdown() has already set closed, and nothing may publish after that: the
+      // node is on its way out and there is nothing left to read a status. It is
+      // removeNode() that lands here with the config still deployed and usable, and
+      // its honest state is the one a config nothing uses already has: idle.
+      if (this.closed) return;
+      this.updateStatus(STATUS.idle);
     }
 
     /**
@@ -391,20 +682,43 @@ module.exports = function (RED: NodeAPI) {
 
     updateStatus(status: Status) {
       this.currentStatus = status;
-      Object.values(this.nodeListeners).forEach((node) => {
-        node.status(status);
-      });
+      // Publish for the editor, as any node's own lifecycle nodes do. The extra bit
+      // is the retained shape: the editor reads fill and shape back out of this
+      // message, so the workspace badge follows the same vocabulary as the dialog.
+      this.status(status);
+      this.pushStatusToListeners(status);
+    }
+
+    /** Mirrors this node's status to the EventSub nodes using it. Those nodes
+     * report nothing of their own, and core's MQTT broker does the same for its
+     * users (10-mqtt.js:414-419). Helix and chat nodes are deliberately not in
+     * here: each reports its own lifecycle. */
+    private pushStatusToListeners(status: Status) {
+      Object.values(this.nodeListeners).forEach(({ node }) => node.status(status));
     }
 
     addNode(id: string, node: any, subscriptionType: string) {
-      this.nodeListeners[id] = node;
+      this.nodeListeners[id] = { node, type: subscriptionType };
       node.status(this.currentStatus);
       this.initAuth()
         .then(async () => {
           if (!this.eventsubService) await this.initEventsub();
           this.eventsubService?.addSubscription(subscriptionType);
         })
-        .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
+        .catch((e) => {
+          // initAuth already classified the failure and set that status; only a
+          // failure from the EventSub setup after it still needs reporting.
+          if (!this.authFailureReported) this.handleEventsubFailure(e);
+        });
+    }
+
+    /** An EventSub failure is not an auth failure: nothing has decided whether to
+     * retry it, so it is reported as-is rather than hiding behind a stale
+     * authReady/retryAttempt guess. */
+    private handleEventsubFailure(e: any) {
+      const text = shortStatus(e?.message ?? String(e));
+      this.warn(`EventSub setup failed: ${text}`);
+      this.updateStatus({ fill: 'red', shape: 'ring', text });
     }
 
     async removeNode(id: string, subscriptionType: string, done: () => void) {
@@ -423,4 +737,7 @@ module.exports = function (RED: NodeAPI) {
       twitch_refresh_token: { type: 'password' },
     },
   });
+
+  // The status vocabulary and the retry policy, for test/unit/config-status.test.js.
+  return { TwitchApiConfig, STATUS, connectedStatus, reconnectingStatus, classifyRefreshFailure, retryDelay, MAX_RETRY_ATTEMPTS };
 };
