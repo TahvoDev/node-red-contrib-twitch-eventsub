@@ -164,7 +164,7 @@ RED.nodes.registerType('twitch-api-config', {
     letter-spacing: 2px;
   }
   .auth-status {
-    padding-top: 6px;
+    margin-top: 10px;
     font-weight: bold;
   }
   .auth-ok { color: #2ca02c; }
@@ -174,6 +174,12 @@ RED.nodes.registerType('twitch-api-config', {
 
 <script type="text/html" data-template-name="twitch-api-config">
   <div class="twitch-api-config-form">
+
+    <p class="red-ui-help">
+      Create an app at
+      <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">dev.twitch.tv/console/apps</a>
+      and paste its Client ID and Client Secret below.
+    </p>
 
     <div class="form-row">
       <label for="node-config-input-name"><i class="fa fa-tag"></i> Name</label>
@@ -196,11 +202,6 @@ RED.nodes.registerType('twitch-api-config', {
 
     <hr>
 
-    <div class="form-row">
-      <label><i class="fa fa-user"></i> Twitch Authentication</label>
-      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
-    </div>
-
     <div class="auth-box">
       <div id="auth-step-login">
         <a class="red-ui-button" id="node-config-btn-twitch-auth">
@@ -214,23 +215,20 @@ RED.nodes.registerType('twitch-api-config', {
         <div id="twitch-user-code" class="code-display">----</div>
         <p><i class="fa fa-spinner fa-spin"></i> Waiting for approval…</p>
       </div>
+
+      <!-- Outside both steps: the device flow hides the login step while it waits
+           for approval, and "Waiting for Twitch authorization…" is the message the
+           user needs to see while that is happening. -->
+      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
     </div>
 
     <input type="hidden" id="node-config-input-twitch_user_id">
     <input type="hidden" id="node-config-input-twitch_user_login">
 
-    <details style="margin-top:10px;">
-      <summary>Advanced / Manual Token</summary>
-      <p class="red-ui-help">
-        Only use this if you are generating tokens manually (e.g. Twitch CLI).
-      </p>
-      <div class="form-row">
-        <label for="node-config-input-twitch_refresh_token">
-          <i class="fa fa-lock"></i> Refresh Token
-        </label>
-        <input type="password" id="node-config-input-twitch_refresh_token">
-      </div>
-    </details>
+    <!-- Not a manual entry: "Login with Twitch" writes the refresh token it gets
+         back into this field, and the runtime reads it from there. Hidden for the
+         same reason the ids above it are. -->
+    <input type="hidden" id="node-config-input-twitch_refresh_token">
 
     <details style="margin-top:10px;">
       <summary>Mock server (local testing)</summary>
