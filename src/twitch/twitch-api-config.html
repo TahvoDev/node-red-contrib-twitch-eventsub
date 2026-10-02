@@ -207,8 +207,6 @@ RED.nodes.registerType('twitch-api-config', {
         <a class="red-ui-button" id="node-config-btn-twitch-auth">
           <i class="fa fa-twitch"></i> Login with Twitch
         </a>
-
-        <div id="twitch-auth-status" class="auth-status">Not logged in</div>
       </div>
 
       <div id="auth-step-verify" style="display:none;">
@@ -217,6 +215,11 @@ RED.nodes.registerType('twitch-api-config', {
         <div id="twitch-user-code" class="code-display">----</div>
         <p><i class="fa fa-spinner fa-spin"></i> Waiting for approval…</p>
       </div>
+
+      <!-- Outside both steps: the device flow hides the login step while it waits
+           for approval, and "Waiting for Twitch authorization…" is the message the
+           user needs to see while that is happening. -->
+      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
     </div>
 
     <input type="hidden" id="node-config-input-twitch_user_id">
@@ -224,7 +227,7 @@ RED.nodes.registerType('twitch-api-config', {
 
     <!-- Not a manual entry: "Login with Twitch" writes the refresh token it gets
          back into this field, and the runtime reads it from there. Hidden for the
-         same reason the ids above it is. -->
+         same reason the ids above it are. -->
     <input type="hidden" id="node-config-input-twitch_refresh_token">
 
     <details style="margin-top:10px;">
