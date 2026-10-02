@@ -19,6 +19,7 @@ const path = require('path')
 
 const root = path.join(__dirname, '..', '..')
 const configDist = path.join(root, 'dist', 'twitch', 'twitch-api-config.js')
+const editorDist = path.join(root, 'dist', 'twitch', 'twitch-api-config.html')
 
 // A RED just real enough to register and construct the config node: createNode is
 // where the runtime would put status()/on(), and both are recorded instead.
@@ -57,4 +58,52 @@ const greens = [...source.matchAll(/fill:\s*["']green["'][^{}]*shape:\s*["'](\w+
 assert.ok(greens.length > 0, 'no green status found; is the config node still reporting one?')
 for (const [, shape] of greens) assert.strictEqual(shape, 'dot', 'a green ring claims connected before it is')
 
-console.log(`config-status test: ok (${greens.length} green status, all dots)`)
+// The dialog half. The runtime assertions above hold even if the editor goes back
+// to inventing a status from the saved fields, so the editor is checked too: it
+// has to read the runtime's status and map every fill it can receive.
+const editor = fs.readFileSync(editorDist, 'utf8')
+
+assert.match(editor, /const s = this\.status;/, 'the dialog no longer reads the runtime status')
+assert.match(editor, /'Not connected'/, 'the dialog has no fallback for an unpublished status')
+assert.match(editor, /\.auth-err \{ color: #c00; \}/, 'the red fill has no class to render')
+
+// Every fill the runtime can publish, and only green may mean connected.
+const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-wait' }
+for (const fill of ['green', 'yellow', 'red', 'grey', 'blue']) {
+  assert.match(
+    editor,
+    new RegExp(`\\b${fill}:\\s*'auth-[a-z]+'`),
+    `the dialog does not map the ${fill} fill to a class`
+  )
+}
+
+// The regression this exists for: a status built from the saved user id/login
+// renders "connected" whether or not the runtime is.
+assert.doesNotMatch(
+  editor,
+  /if \(this\.twitch_user_id && this\.twitch_user_login\)/,
+  'the dialog fabricates a status from the saved fields again'
+)
+assert.doesNotMatch(
+  editor,
+  /Logged in as \$\{this\.twitch_user_login\}/,
+  'the dialog reports a saved login as a live connection again'
+)
+
+// Device-flow completion is not a connection either — the token is only in the
+// form until the next deploy — so it must not be the green (connected) class.
+const deviceFlow = editor.slice(editor.indexOf('function startPolling'))
+assert.match(
+  deviceFlow,
+  /setAuthStatus\([^)]*'auth-wait'/s,
+  'device-flow completion is styled as connected before the runtime has run'
+)
+assert.doesNotMatch(
+  deviceFlow,
+  /Connected/,
+  'device-flow completion still claims a live connection before the next deploy'
+)
+
+console.log(
+  `config-status test: ok (${greens.length} green status all dots, dialog maps ${Object.keys(FILL_CLASS).length} fills)`
+)
