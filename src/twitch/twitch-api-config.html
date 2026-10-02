@@ -32,7 +32,7 @@ RED.nodes.registerType('twitch-api-config', {
     function setAuthStatus(text, state) {
       const el = $('#twitch-auth-status');
       el
-        .removeClass('auth-ok auth-warn auth-wait')
+        .removeClass('auth-ok auth-warn auth-wait auth-err')
         .addClass(state || '')
         .text(text);
     }
@@ -99,7 +99,8 @@ RED.nodes.registerType('twitch-api-config', {
               $('#node-config-input-twitch_user_login').val(resp.twitch_user_login);
 
               setAuthStatus(
-                `Logged in as ${resp.twitch_user_login} (${resp.twitch_user_id})`,
+                // The token is in the form, the runtime has not run with it yet.
+                'Connected — deploy to use it',
                 'auth-ok'
               );
 
@@ -123,14 +124,15 @@ RED.nodes.registerType('twitch-api-config', {
     $('#node-config-dialog-cancel').click(stopPolling);
     $('#node-config-dialog-ok').click(stopPolling);
 
-    if (this.twitch_user_id && this.twitch_user_login) {
-      setAuthStatus(
-        `Logged in as ${this.twitch_user_login} (${this.twitch_user_id})`,
-        'auth-ok'
-      );
-    } else {
-      setAuthStatus('Not logged in', 'auth-warn');
-    }
+    // The runtime's last published status, already stored and translated by the
+    // editor's own status/# handler. No invented status from the saved fields:
+    // a saved login says what was authorized, not what is connected now.
+    const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-wait' };
+    const s = this.status;
+    setAuthStatus(
+      s && s.text != null ? s.text : 'Not connected',
+      (s && FILL_CLASS[s.fill]) || 'auth-warn'
+    );
   },
 });
 </script>
@@ -168,6 +170,7 @@ RED.nodes.registerType('twitch-api-config', {
     font-weight: bold;
   }
   .auth-ok { color: #2ca02c; }
+  .auth-err { color: #c00; }
   .auth-warn { color: #999; }
   .auth-wait { color: #ff7f0e; }
 </style>
@@ -219,7 +222,7 @@ RED.nodes.registerType('twitch-api-config', {
       <!-- Outside both steps: the device flow hides the login step while it waits
            for approval, and "Waiting for Twitch authorization…" is the message the
            user needs to see while that is happening. -->
-      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
+      <div id="twitch-auth-status" class="auth-status">Not connected</div>
     </div>
 
     <input type="hidden" id="node-config-input-twitch_user_id">

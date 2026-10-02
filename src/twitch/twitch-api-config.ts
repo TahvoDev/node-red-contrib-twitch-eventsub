@@ -289,7 +289,7 @@ module.exports = function (RED: NodeAPI) {
         this.apiClient = new ApiClient({ authProvider });
         this.authReady = true;
         this.log('Auth ready');
-        this.updateStatus({ fill: 'green', shape: 'ring', text: 'Auth ready' });
+        this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Authenticated, subscribing…' });
       } catch (e: any) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: `Auth failed: ${e.message}` });
         throw e;
@@ -353,7 +353,8 @@ module.exports = function (RED: NodeAPI) {
         });
       };
 
-      this.updateStatus({ fill: 'green', shape: 'ring', text: 'Subscribing to events...' });
+      // Yellow until the subscription succeeds: only the dot below means connected.
+      this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Authenticated, subscribing…' });
       await this.eventsubService.start();
       this.updateStatus({
         fill: 'green',
@@ -398,6 +399,10 @@ module.exports = function (RED: NodeAPI) {
 
     updateStatus(status: Status) {
       this.currentStatus = status;
+      // The config node's own status: Node-RED keeps it and republishes it to the
+      // editor, which is where the config dialog reads the real connection state
+      // from instead of guessing it from the saved fields.
+      this.status(status);
       Object.values(this.nodeListeners).forEach((node) => {
         node.status(status);
       });
