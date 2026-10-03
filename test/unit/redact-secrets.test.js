@@ -4,11 +4,11 @@
 /**
  * Secret redaction test.
  *
- * A Twurple auth failure embeds the failing request URL and form body in
- * `error.message`, so the client secret and refresh token travel with the error
- * into a status badge, the config dialog and the logs. There is no test
- * framework: it runs against the built dist/ output and any failed assert exits
- * non-zero.
+ * A Twurple auth failure embeds the failing request URL in `error.message`, and
+ * an OAuth token request puts the client secret and refresh token in that URL's
+ * query string, so they travel with the error into a status badge, the config
+ * dialog and the logs. There is no test framework: it runs against the built
+ * dist/ output and any failed assert exits non-zero.
  */
 
 const assert = require('assert')
@@ -19,24 +19,29 @@ const { redactSecrets, redactStatusText, safeErrorMessage, redactError } = requi
   path.join(root, 'dist', 'twitch', 'twitch-shared.js')
 )
 
-// The real Twurple error is preferred, but the test must not depend on a
-// transitive package being hoisted, so a duck-typed stand-in with the same
-// message shape is used if the import fails.
-let makeHttpError
-try {
-  const { HttpStatusCodeError } = require('@twurple/api-call')
-  makeHttpError = (body) =>
-    new HttpStatusCodeError(400, 'Bad Request', 'https://id.twitch.tv/oauth2/token', 'POST', body, false)
-} catch {
-  makeHttpError = (body) => {
-    const error = new Error(
-      `Encountered HTTP status code 400: Bad Request\n\nURL: https://id.twitch.tv/oauth2/token\nMethod: POST\nBody:\n${body}`
-    )
-    error.statusCode = 400
-    error.url = 'https://id.twitch.tv/oauth2/token'
-    return error
+// The secret reaches the message through the request URL's query string, exactly
+// as @twurple/auth's createRefreshTokenQuery builds it. The real Twurple error
+// class is preferred; the test must not depend on a transitive package being
+// hoisted, so a duck-typed stand-in with the same message shape is used (loudly)
+// if the import fails.
+const TOKEN_URL =
+  'https://id.twitch.tv/oauth2/token?grant_type=refresh_token&client_id=abc&client_secret=SECRET&refresh_token=REFRESH'
+const makeHttpError = (() => {
+  try {
+    const { HttpStatusCodeError } = require('@twurple/api-call')
+    return () => new HttpStatusCodeError(400, 'Bad Request', TOKEN_URL, 'POST', '{"status":400}', false)
+  } catch {
+    console.warn('redact-secrets test: @twurple/api-call not resolvable; using a duck-typed error stand-in')
+    return () => {
+      const error = new Error(
+        `Encountered HTTP status code 400: Bad Request\n\nURL: ${TOKEN_URL}\nMethod: POST\nBody:\n{"status":400}`
+      )
+      error.statusCode = 400
+      error.url = TOKEN_URL
+      return error
+    }
   }
-}
+})()
 
 // Every shape a secret can reach free text in: query value, form body, JSON
 // field, percent-encoded separator and a Bearer header.
@@ -62,11 +67,13 @@ assert.strictEqual(redactSecrets('invalid client secret'), 'invalid client secre
 assert.strictEqual(redactStatusText(undefined), '')
 assert.strictEqual(redactStatusText('\u{1F600}'.repeat(300)), `${'\u{1F600}'.repeat(200)}…`)
 
+const httpError = makeHttpError()
+// The fixture must really carry the secret in the URL query, or the assertions
+// below would pass for the wrong reason.
+assert.ok(/client_secret=SECRET/.test(httpError.message), 'the fixture does not carry the secret in the URL')
+
 // safeErrorMessage drops URL/Method/Body for a real Twurple HTTP error, so the
 // secret never has to be scrubbed out of the message in the first place.
-const httpError = makeHttpError(
-  'grant_type=refresh_token&client_id=abc&client_secret=SECRET&refresh_token=REFRESH'
-)
 const safe = safeErrorMessage(httpError)
 assert.strictEqual(safe, 'Encountered HTTP status code 400: Bad Request')
 assert.ok(!/SECRET|REFRESH/.test(safe), 'safeErrorMessage kept a secret')
@@ -88,6 +95,17 @@ const httpCopy = redactError(httpError)
 assert.ok(httpCopy instanceof Error, 'redactError did not copy the Twurple error')
 assert.ok(!/SECRET|REFRESH/.test(httpCopy.message), 'redactError left a secret in the Twurple message')
 assert.ok(!/SECRET|REFRESH/.test(httpCopy.stack || ''), 'redactError left a secret in the Twurple stack')
+// The copy keeps the metadata callers branch on, without the tainted url/body.
+assert.strictEqual(httpCopy.name, httpError.name, 'redactError dropped the error name')
+assert.strictEqual(httpCopy.statusCode, 400, 'redactError dropped statusCode')
+assert.strictEqual(httpCopy.url, undefined, 'redactError copied the tainted url')
+assert.strictEqual(httpCopy.body, undefined, 'redactError copied the tainted body')
+
+// A `$&` in the redacted message must not expand back to the original text (and
+// with it the secret) when the stack's first line is rewritten.
+const dollarError = new Error('bad regex $& client_secret=SECRET')
+const dollarCopy = redactError(dollarError)
+assert.ok(!/SECRET/.test(dollarCopy.stack || ''), 'a $& in the message re-injected the secret into the stack')
 
 // The config node publishes the redacted status to its own status and listeners.
 const published = []

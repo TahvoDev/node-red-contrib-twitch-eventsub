@@ -14,11 +14,12 @@ const SECRET_KEYS = 'client_secret|refresh_token|access_token|device_code|passwo
 
 /**
  * Strip secret values out of free text. Twurple's `HttpStatusCodeError` embeds
- * the failing request's URL and form body in `error.message`, so a query string
- * (`?client_secret=…`), a form body (`client_secret=…&refresh_token=…`), a JSON
- * body (`"client_secret":"…"`) or an `Authorization: Bearer …` header can all
- * appear. This is a display/log guard, not a security boundary — a producer that
- * formats the value another way can still slip past it.
+ * the failing request's full URL in `error.message`, and an OAuth token request
+ * puts `client_secret`/`refresh_token` (or `code`/`token`) in that URL's query
+ * string. A form body, a JSON body or an `Authorization: Bearer …` header could
+ * carry a secret too, so those are backstops. This is a display/log guard, not a
+ * security boundary — a producer that formats the value another way can still
+ * slip past it.
  */
 export function redactSecrets(text: unknown): string {
   return String(text ?? '')
@@ -30,10 +31,10 @@ export function redactSecrets(text: unknown): string {
 /**
  * The message to show or log for a caught error, with secret values removed.
  *
- * Twurple's `HttpStatusCodeError` puts the failing request's URL and form body
- * in `message`, and a failed token refresh puts `client_secret` and
- * `refresh_token` in that body. Those errors also expose `statusCode`/`url`, so
- * they are recognised and reduced to the first line
+ * Twurple's `HttpStatusCodeError` builds `message` from the failing request's
+ * full URL, and a failed token refresh leaves `client_secret` and
+ * `refresh_token` in that URL's query string. Those errors also expose
+ * `statusCode`/`url`, so they are recognised and reduced to the first line
  * (`Encountered HTTP status code 400: Bad Request`), dropping URL/Method/Body
  * outright. Anything else falls back to the regex scrub.
  */
@@ -69,7 +70,14 @@ export function redactError(error: unknown): Error | string {
   const message = safeErrorMessage(error);
   if (message === error.message) return error;
   const copy = new Error(message);
-  if (error.stack) copy.stack = error.stack.replace(error.message, message);
+  copy.name = error.name;
+  // Keep the non-sensitive metadata callers branch on (Twurple's statusCode,
+  // for example). url/body and a nested cause can carry the secret, so they are
+  // deliberately not copied.
+  if (typeof (error as any).statusCode === 'number') (copy as any).statusCode = (error as any).statusCode;
+  // A replacer function, so a `$&`/`$1` in the redacted message cannot expand to
+  // the matched original text and put the secret back into the stack.
+  if (error.stack && error.message) copy.stack = error.stack.replace(error.message, () => message);
   return copy;
 }
 

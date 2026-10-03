@@ -5,6 +5,7 @@ import {
   runChatAction,
   type ChatNodeConfig,
 } from './twitch-chat-base';
+import { redactError } from '../twitch-shared';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatBanNode(this: Node, config: ChatNodeConfig) {
@@ -28,7 +29,7 @@ module.exports = function (RED: NodeAPI) {
         });
         done();
       } catch (err) {
-        done(err as Error);
+        done(redactError(err) as Error);
       }
     });
   }

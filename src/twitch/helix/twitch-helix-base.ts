@@ -1,6 +1,6 @@
 import type { NodeAPI } from 'node-red';
 import { helixErrorMessage, shortStatus } from './twitch-helix-utils';
-import { redactError, redactSecrets, safeErrorMessage, sanitizeInbound } from '../twitch-shared';
+import { redactError, safeErrorMessage, sanitizeInbound } from '../twitch-shared';
 
 /**
  * A handler runs inside the base's try/catch. It may return:
@@ -75,7 +75,7 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
             node.status({
                 fill: 'red',
                 shape: 'ring',
-                text: shortStatus(redactSecrets(safeErrorMessage(err))),
+                text: shortStatus(safeErrorMessage(err)),
             });
             done(redactError(err));
         }
