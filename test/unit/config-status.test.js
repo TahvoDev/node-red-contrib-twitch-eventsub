@@ -56,13 +56,18 @@ assert.deepStrictEqual(config.currentStatus, status)
 const source = fs.readFileSync(configDist, 'utf8')
 // Order-independent: find every green fill and the shape in the same neighbourhood,
 // so reordering the literal cannot sneak a green ring past the invariant.
+const shapeRE = /shape\s*:\s*["'](\w+)["']/g
+const shapePositions = [...source.matchAll(shapeRE)].map((m) => ({ shape: m[1], index: m.index }))
 const greenRE = /fill\s*:\s*["']green["']/g
 let greenMatch
 const greenShapes = []
 while ((greenMatch = greenRE.exec(source))) {
-  const near = source.slice(Math.max(0, greenMatch.index - 120), greenMatch.index + 120)
-  const shapeMatch = near.match(/shape\s*:\s*["'](\w+)["']/)
-  greenShapes.push(shapeMatch && shapeMatch[1])
+  // Nearest shape wins, so neither the property order nor how far apart they sit
+  // can let a neighbouring status's shape satisfy the invariant.
+  const nearest = shapePositions
+    .map((sp) => ({ shape: sp.shape, distance: Math.abs(sp.index - greenMatch.index) }))
+    .sort((a, b) => a.distance - b.distance)[0]
+  greenShapes.push(nearest && nearest.distance <= 400 ? nearest.shape : undefined)
 }
 assert.ok(greenShapes.length > 0, 'no green status found; is the config node still reporting one?')
 for (const shape of greenShapes) assert.strictEqual(shape, 'dot', 'a green ring claims connected before it is')
@@ -111,6 +116,11 @@ assert.doesNotMatch(
   deviceFlow,
   /Connected/,
   'device-flow completion still claims a live connection before the next deploy'
+)
+assert.match(
+  deviceFlow,
+  /'Authentication failed',\s*'auth-err'/,
+  'device-flow failure is not shown as an error'
 )
 
 console.log(

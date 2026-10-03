@@ -113,7 +113,7 @@ RED.nodes.registerType('twitch-api-config', {
             const err = JSON.parse(xhr.responseText || '{}');
             if (err.message !== 'authorization_pending' && err.message !== 'slow_down') {
               stopPolling();
-              setAuthStatus('Authentication failed', 'auth-warn');
+              setAuthStatus('Authentication failed', 'auth-err');
               $('#auth-step-verify').hide();
               $('#auth-step-login').show();
             }
