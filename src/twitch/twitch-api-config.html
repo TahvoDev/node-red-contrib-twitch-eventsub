@@ -32,7 +32,7 @@ RED.nodes.registerType('twitch-api-config', {
     function setAuthStatus(text, state) {
       const el = $('#twitch-auth-status');
       el
-        .removeClass('auth-ok auth-warn auth-wait')
+        .removeClass('auth-ok auth-warn auth-wait auth-err auth-info')
         .addClass(state || '')
         .text(text);
     }
@@ -99,8 +99,10 @@ RED.nodes.registerType('twitch-api-config', {
               $('#node-config-input-twitch_user_login').val(resp.twitch_user_login);
 
               setAuthStatus(
-                `Logged in as ${resp.twitch_user_login} (${resp.twitch_user_id})`,
-                'auth-ok'
+                // The token is in the form and the runtime has not run with it yet,
+                // so this is not the green connected state. Deploy to connect.
+                'Authorized — deploy to connect',
+                'auth-wait'
               );
 
               $('#auth-step-verify').hide();
@@ -111,7 +113,7 @@ RED.nodes.registerType('twitch-api-config', {
             const err = JSON.parse(xhr.responseText || '{}');
             if (err.message !== 'authorization_pending' && err.message !== 'slow_down') {
               stopPolling();
-              setAuthStatus('Authentication failed', 'auth-warn');
+              setAuthStatus('Authentication failed', 'auth-err');
               $('#auth-step-verify').hide();
               $('#auth-step-login').show();
             }
@@ -123,14 +125,15 @@ RED.nodes.registerType('twitch-api-config', {
     $('#node-config-dialog-cancel').click(stopPolling);
     $('#node-config-dialog-ok').click(stopPolling);
 
-    if (this.twitch_user_id && this.twitch_user_login) {
-      setAuthStatus(
-        `Logged in as ${this.twitch_user_login} (${this.twitch_user_id})`,
-        'auth-ok'
-      );
-    } else {
-      setAuthStatus('Not logged in', 'auth-warn');
-    }
+    // The runtime's last published status, already stored and translated by the
+    // editor's own status/# handler. No invented status from the saved fields:
+    // a saved login says what was authorized, not what is connected now.
+    const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-info' };
+    const s = this.status;
+    setAuthStatus(
+      s && s.text ? s.text : 'Not connected',
+      (s && FILL_CLASS[s.fill]) || 'auth-warn'
+    );
   },
 });
 </script>
@@ -164,12 +167,21 @@ RED.nodes.registerType('twitch-api-config', {
     letter-spacing: 2px;
   }
   .auth-status {
-    margin-top: 10px;
+    margin: 10px auto 0;
     font-weight: bold;
+    /* A Twurple error carries a full URL; cap the line width so it wraps to a
+       compact block instead of one wide line, and cap the height to scroll. */
+    max-width: 32em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-height: 6.5em;
+    overflow-y: auto;
   }
   .auth-ok { color: #2ca02c; }
-  .auth-warn { color: #999; }
+  .auth-err { color: #c00; }
+  .auth-warn { color: #666; }
   .auth-wait { color: #ff7f0e; }
+  .auth-info { color: #1f77b4; }
 </style>
 
 <script type="text/html" data-template-name="twitch-api-config">
@@ -219,7 +231,7 @@ RED.nodes.registerType('twitch-api-config', {
       <!-- Outside both steps: the device flow hides the login step while it waits
            for approval, and "Waiting for Twitch authorization…" is the message the
            user needs to see while that is happening. -->
-      <div id="twitch-auth-status" class="auth-status">Not logged in</div>
+      <div id="twitch-auth-status" class="auth-status">Not connected</div>
     </div>
 
     <input type="hidden" id="node-config-input-twitch_user_id">
