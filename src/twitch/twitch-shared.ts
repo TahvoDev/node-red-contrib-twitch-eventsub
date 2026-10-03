@@ -5,6 +5,48 @@ import type { HelixChatAnnouncementColor } from '@twurple/api';
 /** Twitch caps a timeout at two weeks, in seconds. */
 export const MAX_TIMEOUT_SECONDS = 1_209_600;
 
+const SECRET_KEYS = 'client_secret|refresh_token|access_token|password|authorization|code|token';
+
+/**
+ * Strip secret values out of free text. Twurple puts the failing request URL in
+ * `error.message`, so a query string (`?client_secret=…&refresh_token=…`), a JSON
+ * body (`"client_secret":"…"`) or an `Authorization: Bearer …` header can all
+ * appear. This is a display/log guard, not a security boundary — a producer that
+ * formats the value another way can still slip past it.
+ */
+export function redactSecrets(text: string): string {
+  return String(text ?? '')
+    .replace(/(authorization\s*[:=]\s*bearer\s+)\S+/gi, '$1[redacted]')
+    .replace(new RegExp(`\\b(${SECRET_KEYS})(?:=|%3D)[^&\\s"']+`, 'gi'), '$1=[redacted]')
+    .replace(new RegExp(`(${SECRET_KEYS})(["']?\\s*:\\s*["'])[^"']*`, 'gi'), '$1$2[redacted]');
+}
+
+/**
+ * {@link redactSecrets} plus a 200-code-point cap, so one error cannot blow out
+ * the node badge or the config dialog. The cap counts code points (not UTF-16
+ * units), so it never splits an emoji surrogate pair.
+ */
+export function redactStatusText(text: string): string {
+  const redacted = redactSecrets(text);
+  const chars = Array.from(redacted);
+  return chars.length > 200 ? `${chars.slice(0, 200).join('')}…` : redacted;
+}
+
+/**
+ * A redacted copy of an error for `node.error`/`node.warn`, so a failed auth
+ * request does not put the client secret and refresh token in the log or the
+ * debug sidebar. Returns the original error untouched when there was nothing to
+ * redact.
+ */
+export function redactError(error: unknown): Error | string {
+  if (!(error instanceof Error)) return redactSecrets(String(error ?? ''));
+  const message = redactSecrets(error.message);
+  if (message === error.message) return error;
+  const copy = new Error(message);
+  if (error.stack) copy.stack = error.stack.replace(error.message, message);
+  return copy;
+}
+
 const ANNOUNCEMENT_COLORS: readonly HelixChatAnnouncementColor[] = [
   'primary',
   'blue',

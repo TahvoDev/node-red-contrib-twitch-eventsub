@@ -2,6 +2,7 @@ import { EventSubWsListener } from '@twurple/eventsub-ws';
 import { ApiClient } from '@twurple/api';
 import type { Node } from 'node-red';
 import { EVENTS_BY_TYPE } from './eventsub-registry';
+import { redactStatusText } from '../twitch-shared';
 
 const RESTORE_RETRY_BASE_DELAY = 2000;
 const RESTORE_RETRY_MAX_DELAY = 30000;
@@ -58,7 +59,7 @@ class TwitchEventsubService {
     try {
       subscription.stop();
     } catch (error) {
-      this.node.warn(`Failed to unsubscribe from ${type}: ${(error as Error).message}`);
+      this.node.warn(`Failed to unsubscribe from ${type}: ${redactStatusText((error as Error)?.message ?? String(error))}`);
     }
   }
 
@@ -86,9 +87,13 @@ class TwitchEventsubService {
       // they are retried a few times instead of taking the whole runtime down with them.
       if (this.restoring) {
         this.pendingSubscriptions.add(type);
-        this.node.warn(`Could not resubscribe to ${type} yet: ${(error as Error).message}`);
+        this.node.warn(
+          `Could not resubscribe to ${type} yet: ${redactStatusText((error as Error)?.message ?? String(error))}`
+        );
       } else {
-        this.node.error(`Failed to subscribe to ${type}: ${error as Error}`);
+        this.node.error(
+          `Failed to subscribe to ${type}: ${redactStatusText((error as Error)?.message ?? String(error))}`
+        );
       }
     }
   }

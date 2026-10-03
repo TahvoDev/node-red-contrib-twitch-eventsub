@@ -142,15 +142,19 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   // A chat connection whose account auth throws must surface a red status on its
   // listener nodes instead of leaving them stuck on "Connecting..." forever.
   let ConnectionCtor
+  const logged = []
   const RED = {
     nodes: {
       createNode(created) {
         created.status = () => {}
-        created.error = () => {}
+        created.error = (e) => logged.push(e)
         created.on = () => {}
       },
       getNode: () => ({
-        initAuth: async () => { throw new Error('invalid refresh token') },
+        // A real Twurple failure embeds the request URL, secret and all.
+        initAuth: async () => {
+          throw new Error('invalid refresh token URL: token?client_secret=CHATSECRET&refresh_token=CHATREFRESH')
+        },
         getAuthProvider: () => undefined,
       }),
       registerType: (_type, ctor) => { ConnectionCtor = ctor },
@@ -164,6 +168,15 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   await new Promise((resolve) => setImmediate(resolve))
   assert.strictEqual(status.fill, 'red')
   assert.match(status.text, /Auth failed: invalid refresh token/)
+  // Neither the status nor the log/debug sidebar may carry the secret.
+  assert.ok(!/CHATSECRET|CHATREFRESH/.test(status.text), 'a secret leaked into the chat status')
+  assert.ok(logged.length > 0, 'the chat connection did not log the failure')
+  for (const entry of logged) {
+    assert.ok(
+      !/CHATSECRET|CHATREFRESH/.test(String((entry && entry.message) || entry)),
+      'a secret leaked into the chat log'
+    )
+  }
 
   console.log('chat nodes test: ok')
 })().catch((err) => {

@@ -14,6 +14,7 @@ import {
   type HelixSpec,
 } from './helix/define';
 import { enabledTiers } from './helix/helix-core';
+import { redactStatusText } from './twitch-shared';
 
 /** A field reduced to the metadata the twitch-api editor needs. */
 function serializeField(field: HelixField) {
@@ -397,6 +398,7 @@ module.exports = function (RED: NodeAPI) {
     }
 
     updateStatus(status: Status) {
+      status = { ...status, text: redactStatusText(status.text) };
       this.currentStatus = status;
       Object.values(this.nodeListeners).forEach((node) => {
         node.status(status);
