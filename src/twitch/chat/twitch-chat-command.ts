@@ -43,6 +43,9 @@ module.exports = function (RED: NodeAPI) {
 
       msg.command = command;
       msg.args = args;
+      // Opt-out only: an unconfigured node leaves the message as it was, so
+      // existing reply threading onto msg.id keeps working after upgrade.
+      if (config.noReply === true) msg.noReply = true;
       node.send(msg);
     });
   }

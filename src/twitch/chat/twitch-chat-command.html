@@ -6,6 +6,7 @@ RED.nodes.registerType('twitch-chat-command', {
     name: { value: '' },
     command: { value: '' },
     prefix: { value: '!' },
+    noReply: { value: false },
     requireMod: { value: false },
     requireSub: { value: false },
     requireVip: { value: false },
@@ -39,6 +40,14 @@ RED.nodes.registerType('twitch-chat-command', {
   <div class="form-row">
     <label for="node-input-prefix"><i class="fa fa-asterisk"></i> Prefix</label>
     <input type="text" id="node-input-prefix" placeholder="!" />
+  </div>
+
+  <hr>
+  <h4>Reply</h4>
+
+  <div class="form-row">
+    <label for="node-input-noReply"><i class="fa fa-reply"></i> Don't reply to the triggering message</label>
+    <input type="checkbox" id="node-input-noReply" style="display:inline-block; width:auto; vertical-align:top;">
   </div>
 
   <hr>
@@ -86,6 +95,11 @@ RED.nodes.registerType('twitch-chat-command', {
     <dt>prefix <span class="property-type">string</span></dt>
     <dd>The trigger character. Defaults to <code>!</code>.</dd>
 
+    <dt>Don't reply to the triggering message</dt>
+    <dd>When checked, the message is marked so a following <b>chat reply</b> sends a plain message
+    instead of threading onto the command message. Off by default, so reply threading behaves as
+    before.</dd>
+
     <dt>Permission checks</dt>
     <dd>If any checked requirement is not met, the message is dropped silently.</dd>
   </dl>
@@ -97,6 +111,10 @@ RED.nodes.registerType('twitch-chat-command', {
 
     <dt>args <span class="property-type">string[]</span></dt>
     <dd>The space-separated words that followed the command.</dd>
+
+    <dt>noReply <span class="property-type">boolean</span></dt>
+    <dd>Set to <code>true</code> when the node is configured not to reply, so a following
+    <b>chat reply</b> sends a plain message. Unset otherwise.</dd>
   </dl>
 
   <p>The full incoming message is passed through, so <code>msg.user</code>, <code>msg.channel</code>,

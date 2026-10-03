@@ -33,6 +33,7 @@ export interface ChatCommandConfig extends NodeDef {
   requireSub?: boolean;
   requireVip?: boolean;
   requireBroadcaster?: boolean;
+  noReply?: boolean;
 }
 
 /**
@@ -60,6 +61,8 @@ export interface TwitchChatMessage extends NodeMessageInFlow {
   announceColor?: string;
   command?: string;
   args?: string[];
+  /** Set by twitch-chat-command: true means the downstream reply sends plainly. */
+  noReply?: boolean;
   bits?: number;
   isCheer?: boolean;
   isMod?: boolean;

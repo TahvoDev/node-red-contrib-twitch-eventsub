@@ -13,6 +13,12 @@ module.exports = function (RED: NodeAPI) {
     }
 
     node.on('input', (msg, _send, done) => {
+      // twitch-chat-command can opt a match out of threading; when it does, send
+      // a plain message instead of replying.
+      if (msg.noReply === true) {
+        sendChatMessage(node, connection, config, msg, done);
+        return;
+      }
       // twitch-chat-in emits the message id as msg.id, so a reply can be wired
       // straight onto a chat message without a change node in between.
       const replyTo = msg.replyTo ?? msg.id;
