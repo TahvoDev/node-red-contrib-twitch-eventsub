@@ -6,6 +6,8 @@
  * with a clear message — never throw a raw TypeError out of the node.
  */
 
+import { safeErrorMessage } from '../twitch-shared';
+
 export interface HelixPagedResult<T> {
   data: T[];
   cursor: string | null;
@@ -232,7 +234,7 @@ function parseErrorBody(body: unknown): any {
 export function helixErrorMessage(err: unknown): string {
   const status = (err as any)?.statusCode;
   if (typeof status !== 'number') {
-    return (err as any)?.message ? String((err as any).message) : String(err);
+    return safeErrorMessage(err);
   }
 
   const body = parseErrorBody((err as any)?.body);

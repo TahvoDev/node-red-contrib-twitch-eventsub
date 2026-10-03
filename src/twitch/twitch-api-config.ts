@@ -14,6 +14,7 @@ import {
   type HelixSpec,
 } from './helix/define';
 import { enabledTiers } from './helix/helix-core';
+import { redactStatusText, safeErrorMessage } from './twitch-shared';
 
 /** A field reduced to the metadata the twitch-api editor needs. */
 function serializeField(field: HelixField) {
@@ -162,7 +163,7 @@ module.exports = function (RED: NodeAPI) {
       });
       res.status(response.status).json(await response.json());
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: safeErrorMessage(error) });
     }
   });
 
@@ -187,7 +188,7 @@ module.exports = function (RED: NodeAPI) {
       const user = await fetchTwitchUser(data.access_token, client_id);
       res.json({ ...data, twitch_user_id: user.id, twitch_user_login: user.login });
     } catch (error) {
-      res.status(500).json({ error: (error as Error).message });
+      res.status(500).json({ error: safeErrorMessage(error) });
     }
   });
 
@@ -291,7 +292,7 @@ module.exports = function (RED: NodeAPI) {
         this.log('Auth ready');
         this.updateStatus({ fill: 'yellow', shape: 'ring', text: 'Authenticated, subscribing…' });
       } catch (e: any) {
-        this.updateStatus({ fill: 'red', shape: 'ring', text: `Auth failed: ${e.message}` });
+        this.updateStatus({ fill: 'red', shape: 'ring', text: `Auth failed: ${safeErrorMessage(e)}` });
         throw e;
       }
     }
@@ -333,7 +334,7 @@ module.exports = function (RED: NodeAPI) {
         this.log(`Mock server on port ${mockPort} as user ${userId}`);
         this.updateStatus({ fill: 'blue', shape: 'ring', text: `Mock server :${mockPort}` });
       } catch (e: any) {
-        this.updateStatus({ fill: 'red', shape: 'ring', text: `Mock init failed: ${e.message}` });
+        this.updateStatus({ fill: 'red', shape: 'ring', text: `Mock init failed: ${safeErrorMessage(e)}` });
         throw e;
       }
     }
@@ -398,6 +399,7 @@ module.exports = function (RED: NodeAPI) {
     }
 
     updateStatus(status: Status) {
+      status = { ...status, text: redactStatusText(status.text) };
       this.currentStatus = status;
       // The config node's own status: Node-RED keeps it and republishes it to the
       // editor, which is where the config dialog reads the real connection state
@@ -416,7 +418,7 @@ module.exports = function (RED: NodeAPI) {
           if (!this.eventsubService) await this.initEventsub();
           this.eventsubService?.addSubscription(subscriptionType);
         })
-        .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: e.message }));
+        .catch((e) => this.updateStatus({ fill: 'red', shape: 'ring', text: safeErrorMessage(e) }));
     }
 
     async removeNode(id: string, subscriptionType: string, done: () => void) {

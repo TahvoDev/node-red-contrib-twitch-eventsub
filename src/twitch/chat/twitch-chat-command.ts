@@ -6,6 +6,7 @@ import {
   type ChatCommandConfig,
   type TwitchChatMessage,
 } from './twitch-chat-base';
+import { redactError } from '../twitch-shared';
 
 module.exports = function (RED: NodeAPI) {
   function TwitchChatCommandNode(this: Node, config: ChatCommandConfig) {
@@ -19,7 +20,7 @@ module.exports = function (RED: NodeAPI) {
     } catch (err) {
       // An unconfigured command would otherwise match every "!" message.
       node.status({ fill: 'red', shape: 'ring', text: 'no command set' });
-      node.error((err as Error).message);
+      node.error(redactError(err));
       return;
     }
 
