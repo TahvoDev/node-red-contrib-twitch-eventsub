@@ -30,9 +30,11 @@ const {
   MAX_TIMEOUT_SECONDS,
 } = base
 
-// A real Twurple auth failure embeds the request URL and form body in
-// error.message. Prefer the real class; fall back to a duck-typed stand-in so
-// the test does not depend on a transitive package being hoisted.
+// A real Twurple auth failure carries the secret in the request URL's query
+// string (see redact-secrets.test.js); this fixture puts it in the body, covering
+// the backstop rather than the URL case. Prefer the real class; fall back to a
+// duck-typed stand-in so the test does not depend on a transitive package being
+// hoisted.
 let makeHttpError
 try {
   const { HttpStatusCodeError } = require('@twurple/api-call')
