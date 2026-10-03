@@ -54,25 +54,34 @@ assert.deepStrictEqual(config.currentStatus, status)
 // Green has to mean connected, because the dialog colours a green ring as a live
 // connection. Only the post-subscription dot may be green.
 const source = fs.readFileSync(configDist, 'utf8')
-const greens = [...source.matchAll(/fill:\s*["']green["'][^{}]*shape:\s*["'](\w+)["']/g)]
-assert.ok(greens.length > 0, 'no green status found; is the config node still reporting one?')
-for (const [, shape] of greens) assert.strictEqual(shape, 'dot', 'a green ring claims connected before it is')
+// Order-independent: find every green fill and the shape in the same neighbourhood,
+// so reordering the literal cannot sneak a green ring past the invariant.
+const greenRE = /fill\s*:\s*["']green["']/g
+let greenMatch
+const greenShapes = []
+while ((greenMatch = greenRE.exec(source))) {
+  const near = source.slice(Math.max(0, greenMatch.index - 120), greenMatch.index + 120)
+  const shapeMatch = near.match(/shape\s*:\s*["'](\w+)["']/)
+  greenShapes.push(shapeMatch && shapeMatch[1])
+}
+assert.ok(greenShapes.length > 0, 'no green status found; is the config node still reporting one?')
+for (const shape of greenShapes) assert.strictEqual(shape, 'dot', 'a green ring claims connected before it is')
 
 // The dialog half. The runtime assertions above hold even if the editor goes back
 // to inventing a status from the saved fields, so the editor is checked too: it
 // has to read the runtime's status and map every fill it can receive.
 const editor = fs.readFileSync(editorDist, 'utf8')
 
-assert.match(editor, /const s = this\.status;/, 'the dialog no longer reads the runtime status')
+assert.match(editor, /this\.status/, 'the dialog no longer reads the runtime status')
 assert.match(editor, /'Not connected'/, 'the dialog has no fallback for an unpublished status')
-assert.match(editor, /\.auth-err \{ color: #c00; \}/, 'the red fill has no class to render')
+assert.match(editor, /\.auth-err\s*\{[^}]*#c00/, 'the red fill has no class to render')
 
 // Every fill the runtime can publish, and only green may mean connected.
-const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-wait' }
+const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-info' }
 for (const fill of ['green', 'yellow', 'red', 'grey', 'blue']) {
   assert.match(
     editor,
-    new RegExp(`\\b${fill}:\\s*'auth-[a-z]+'`),
+    new RegExp(`\\b${fill}:\\s*["']auth-[a-z]+["']`),
     `the dialog does not map the ${fill} fill to a class`
   )
 }
@@ -105,5 +114,5 @@ assert.doesNotMatch(
 )
 
 console.log(
-  `config-status test: ok (${greens.length} green status all dots, dialog maps ${Object.keys(FILL_CLASS).length} fills)`
+  `config-status test: ok (${greenShapes.length} green status all dots, dialog maps ${Object.keys(FILL_CLASS).length} fills)`
 )

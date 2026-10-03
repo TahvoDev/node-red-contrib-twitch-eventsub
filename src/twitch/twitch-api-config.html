@@ -32,7 +32,7 @@ RED.nodes.registerType('twitch-api-config', {
     function setAuthStatus(text, state) {
       const el = $('#twitch-auth-status');
       el
-        .removeClass('auth-ok auth-warn auth-wait auth-err')
+        .removeClass('auth-ok auth-warn auth-wait auth-err auth-info')
         .addClass(state || '')
         .text(text);
     }
@@ -101,7 +101,7 @@ RED.nodes.registerType('twitch-api-config', {
               setAuthStatus(
                 // The token is in the form and the runtime has not run with it yet,
                 // so this is not the green connected state. Deploy to connect.
-                'Authorised — deploy to connect',
+                'Authorized — deploy to connect',
                 'auth-wait'
               );
 
@@ -128,7 +128,7 @@ RED.nodes.registerType('twitch-api-config', {
     // The runtime's last published status, already stored and translated by the
     // editor's own status/# handler. No invented status from the saved fields:
     // a saved login says what was authorized, not what is connected now.
-    const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-wait' };
+    const FILL_CLASS = { green: 'auth-ok', yellow: 'auth-wait', red: 'auth-err', grey: 'auth-warn', blue: 'auth-info' };
     const s = this.status;
     setAuthStatus(
       s && s.text ? s.text : 'Not connected',
@@ -167,13 +167,21 @@ RED.nodes.registerType('twitch-api-config', {
     letter-spacing: 2px;
   }
   .auth-status {
-    margin-top: 10px;
+    margin: 10px auto 0;
     font-weight: bold;
+    /* A Twurple error carries a full URL; cap the line width so it wraps to a
+       compact block instead of one wide line, and cap the height to scroll. */
+    max-width: 32em;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+    max-height: 6.5em;
+    overflow-y: auto;
   }
   .auth-ok { color: #2ca02c; }
   .auth-err { color: #c00; }
-  .auth-warn { color: #999; }
+  .auth-warn { color: #666; }
   .auth-wait { color: #ff7f0e; }
+  .auth-info { color: #1f77b4; }
 </style>
 
 <script type="text/html" data-template-name="twitch-api-config">
