@@ -1,6 +1,6 @@
 import type { NodeAPI } from 'node-red';
 import { helixErrorMessage, shortStatus } from './twitch-helix-utils';
-import { sanitizeInbound } from '../twitch-shared';
+import { redactError, safeErrorMessage, sanitizeInbound } from '../twitch-shared';
 
 /**
  * A handler runs inside the base's try/catch. It may return:
@@ -67,7 +67,7 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
                 const message = helixErrorMessage(err);
                 node.status({ fill: 'red', shape: 'ring', text: shortStatus(message) });
                 const wrapped = new Error(message);
-                (wrapped as any).cause = err;
+                (wrapped as any).cause = redactError(err);
                 done(wrapped);
                 return;
             }
@@ -75,9 +75,9 @@ export function createHelixNode(RED: NodeAPI, node: any, config: any, handler: H
             node.status({
                 fill: 'red',
                 shape: 'ring',
-                text: shortStatus((err as Error)?.message || String(err)),
+                text: shortStatus(safeErrorMessage(err)),
             });
-            done(err);
+            done(redactError(err));
         }
     });
 }

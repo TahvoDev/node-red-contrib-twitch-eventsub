@@ -2,7 +2,7 @@ import type { Node, NodeAPI, NodeDef, NodeMessageInFlow } from 'node-red';
 import type { ChatClient } from '@twurple/chat';
 import type { ApiClient, BaseApiClient } from '@twurple/api';
 import type { AuthProvider } from '@twurple/auth';
-import { MAX_TIMEOUT_SECONDS, resolveAnnounceColor } from '../twitch-shared';
+import { MAX_TIMEOUT_SECONDS, redactError, redactStatusText, resolveAnnounceColor, safeErrorMessage } from '../twitch-shared';
 
 export type ChatStatus = {
   fill: 'red' | 'green' | 'yellow' | 'blue' | 'grey';
@@ -273,10 +273,10 @@ export async function sendChatMessage(
     node.status({});
     finish();
   } catch (err) {
-    node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
+    node.status({ fill: 'red', shape: 'ring', text: redactStatusText(safeErrorMessage(err)) });
     // node.error already logs and triggers a Catch node; finish() without the
     // error completes the message without reporting the same error twice.
-    node.error(err, msg);
+    node.error(redactError(err), msg);
     finish();
   }
 }
@@ -334,7 +334,7 @@ export async function runChatAction(
     await api.asUser(userId, (ctx) => handler(ctx, broadcasterId));
     node.status({});
   } catch (err) {
-    node.status({ fill: 'red', shape: 'ring', text: (err as Error).message });
-    node.error(err, msg);
+    node.status({ fill: 'red', shape: 'ring', text: redactStatusText(safeErrorMessage(err)) });
+    node.error(redactError(err), msg);
   }
 }

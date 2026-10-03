@@ -5,6 +5,82 @@ import type { HelixChatAnnouncementColor } from '@twurple/api';
 /** Twitch caps a timeout at two weeks, in seconds. */
 export const MAX_TIMEOUT_SECONDS = 1_209_600;
 
+/**
+ * Names whose value is a secret. `code` and the bare `token` are here so an
+ * OAuth device code or an unqualified token is caught too; a benign match is
+ * just redacted, which is harmless for a status badge or a log line.
+ */
+const SECRET_KEYS = 'client_secret|refresh_token|access_token|device_code|password|authorization|code|token';
+
+/**
+ * Strip secret values out of free text. Twurple's `HttpStatusCodeError` embeds
+ * the failing request's full URL in `error.message`, and an OAuth token request
+ * puts `client_secret`/`refresh_token` (or `code`/`token`) in that URL's query
+ * string. A form body, a JSON body or an `Authorization: Bearer …` header could
+ * carry a secret too, so those are backstops. This is a display/log guard, not a
+ * security boundary — a producer that formats the value another way can still
+ * slip past it.
+ */
+export function redactSecrets(text: unknown): string {
+  return String(text ?? '')
+    .replace(/(authorization\s*[:=]\s*bearer\s+)\S+/gi, '$1[redacted]')
+    .replace(new RegExp(`\\b(${SECRET_KEYS})(?:=|%3D)[^&\\s"']+`, 'gi'), '$1=[redacted]')
+    .replace(new RegExp(`(${SECRET_KEYS})(["']?\\s*:\\s*["'])[^"']*`, 'gi'), '$1$2[redacted]');
+}
+
+/**
+ * The message to show or log for a caught error, with secret values removed.
+ *
+ * Twurple's `HttpStatusCodeError` builds `message` from the failing request's
+ * full URL, and a failed token refresh leaves `client_secret` and
+ * `refresh_token` in that URL's query string. Those errors also expose
+ * `statusCode`/`url`, so they are recognised and reduced to the first line
+ * (`Encountered HTTP status code 400: Bad Request`), dropping URL/Method/Body
+ * outright. Anything else falls back to the regex scrub.
+ */
+export function safeErrorMessage(error: unknown): string {
+  const err = error as { message?: unknown; statusCode?: unknown; url?: unknown } | null | undefined;
+  if (err && typeof err.statusCode === 'number' && typeof err.url === 'string') {
+    return redactSecrets(String(err.message ?? '').split('\n')[0]);
+  }
+  if (typeof error === 'string') return redactSecrets(error);
+  if (err && err.message !== undefined) return redactSecrets(String(err.message));
+  return redactSecrets(String(error ?? ''));
+}
+
+/**
+ * {@link redactSecrets} plus a 200-code-point cap, so one error cannot blow out
+ * the node badge. The cap counts code points (not UTF-16 units), so it never
+ * splits an emoji surrogate pair.
+ */
+export function redactStatusText(text: unknown): string {
+  const redacted = redactSecrets(text);
+  const chars = Array.from(redacted);
+  return chars.length > 200 ? `${chars.slice(0, 200).join('')}…` : redacted;
+}
+
+/**
+ * A redacted copy of an error for `node.error`/`node.warn`, so a failed auth
+ * request does not put the client secret and refresh token in the log or the
+ * debug sidebar. Returns the original error untouched when there was nothing to
+ * redact.
+ */
+export function redactError(error: unknown): Error | string {
+  if (!(error instanceof Error)) return safeErrorMessage(error);
+  const message = safeErrorMessage(error);
+  if (message === error.message) return error;
+  const copy = new Error(message);
+  copy.name = error.name;
+  // Keep the non-sensitive metadata callers branch on (Twurple's statusCode,
+  // for example). url/body and a nested cause can carry the secret, so they are
+  // deliberately not copied.
+  if (typeof (error as any).statusCode === 'number') (copy as any).statusCode = (error as any).statusCode;
+  // A replacer function, so a `$&`/`$1` in the redacted message cannot expand to
+  // the matched original text and put the secret back into the stack.
+  if (error.stack && error.message) copy.stack = error.stack.replace(error.message, () => message);
+  return copy;
+}
+
 const ANNOUNCEMENT_COLORS: readonly HelixChatAnnouncementColor[] = [
   'primary',
   'blue',

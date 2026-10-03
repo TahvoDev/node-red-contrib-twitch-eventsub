@@ -8,6 +8,7 @@ import {
   type ChatStatus,
   parseChannels,
 } from './twitch-chat-base';
+import { redactError, redactStatusText, safeErrorMessage } from '../twitch-shared';
 
 module.exports = function (RED: NodeAPI) {
 
@@ -38,7 +39,7 @@ module.exports = function (RED: NodeAPI) {
       if (!this.account) {
         this.updateStatus({ fill: 'red', shape: 'ring', text: 'No Twitch account configured' });
       } else {
-        this.initChat().catch((e) => this.error(e));
+        this.initChat().catch((e) => this.error(redactError(e)));
       }
 
       // Tear the IRC connection down on redeploy/removal or it leaks.
@@ -80,7 +81,7 @@ module.exports = function (RED: NodeAPI) {
         this.updateStatus({
           fill: 'red',
           shape: 'ring',
-          text: `Auth failed: ${(e as Error).message}`,
+          text: `Auth failed: ${safeErrorMessage(e)}`,
         });
         throw e;
       }
@@ -141,7 +142,7 @@ module.exports = function (RED: NodeAPI) {
         onClient?.(this.chatClient);
         return;
       }
-      this.initChat().catch((e) => this.error(e));
+      this.initChat().catch((e) => this.error(redactError(e)));
     }
 
     removeListener(id: string) {
@@ -149,6 +150,7 @@ module.exports = function (RED: NodeAPI) {
     }
 
     updateStatus(status: ChatStatus) {
+      status = { ...status, text: redactStatusText(status.text) };
       this.currentStatus = status;
       this.status(status);
       this.listeners.forEach((entry) => entry.node.status(status));

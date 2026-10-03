@@ -24,10 +24,32 @@ const {
   parseChannels,
   resolveAnnounceColor,
   resolveUserId,
+  runChatAction,
   sanitizeChatText,
   MAX_CHAT_MESSAGE_LENGTH,
   MAX_TIMEOUT_SECONDS,
 } = base
+
+// A real Twurple auth failure carries the secret in the request URL's query
+// string (see redact-secrets.test.js); this fixture puts it in the body, covering
+// the backstop rather than the URL case. Prefer the real class; fall back to a
+// duck-typed stand-in so the test does not depend on a transitive package being
+// hoisted.
+let makeHttpError
+try {
+  const { HttpStatusCodeError } = require('@twurple/api-call')
+  makeHttpError = (body) =>
+    new HttpStatusCodeError(400, 'Bad Request', 'https://id.twitch.tv/oauth2/token', 'POST', body, false)
+} catch {
+  makeHttpError = (body) => {
+    const error = new Error(
+      `Encountered HTTP status code 400: Bad Request\n\nURL: https://id.twitch.tv/oauth2/token\nMethod: POST\nBody:\n${body}`
+    )
+    error.statusCode = 400
+    error.url = 'https://id.twitch.tv/oauth2/token'
+    return error
+  }
+}
 
 // twitch-chat-in emits the sender's chat colour as msg.color; it is a hex value,
 // not one of Twitch's announcement colours, and must not fail the announcement.
@@ -140,17 +162,24 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   )
 
   // A chat connection whose account auth throws must surface a red status on its
-  // listener nodes instead of leaving them stuck on "Connecting..." forever.
+  // listener nodes instead of leaving them stuck on "Connecting..." forever, and
+  // the failure must not carry the client secret/refresh token into the status
+  // or the log (a real Twurple error embeds both in its message).
   let ConnectionCtor
+  const logged = []
   const RED = {
     nodes: {
       createNode(created) {
         created.status = () => {}
-        created.error = () => {}
+        created.error = (e) => logged.push(e)
         created.on = () => {}
       },
       getNode: () => ({
-        initAuth: async () => { throw new Error('invalid refresh token') },
+        initAuth: async () => {
+          throw makeHttpError(
+            'grant_type=refresh_token&client_id=abc&client_secret=CHATSECRET&refresh_token=CHATREFRESH'
+          )
+        },
         getAuthProvider: () => undefined,
       }),
       registerType: (_type, ctor) => { ConnectionCtor = ctor },
@@ -163,7 +192,60 @@ assert.strictEqual(matchCommand('', '!hello'), undefined)
   connection.addListener('n1', { id: 'n1', status: (s) => { status = s }, error() {}, on() {} })
   await new Promise((resolve) => setImmediate(resolve))
   assert.strictEqual(status.fill, 'red')
-  assert.match(status.text, /Auth failed: invalid refresh token/)
+  assert.match(status.text, /Auth failed: Encountered HTTP status code 400/)
+  assert.ok(!/CHATSECRET|CHATREFRESH/.test(status.text), 'a secret leaked into the chat status')
+  assert.ok(logged.length > 0, 'the chat connection did not log the failure')
+  for (const entry of logged) {
+    const text = String((entry && entry.message) || entry)
+    assert.ok(!/CHATSECRET|CHATREFRESH/.test(text), 'a secret leaked into the chat log')
+    if (entry && entry.stack) {
+      assert.ok(!/CHATSECRET|CHATREFRESH/.test(entry.stack), 'a secret leaked into the chat stack')
+    }
+  }
+
+  // A chat action node routes its failure through runChatAction, whose status
+  // and node.error must be redacted too.
+  const actionStatuses = []
+  const actionErrors = []
+  const actionNode = {
+    status: (s) => actionStatuses.push(s),
+    error: (e) => actionErrors.push(e),
+  }
+  const actionApi = {
+    users: { getUserByName: async () => ({ id: 'broadcaster-1' }) },
+    asUser: async (_userId, fn) => fn({}),
+  }
+  const actionConnection = {
+    initChat: async () => ({}),
+    getApiClient: () => actionApi,
+    getUserId: () => 'user-1',
+  }
+  await runChatAction(
+    actionNode,
+    actionConnection,
+    { channel: 'redact-action-chan' },
+    {},
+    async () => {
+      throw makeHttpError(
+        'grant_type=refresh_token&client_secret=ACTSECRET&refresh_token=ACTREFRESH'
+      )
+    }
+  )
+  assert.ok(actionStatuses.some((s) => s.fill === 'red'), 'the chat action did not report a red status')
+  assert.ok(
+    !/ACTSECRET|ACTREFRESH/.test(JSON.stringify(actionStatuses)),
+    'a secret leaked into the chat action status'
+  )
+  assert.ok(actionErrors.length > 0, 'the chat action did not log the failure')
+  for (const entry of actionErrors) {
+    assert.ok(
+      !/ACTSECRET|ACTREFRESH/.test(String((entry && entry.message) || entry)),
+      'a secret leaked into the chat action log'
+    )
+    if (entry && entry.stack) {
+      assert.ok(!/ACTSECRET|ACTREFRESH/.test(entry.stack), 'a secret leaked into the chat action stack')
+    }
+  }
 
   console.log('chat nodes test: ok')
 })().catch((err) => {

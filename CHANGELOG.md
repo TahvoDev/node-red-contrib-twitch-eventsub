@@ -20,6 +20,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
   class instances (`autoMod`, `blockedTerms`, `reward`, `powerUp`, the charity amounts, the
   hype-train `topContributors`/`sharedTrainParticipants` and the shared-chat `participants`) to plain
   objects, so their strings are normalized too.
+- Twurple embeds the failing request's full URL in `HttpStatusCodeError.message`, and an OAuth
+  token request puts the client secret and refresh token in that URL's query string, so an auth
+  failure carried them into status text and the Node-RED log/debug sidebar. A shared guard
+  (`safeErrorMessage`/`redactStatusText`/`redactError`) now reduces a Twurple HTTP error to its
+  status line and scrubs any secret-looking value, applied at the config, chat, EventSub and Helix
+  error boundaries.
 ### Removed
 - The `user authorization granted` and `user authorization revoked` events. Twitch only delivers those topics over webhooks and conduits, never over the EventSub WebSocket, so the nodes could never fire; they only sat in the Event dropdown with a "not available over WebSocket" warning. The unsupported-event handling that existed solely for them (`unsupportedReason` in the registry, `onUnsupportedCb`/`warnedUnsupported` in the service, `unsupportedNodes` in the config node) was removed with them.
 ### Changed
