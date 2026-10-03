@@ -53,11 +53,11 @@ RED.nodes.registerType('twitch-chat-reply', {
     <dt class="optional">channel <span class="property-type">string</span></dt>
     <dd>Overrides the channel configured on the node.</dd>
 
-    <dt class="optional">reply <span class="property-type">boolean</span></dt>
-    <dd>When set to <code>false</code> by <b>chat command</b>, the message is sent plainly instead
+    <dt class="optional">noReply <span class="property-type">boolean</span></dt>
+    <dd>When set to <code>true</code> by <b>chat command</b>, the message is sent plainly instead
     of as a reply.</dd>
   </dl>
 
   <p>If the message carries neither <code>msg.replyTo</code> nor <code>msg.id</code> (and
-  <code>msg.reply</code> is not <code>false</code>) the node reports an error.</p>
+  <code>msg.noReply</code> is not <code>true</code>) the node reports an error.</p>
 </script>

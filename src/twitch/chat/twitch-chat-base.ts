@@ -33,7 +33,7 @@ export interface ChatCommandConfig extends NodeDef {
   requireSub?: boolean;
   requireVip?: boolean;
   requireBroadcaster?: boolean;
-  reply?: boolean;
+  noReply?: boolean;
 }
 
 /**
@@ -61,8 +61,8 @@ export interface TwitchChatMessage extends NodeMessageInFlow {
   announceColor?: string;
   command?: string;
   args?: string[];
-  /** Set by twitch-chat-command: false means the downstream reply sends plainly. */
-  reply?: boolean;
+  /** Set by twitch-chat-command: true means the downstream reply sends plainly. */
+  noReply?: boolean;
   bits?: number;
   isCheer?: boolean;
   isMod?: boolean;
@@ -198,23 +198,6 @@ export function buildCommandTrigger(
   const name = String(command ?? '').trim();
   if (!name) throw new Error('twitch-chat-command requires a command name');
   return { name, trigger: `${String(prefix || '!')}${name}`.toLowerCase() };
-}
-
-/**
- * Marks the matched command message as a reply or not. When the command node is
- * configured to reply, `msg.replyTo` is pinned to the triggering message's id;
- * otherwise `msg.reply` is set to false so twitch-chat-reply sends a plain
- * message instead of threading onto `msg.id`. `msg.id` itself is left alone
- * because the moderation nodes also read it.
- */
-export function applyCommandReply(msg: TwitchChatMessage, reply: unknown): void {
-  if (reply === true && typeof msg.id === 'string' && msg.id) {
-    msg.replyTo = msg.id;
-    msg.reply = true;
-    return;
-  }
-  delete msg.replyTo;
-  msg.reply = false;
 }
 
 /**

@@ -13,9 +13,9 @@ module.exports = function (RED: NodeAPI) {
     }
 
     node.on('input', (msg, _send, done) => {
-      // twitch-chat-command can turn threading off for its matches; when it does,
-      // send a plain message so the command's default (not a reply) is honoured.
-      if (msg.reply === false) {
+      // twitch-chat-command can opt a match out of threading; when it does, send
+      // a plain message instead of replying.
+      if (msg.noReply === true) {
         sendChatMessage(node, connection, config, msg, done);
         return;
       }

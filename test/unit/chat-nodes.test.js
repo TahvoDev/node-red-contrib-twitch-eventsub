@@ -16,7 +16,6 @@ const path = require('path')
 
 const base = require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 const {
-  applyCommandReply,
   buildCommandTrigger,
   clampTimeoutDuration,
   matchCommand,
@@ -114,27 +113,48 @@ assert.deepStrictEqual(buildCommandTrigger('', 'hello'), { name: 'hello', trigge
 assert.throws(() => buildCommandTrigger('!', ''), /requires a command name/)
 assert.throws(() => buildCommandTrigger('!', '   '), /requires a command name/)
 
-// The command node's reply option is off by default: it marks the message so a
-// downstream reply sends plainly, and only pins msg.replyTo when turned on. The
-// original msg.id is always left in place for the moderation nodes.
-const replyOff = { id: 'msg-1', replyTo: 'stale' }
-applyCommandReply(replyOff, false)
-assert.strictEqual(replyOff.reply, false)
-assert.strictEqual(replyOff.replyTo, undefined)
-assert.strictEqual(replyOff.id, 'msg-1')
-const replyUnset = { id: 'msg-1' }
-applyCommandReply(replyUnset, undefined)
-assert.strictEqual(replyUnset.reply, false)
-assert.strictEqual(replyUnset.replyTo, undefined)
-const replyOn = { id: 'msg-1' }
-applyCommandReply(replyOn, true)
-assert.strictEqual(replyOn.reply, true)
-assert.strictEqual(replyOn.replyTo, 'msg-1')
-// Nothing to reply to: fall back to a plain send rather than a dangling target.
-const replyNoId = {}
-applyCommandReply(replyNoId, true)
-assert.strictEqual(replyNoId.reply, false)
-assert.strictEqual(replyNoId.replyTo, undefined)
+// twitch-chat-command only records an explicit opt-out; it never rewrites the
+// reply target, so existing msg.id threading survives the upgrade.
+let CommandCtor
+{
+  const RED = {
+    nodes: {
+      createNode(created) {
+        created.status = () => {}
+        created.error = () => {}
+        created.on = (event, fn) => {
+          created.handlers = created.handlers || {}
+          created.handlers[event] = fn
+        }
+      },
+      registerType: (_type, ctor) => { CommandCtor = ctor },
+    },
+  }
+  require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-command.js'))(RED)
+}
+
+function runCommand(config, msg) {
+  const node = new CommandCtor(config)
+  let sent
+  node.send = (m) => { sent = m }
+  node.handlers.input(msg)
+  return sent
+}
+
+// Default (no config.noReply): the message is untouched, so a downstream reply
+// still threads onto msg.id exactly as it did before this option existed.
+const commandDefault = runCommand({ command: 'boop', prefix: '!' }, { payload: '!boop', id: 'm1' })
+assert.strictEqual(commandDefault.noReply, undefined)
+assert.strictEqual(commandDefault.replyTo, undefined)
+assert.strictEqual(commandDefault.id, 'm1')
+
+// Opted out: only msg.noReply is set. An upstream reply target is never wiped.
+const commandOptOut = runCommand(
+  { command: 'boop', prefix: '!', noReply: true },
+  { payload: '!boop', id: 'm1', replyTo: 'pinned' }
+)
+assert.strictEqual(commandOptOut.noReply, true)
+assert.strictEqual(commandOptOut.replyTo, 'pinned')
 
 // Command matching uses a token boundary, not a regex word boundary: the trigger
 // must be followed by whitespace or the end of the string. Case is ignored for
@@ -165,6 +185,58 @@ assert.strictEqual(matchCommand('hello', '!hello'), undefined)
 assert.strictEqual(matchCommand('', '!hello'), undefined)
 
 ;(async () => {
+  // twitch-chat-reply: msg.noReply means "send plainly", a msg.replyTo/msg.id
+  // still threads, and the two must be told apart. Drive the real node handler.
+  let ReplyCtor
+  const sayCalls = []
+  {
+    const connection = {
+      initChat: async () => ({
+        say: async (channel, text, options) => { sayCalls.push({ channel, text, options }) },
+      }),
+    }
+    const RED = {
+      nodes: {
+        createNode(created) {
+          created.status = () => {}
+          created.error = () => {}
+          created.on = (event, fn) => {
+            created.handlers = created.handlers || {}
+            created.handlers[event] = fn
+          }
+        },
+        getNode: (id) => (id === 'conn' ? connection : undefined),
+        registerType: (_type, ctor) => { ReplyCtor = ctor },
+      },
+    }
+    require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-reply.js'))(RED)
+  }
+
+  async function runReply(msg) {
+    sayCalls.length = 0
+    const node = new ReplyCtor({ connection: 'conn', channel: 'somechan' })
+    node.handlers.input(msg, () => {}, () => {})
+    await new Promise((resolve) => setImmediate(resolve))
+    return sayCalls[0]
+  }
+
+  assert.deepStrictEqual(await runReply({ payload: 'pong', id: 'm1' }), {
+    channel: 'somechan',
+    text: 'pong',
+    options: { replyTo: 'm1' },
+  })
+  assert.deepStrictEqual(await runReply({ payload: 'pong', replyTo: 'explicit', id: 'm1' }), {
+    channel: 'somechan',
+    text: 'pong',
+    options: { replyTo: 'explicit' },
+  })
+  // The command node's opt-out wins over any lingering msg.id.
+  assert.deepStrictEqual(await runReply({ payload: 'pong', id: 'm1', noReply: true }), {
+    channel: 'somechan',
+    text: 'pong',
+    options: undefined,
+  })
+
   const lookup = { users: { getUserByName: async (name) => ({ id: `looked-up-${name}` }) } }
 
   // An explicit id is used as-is and never looked up.

@@ -1,6 +1,5 @@
 import type { Node, NodeAPI } from 'node-red';
 import {
-  applyCommandReply,
   buildCommandTrigger,
   matchCommand,
   messageText,
@@ -44,9 +43,9 @@ module.exports = function (RED: NodeAPI) {
 
       msg.command = command;
       msg.args = args;
-      // Off by default: the downstream reply only threads onto the triggering
-      // message when the node is explicitly configured to reply.
-      applyCommandReply(msg as TwitchChatMessage, config.reply);
+      // Opt-out only: an unconfigured node leaves the message as it was, so
+      // existing reply threading onto msg.id keeps working after upgrade.
+      if (config.noReply === true) msg.noReply = true;
       node.send(msg);
     });
   }
