@@ -1,5 +1,6 @@
 import type { Node, NodeAPI } from 'node-red';
 import {
+  applyCommandReply,
   buildCommandTrigger,
   matchCommand,
   messageText,
@@ -43,6 +44,9 @@ module.exports = function (RED: NodeAPI) {
 
       msg.command = command;
       msg.args = args;
+      // Off by default: the downstream reply only threads onto the triggering
+      // message when the node is explicitly configured to reply.
+      applyCommandReply(msg as TwitchChatMessage, config.reply);
       node.send(msg);
     });
   }

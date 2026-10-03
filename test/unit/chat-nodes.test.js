@@ -16,6 +16,7 @@ const path = require('path')
 
 const base = require(path.join(__dirname, '..', '..', 'dist', 'twitch', 'chat', 'twitch-chat-base.js'))
 const {
+  applyCommandReply,
   buildCommandTrigger,
   clampTimeoutDuration,
   matchCommand,
@@ -112,6 +113,28 @@ assert.deepStrictEqual(buildCommandTrigger('!', 'hello'), { name: 'hello', trigg
 assert.deepStrictEqual(buildCommandTrigger('', 'hello'), { name: 'hello', trigger: '!hello' })
 assert.throws(() => buildCommandTrigger('!', ''), /requires a command name/)
 assert.throws(() => buildCommandTrigger('!', '   '), /requires a command name/)
+
+// The command node's reply option is off by default: it marks the message so a
+// downstream reply sends plainly, and only pins msg.replyTo when turned on. The
+// original msg.id is always left in place for the moderation nodes.
+const replyOff = { id: 'msg-1', replyTo: 'stale' }
+applyCommandReply(replyOff, false)
+assert.strictEqual(replyOff.reply, false)
+assert.strictEqual(replyOff.replyTo, undefined)
+assert.strictEqual(replyOff.id, 'msg-1')
+const replyUnset = { id: 'msg-1' }
+applyCommandReply(replyUnset, undefined)
+assert.strictEqual(replyUnset.reply, false)
+assert.strictEqual(replyUnset.replyTo, undefined)
+const replyOn = { id: 'msg-1' }
+applyCommandReply(replyOn, true)
+assert.strictEqual(replyOn.reply, true)
+assert.strictEqual(replyOn.replyTo, 'msg-1')
+// Nothing to reply to: fall back to a plain send rather than a dangling target.
+const replyNoId = {}
+applyCommandReply(replyNoId, true)
+assert.strictEqual(replyNoId.reply, false)
+assert.strictEqual(replyNoId.replyTo, undefined)
 
 // Command matching uses a token boundary, not a regex word boundary: the trigger
 // must be followed by whitespace or the end of the string. Case is ignored for
